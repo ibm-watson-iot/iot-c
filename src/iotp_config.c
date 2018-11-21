@@ -1,0 +1,568 @@
+/*******************************************************************************
+ * Copyright (c) 2018 IBM Corp.
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * and Eclipse Distribution License v1.0 which accompany this distribution.
+ *
+ * The Eclipse Public License is available at
+ *    http://www.eclipse.org/legal/epl-v10.html
+ * and the Eclipse Distribution License is available at
+ *   http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * 
+ * Contrinutors:
+ *    Ranjan Dasgupta         - Initial drop
+ *
+ *******************************************************************************/
+
+#include "iotp_utils.h"
+#include "iotp_rc.h"
+#include "iotp_config.h"
+#include "iotp_internal.h"
+
+extern char **environ;
+
+/* IoTPConfig_setLogHandler: Sets log handler */
+IoTP_RC IoTPConfig_setLogHandler(IoTPLogHandlerType type, void * handler)
+{
+    IoTP_RC rc = IoTP_SUCCESS;
+    rc = iotp_utils_setLogHandler(type, handler);
+    return rc;
+}
+
+/* IoTPConfig_create: Creates IBM Watson IoT client configuration object */
+IoTP_RC IoTPConfig_create(IoTPConfig **config, const char * configFileName)
+{
+    IoTP_RC rc = IoTP_SUCCESS;
+
+    /* Check if config handle is valid i.e. not NULL or already inited */
+    if ( *config != NULL ) {
+        rc = IoTP_RC_INVALID_HANDLE;
+        return rc;
+    }
+
+    LOG(INFO, "Create config object from file: %s", configFileName?configFileName:"");
+
+    /* Create configuration handle */
+    *config = (IoTPConfig *)calloc(1, sizeof(IoTPConfig));
+    if ( *config == NULL ) {
+        rc = IoTP_RC_NOMEM;
+        return rc;
+    }
+
+    /* Set defaults */
+    (*config)->domain = strdup("internetofthings.ibmcloud.com");
+    (*config)->port = 8883;
+    (*config)->serverCertificatePath = strdup("./IoTPlatform.pem");
+    (*config)->logLevel = LOGLEVEL_TRACE;
+    (*config)->MQTTTraceLevel = 5;
+    (*config)->device.authMethod = 0;
+    (*config)->gateway.authMethod = 0;
+
+    /* If configuration file is specified - process it */
+    if ( configFileName && *configFileName != '\0' ) {
+        rc = IoTPConfig_readConfigFile(*config, configFileName);
+    }
+
+    return rc;
+}
+
+
+/* Clears all properties from a configuration object */
+IoTP_RC IoTPConfig_clear(IoTPConfig *config) 
+{
+    IoTP_RC rc = IoTP_SUCCESS;
+
+    /* sanity check */
+    if (!config) {
+        rc = IoTP_RC_INVALID_HANDLE;
+    } else {
+        /* Free assigned memory */
+        iotp_utils_freePtr((void *)config->domain);
+        iotp_utils_freePtr((void *)config->serverCertificatePath);
+        iotp_utils_freePtr((void *)config->orgId);
+        iotp_utils_freePtr((void *)config->device.typeId);
+        iotp_utils_freePtr((void *)config->device.deviceId);
+        iotp_utils_freePtr((void *)config->device.authToken);
+        iotp_utils_freePtr((void *)config->device.certificatePath);
+        iotp_utils_freePtr((void *)config->device.keyPath);
+        iotp_utils_freePtr((void *)config->gateway.typeId);
+        iotp_utils_freePtr((void *)config->gateway.deviceId);
+        iotp_utils_freePtr((void *)config->gateway.authToken);
+        iotp_utils_freePtr((void *)config->gateway.certificatePath);
+        iotp_utils_freePtr((void *)config->gateway.keyPath);
+        iotp_utils_freePtr((void *)config->application.appId);
+        iotp_utils_freePtr((void *)config->application.APIKey);
+        iotp_utils_freePtr((void *)config->application.authToken);
+
+        /* Reset defaults */
+        config->domain = strdup("internetofthings.ibmcloud.com");
+        config->port = 8883;
+        config->serverCertificatePath = strdup("./IoTPlatform.pem");
+        config->device.authMethod = 0;
+        config->gateway.authMethod = 0;
+        config->logLevel = LOGLEVEL_TRACE;
+        config->MQTTTraceLevel = 5;
+    }
+    return rc;
+}
+
+
+/* Function to set Watson IoT configuration object properties */
+static IoTP_RC iotp_va_setProperty(IoTPConfig *config, const char * name, va_list param) 
+{
+    IoTP_RC rc = IoTP_SUCCESS;
+
+    char *argptr = NULL;
+    int   argint = 0;
+
+    /* sanity check */
+    if (!config) {
+        rc = IoTP_RC_INVALID_HANDLE;
+        return rc;
+    }
+    if (!name || *name == '\0') {
+        rc = IoTP_RC_INVALID_PARAM;
+        return rc;
+    }
+
+
+    /* Process Platform configuration items */
+    if ( !strncasecmp(name, "Platform.", 9)) {
+        /* Process Platform.domain */
+        if ( !strcasecmp(name, IoTPConfig_Platform_domain)) {
+            argptr = va_arg(param, char *);
+            if (argptr == NULL || *argptr == '\0') {
+                rc = IoTP_RC_PARAM_NULL_VALUE;
+            } else {
+                if ( config->domain ) 
+                    iotp_utils_freePtr((void *)config->domain);
+                config->domain = strdup(argptr);
+            }
+            goto setPropDone;
+        }
+    
+        /* Process Platform.port */
+        if ( !strcasecmp(name, IoTPConfig_Platform_port)) {
+            argptr = va_arg(param, char *);
+            argint = atoi(argptr);
+            if (argint == 1883 || argint == 443 || argint == 8883) {
+                config->port =  argint;
+            } else {
+                rc = IoTP_RC_PARAM_INVALID_VALUE;
+            }
+            goto setPropDone;
+        }
+
+        /* Process Platform.serverCertificatePath */
+        if ( !strcasecmp(name, IoTPConfig_Platform_serverCertificatePath)) {
+            argptr = va_arg(param, char *);
+            if (argptr == NULL || *argptr == '\0') {
+                rc = IoTP_RC_PARAM_NULL_VALUE;
+            } else {
+                if ( config->serverCertificatePath ) 
+                    iotp_utils_freePtr((void *)config->serverCertificatePath);
+                config->serverCertificatePath = strdup(argptr);
+            }
+            goto setPropDone;
+        }
+    }
+
+
+    /* Process Organization configuration items */
+    if ( !strncasecmp(name, "Organization.", 13)) {
+        /* Process Organization.id */
+        if ( !strcasecmp(name, IoTPConfig_Organization_id)) {
+            argptr = va_arg(param, char *);
+            if (argptr == NULL || *argptr == '\0') {
+                rc = IoTP_RC_PARAM_NULL_VALUE;
+            } else {
+                int len = strlen(argptr);
+                if ( len < 1 || len > 6 ) {
+                    rc = IoTP_RC_PARAM_INVALID_VALUE;
+                } else {
+                    config->orgId = strdup(argptr);
+                    LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Organization_id, config->orgId);
+                }
+            }
+            goto setPropDone;
+        }
+    }
+
+
+    /* Process Device configuration items */
+    if ( !strncasecmp(name, "Device.", 7)) {
+        /* Process Device.typeId */
+        if ( !strcasecmp(name, IoTPConfig_Device_typeId)) {
+            argptr = va_arg(param, char *);
+            if (argptr == NULL || *argptr == '\0') {
+                rc = IoTP_RC_PARAM_NULL_VALUE;
+            } else {
+                config->device.typeId =  strdup(argptr);
+                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Device_typeId, config->device.typeId);
+            }
+            goto setPropDone;
+        }
+
+        /* Process Device.deviceId */
+        if ( !strcasecmp(name, IoTPConfig_Device_deviceId)) {
+            argptr = va_arg(param, char *);
+            if (argptr == NULL || *argptr == '\0') {
+                rc = IoTP_RC_PARAM_NULL_VALUE;
+            } else {
+                config->device.deviceId =  strdup(argptr);
+                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Device_deviceId, config->device.deviceId);
+            }
+            goto setPropDone;
+        }
+    
+        /* Process Device.authMethod */
+        if ( !strcasecmp(name, IoTPConfig_Device_authMethod)) {
+            argptr = va_arg(param, char *);
+            if (argptr == NULL || *argptr == '\0') {
+                config->device.authMethod =  0;
+            } else if ( argptr && !strcasecmp(argptr, "token")) {
+                config->device.authMethod =  1;
+            } else if ( argptr && !strcmp(argptr, "cert")) {
+                config->device.authMethod =  2;
+            } else {
+                rc = IoTP_RC_PARAM_INVALID_VALUE;
+            }
+            goto setPropDone;
+        }
+    
+        /* Process Device.authToken */
+        if ( !strcasecmp(name, IoTPConfig_Device_authToken)) {
+            argptr = va_arg(param, char *);
+            if (argptr == NULL || *argptr == '\0') {
+                rc = IoTP_RC_PARAM_NULL_VALUE;
+            } else {
+                config->device.authToken =  strdup(argptr);
+            }
+            goto setPropDone;
+        }
+    
+        /* Process Device.certificatePath */
+        if ( !strcasecmp(name, IoTPConfig_Device_certificatePath)) {
+            argptr = va_arg(param, char *);
+            if (argptr == NULL || *argptr == '\0') {
+                rc = IoTP_RC_PARAM_NULL_VALUE;
+            } else {
+                config->device.certificatePath =  strdup(argptr);
+            }
+            goto setPropDone;
+        }
+    
+        /* Process Device.keyPath */
+        if ( !strcasecmp(name, IoTPConfig_Device_keyPath)) {
+            argptr = va_arg(param, char *);
+            if (argptr == NULL || *argptr == '\0') {
+                rc = IoTP_RC_PARAM_NULL_VALUE;
+            } else {
+                config->device.keyPath =  strdup(argptr);
+            }
+            goto setPropDone;
+        }
+    }
+
+
+    /* Process Gateway configuration items */
+    if ( !strncasecmp(name, "Gateway.", 7)) {
+        /* Process Gateway.typeId */
+        if ( !strcasecmp(name, IoTPConfig_Gateway_typeId)) {
+            argptr = va_arg(param, char *);
+            if (argptr == NULL || *argptr == '\0') {
+                rc = IoTP_RC_PARAM_NULL_VALUE;
+            } else {
+                config->gateway.typeId =  strdup(argptr);
+            }
+            goto setPropDone;
+        }
+    
+        /* Process Gateway.deviceId */
+        if ( !strcasecmp(name, IoTPConfig_Gateway_deviceId)) {
+            argptr = va_arg(param, char *);
+            if (argptr == NULL || *argptr == '\0') {
+                rc = IoTP_RC_PARAM_NULL_VALUE;
+            } else {
+                config->gateway.deviceId =  strdup(argptr);
+            }
+            goto setPropDone;
+        }
+    
+        /* Process Gateway.authMethod */
+        if ( !strcasecmp(name, IoTPConfig_Gateway_authMethod)) {
+            argptr = va_arg(param, char *);
+            if (argptr == NULL || *argptr == '\0') {
+                config->gateway.authMethod =  0;
+            } else if ( argptr && !strcasecmp(argptr, "token")) {
+                config->gateway.authMethod =  1;
+            } else if ( argptr && !strcmp(argptr, "cert")) {
+                config->gateway.authMethod =  2;
+            } else {
+                rc = IoTP_RC_PARAM_INVALID_VALUE;
+            }
+            goto setPropDone;
+        }
+    
+        /* Process Gateway.authToken */
+        if ( !strcasecmp(name, IoTPConfig_Gateway_authToken)) {
+            argptr = va_arg(param, char *);
+            if (argptr == NULL || *argptr == '\0') {
+                rc = IoTP_RC_PARAM_NULL_VALUE;
+            } else {
+                config->gateway.authToken =  strdup(argptr);
+            }
+            goto setPropDone;
+        }
+    
+        /* Process Gateway.certificatePath */
+        if ( !strcasecmp(name, IoTPConfig_Gateway_certificatePath)) {
+            argptr = va_arg(param, char *);
+            if (argptr == NULL || *argptr == '\0') {
+                rc = IoTP_RC_PARAM_NULL_VALUE;
+            } else {
+                config->gateway.certificatePath =  strdup(argptr);
+            }
+            goto setPropDone;
+        }
+    
+        /* Process Gateway.keyPath */
+        if ( !strcasecmp(name, IoTPConfig_Gateway_keyPath)) {
+            argptr = va_arg(param, char *);
+            if (argptr == NULL || *argptr == '\0') {
+                rc = IoTP_RC_PARAM_NULL_VALUE;
+            } else {
+                config->gateway.keyPath =  strdup(argptr);
+            }
+            goto setPropDone;
+        }
+    }
+
+
+    /* Process Application configuration items */
+    if ( !strncasecmp(name, "Application.", 12)) {
+        /* Process Application.appId */
+        if ( !strcasecmp(name, IoTPConfig_Application_appId)) {
+            argptr = va_arg(param, char *);
+            if (argptr == NULL || *argptr == '\0') {
+                rc = IoTP_RC_PARAM_NULL_VALUE;
+            } else {
+                config->application.appId = strdup(argptr);
+            }
+            goto setPropDone;
+        }
+
+        /* Process Application.APIKey */
+        if ( !strcasecmp(name, IoTPConfig_Application_APIKey)) {
+            argptr = va_arg(param, char *);
+            if (argptr == NULL || *argptr == '\0') {
+                rc = IoTP_RC_PARAM_NULL_VALUE;
+            } else {
+                config->application.APIKey = strdup(argptr);
+            }
+            goto setPropDone;
+        }
+
+        /* Process Application.authToken */
+        if ( !strcasecmp(name, IoTPConfig_Application_authToken)) {
+            argptr = va_arg(param, char *);
+            if (argptr == NULL || *argptr == '\0') {
+                rc = IoTP_RC_PARAM_NULL_VALUE;
+            } else {
+                config->application.authToken = strdup(argptr);
+            }
+            goto setPropDone;
+        }
+    }
+
+
+    /* Process Debug configuration items */
+    if ( !strncasecmp(name, "Debug.", 6)) {
+        /* Process Debug.logLevel */
+        if ( !strcasecmp(name, IoTPConfig_Debug_logLevel)) {
+            argptr = va_arg(param, char *);
+            argint = atoi(argptr); 
+            LOG(INFO, "argint=%d", argint);
+            if (argint < 1 || argint > 5) {
+                rc = IoTP_RC_PARAM_INVALID_VALUE;
+            } else {
+                config->logLevel = argint;
+                iotp_utils_setLogLevel(config->logLevel);
+            }
+            goto setPropDone;
+        }
+
+        /* Process Debug.MQTTTraceLevel */
+        if ( !strcasecmp(name, IoTPConfig_Debug_MQTTTraceLevel)) {
+            argptr = va_arg(param, char *);
+            argint = atoi(argptr);
+            if (argint < 1 || argint > 6) {
+                rc = IoTP_RC_PARAM_NULL_VALUE;
+            } else {
+                config->MQTTTraceLevel = argint;
+            }
+            goto setPropDone;
+        }
+    }
+
+    /* Could not find any valid configuration */
+    rc = IoTP_RC_INVALID_PARAM;
+
+setPropDone:
+
+    if (rc != IoTP_SUCCESS) {
+        LOG(ERROR, "Could not set parameter %s. rc=%d", name, rc);
+    }
+
+    return rc;
+}
+
+
+/* IoTPConfig_setProperty: Set IoTP configuration object properties */
+IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, ...)
+{
+    IoTP_RC rc = 0;
+
+    va_list arg;
+    if ( config == NULL )
+        return IoTP_RC_INVALID_HANDLE;
+
+    va_start(arg, name);
+    rc = iotp_va_setProperty(config, name, arg);
+    va_end(arg);
+
+    return rc;
+}
+
+
+/* Function to set Watson IoT configuration object properties */
+/* Reads configuration properties from file */
+IoTP_RC IoTPConfig_readConfigFile(IoTPConfig *config, const char *configFileName) 
+{
+    IoTP_RC rc = IoTP_SUCCESS;
+
+    char line[256];
+    char *propname = NULL;
+    int linenum = 0;
+    FILE *fd;
+
+    /* sanity check */
+    if (!config) {
+        rc = IoTP_RC_INVALID_HANDLE;
+        LOG(ERROR, "Invalid config handle");
+        return rc;
+    }
+    if (!configFileName || *configFileName == '\0' || ((fd = fopen(configFileName, "r")) == NULL)) {
+        rc = IoTP_RC_FILE_OPEN;
+        LOG(ERROR, "Unable to open config file: %s", configFileName?configFileName:"");
+        return rc;
+    }
+
+    LOG(TRACE, "Process config file: %s", configFileName?configFileName:"" );
+
+    /* Process configuration file entries */
+    if (rc == IoTP_SUCCESS) {
+
+        char *category = NULL;
+
+        while (fgets(line, 256, fd) != NULL) {
+            char *prop = NULL;
+            char *value = NULL;
+            int len = 0;
+
+            linenum++;
+
+            if (line[0] == '#' || line[0] == '\0')
+                 continue;
+
+            if (line[0] == ' ') {
+
+                /* process category items */
+                prop = strtok(line, ":");
+                value = strtok(NULL, ":");
+                if (prop) iotp_utils_trim(prop);
+                if (value) iotp_utils_trim(value);
+
+                /* ignore comment line */
+                if (prop && *prop == '#')
+                    continue;
+
+                if (!prop || *prop == '\0' || !value || !category) {
+                    rc = IoTP_RC_INVALID_PARAM;
+                    LOG(WARN, "Invalid entry in config file: %s", line);
+                    break;
+                }
+
+                /* process config item of the category */
+                len = strlen(category) + strlen(prop) + 2;
+                propname = (char *)malloc(len);
+                snprintf(propname, len, "%s.%s", category, prop);
+                LOG(DEBUG, "Process config parameter: %s  value=%s", propname, value);
+                rc = IoTPConfig_setProperty(config, propname, value);
+                iotp_utils_freePtr((void *)propname);
+                if ( rc != IoTP_SUCCESS )
+                    return rc;
+
+            } else {
+
+                /* process category name */
+                prop = strtok(line, ":");
+                value = strtok(NULL, ":");
+                if (prop) iotp_utils_trim(prop);
+                if (value) iotp_utils_trim(value);
+
+                if (!prop || *prop == '\0' || (value && *value != '\0') ) {
+                    continue;
+                }
+
+                /* set category value */
+                if (category) iotp_utils_freePtr((void *)category);
+                category = strdup(prop);
+
+            }
+        }
+
+        if (category) iotp_utils_freePtr((void *)category);
+
+        /* close configuration file */
+        fclose(fd);
+    }
+
+    return rc;
+}
+
+
+/* Reads configuration properties from environment variables */
+IoTP_RC IoTPConfig_readEnvironment(IoTPConfig *config) 
+{
+    IoTP_RC rc = IoTP_SUCCESS;
+
+    /* sanity check */
+    if (!config) {
+        rc = IoTP_RC_INVALID_HANDLE;
+        return rc;
+    }
+
+    for ( char **env = environ; *env; ++env )
+    {
+        char *envval = strdup(*env);
+        char *prop = strtok(envval, "=");
+        char *value = strtok(NULL, "=");
+        if (prop) iotp_utils_trim(prop);
+        if (value) iotp_utils_trim(value);
+
+        if ( prop && !strncasecmp(prop, "IoTPConfig.", 11) && value && *value != '\0' )
+        {
+            char *name = prop + 11;
+            rc = IoTPConfig_setProperty(config, name, value);
+            if ( rc != IoTP_SUCCESS )
+                return rc;
+        }
+    }
+
+    return rc;
+}
+
+
