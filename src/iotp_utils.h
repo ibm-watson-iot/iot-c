@@ -41,13 +41,14 @@
 #include <libgen.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <ctype.h>
+#include <dlfcn.h>
 
 #include "iotp_rc.h"
-#include "iotp_config.h"
 
 extern FILE *logger;
 
@@ -91,6 +92,20 @@ typedef enum QoS {
     QoS2  = 2
 } QoS;
 
+/**
+ *  List of Log handler types
+ */
+typedef enum IoTPLogTypes {
+    /** Callback function */
+    IoTPLog_Callback = 1,
+
+    /** File pointer */
+    IoTPLog_FilePointer = 2,
+
+    /** File descriptor */
+    IoTPLog_FileDescriptor = 3
+
+} IoTPLogTypes;
 
 /**
  * IoTPCallbackHandler: Handler to process callbacks
@@ -144,7 +159,7 @@ DLLExport char * iotp_utils_trim(char *str);
 DLLExport void iotp_utils_generateUUID(char* uuid_str);
 DLLExport void iotp_utils_delay(long milsecs);
 DLLExport void iotp_utils_writeClientVersion(void);
-DLLExport IoTP_RC iotp_utils_setLogHandler(IoTPLogHandlerType type, void * handler);
+DLLExport IoTP_RC iotp_utils_setLogHandler(IoTPLogTypes type, void * handler);
 
 #define LOG(sev, fmts...) \
         iotp_utils_logInvoke((LOGLEVEL_##sev), __FUNCTION__, __FILE__, __LINE__, fmts);

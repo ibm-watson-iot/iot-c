@@ -256,7 +256,7 @@ TEST_CS_RUN = $(addprefix $(blddir)/test/,$(TEST_CS_EXES))
 all: build
 
 # build: | paho-mqtt iotp-client-as-libs sample-as iotp-client-cs-libs sample-cs
-build: | iotp-as-libs
+build: | iotp-as-libs sample-as
 
 clean:
 	rm -rf $(blddir)/*
@@ -277,12 +277,13 @@ iotp-application-as-libs: iotp-client-as-lib $(APPLICATION_AS_LIB_TARGET)
 iotp-as-libs: iotp-device-as-libs iotp-gateway-as-libs iotp-application-as-libs
 
 sample-as: iotp-as-libs  $(SAMPLE_AS_EXES)
+sample-cs: iotp-cs-libs  $(SAMPLE_CS_EXES)
 
-sample-cs: iotp-client-cs-libs  $(SAMPLE_CS_EXES)
-test-as: iotp-client-as-libs $(TEST_AS_EXES)
+test-as: iotp-as-libs $(TEST_AS_EXES)
 test-cs: iotp-client-cs-libs $(TEST_CS_EXES)
-test-as-run: build $(TEST_AS_EXES) $(TEST_AS_RUN)
-test-cs-run: build $(TEST_CS_EXES) $(TEST_CS_RUN)
+
+test-as-run: build test-as $(TEST_AS_RUN)
+test-cs-run: build test-cs $(TEST_CS_RUN)
 
 paho-mqtt-download:
 	echo "Downloading paho mqtt c source and setup for build"
@@ -358,8 +359,8 @@ $(TEST_UTILS_OBJS): $(TEST_UTILS_SRCS)
 $(blddir)/test/%_tests.o: test/%_tests.c
 	$(CC) -c -g -o $@ $< -I $(srcdir)
 
-$(blddir)/test/%_tests_as: $(blddir)/test/%_tests.o $(TEST_UTILS_OBJS) $(IOTPLIB_AS_TARGET)
-	$(CC) -g -o $@ $< $(TEST_UTILS_OBJS) -l$(IOTPLIB_AS) -l$(PAHO_MQTT_AS_LIB_NAME) $(FLAGS_EXES)
+$(blddir)/test/%_tests_as: $(blddir)/test/%_tests.o $(TEST_UTILS_OBJS) iotp-as-libs
+	$(CC) -g -o $@ $< $(TEST_UTILS_OBJS) -l$(CLIENT_AS_LIB_NAME) -l$(DEVICE_AS_LIB_NAME) -l$(GATEWAY_AS_LIB_NAME) -l$(APPLICATION_AS_LIB_NAME) -l$(PAHO_MQTT_AS_LIB_NAME) $(FLAGS_EXES)
 
 %(blddir)/test/%_tests_cs: $(blddir)/samples/%_tests.o $(TEST_UTILS_OBJS) $(IOTPLIB_CS_TARGET)
 	$(CC) -g -o $@ $^ $(TEST_UTILS_OBJS) -l$(IOTPLIB_CS) -l$(PAHO_MQTT_CS_LIB_NAME) $(FLAGS_EXES)

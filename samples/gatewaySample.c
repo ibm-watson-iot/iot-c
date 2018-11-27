@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
     getopts(argc, argv);
 
     /* Set IoTP Client log handler */
-    rc = IoTPConfig_setLogHandler(IoTPLogHandler_FileDescriptor, stdout);
+    rc = IoTPConfig_setLogHandler(IoTPLog_FileDescriptor, stdout);
     if ( rc != 0 ) {
         fprintf(stderr, "WARN: Failed to set IoTP Client log handler: rc=%d\n", rc);
     }

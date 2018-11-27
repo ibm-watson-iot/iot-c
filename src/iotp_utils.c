@@ -25,6 +25,9 @@ static int versionWritten = 0;
 static int logLevel = LOGLEVEL_TRACE;   /* Default logging level */
 FILE *logger = NULL;
 IoTPLogHandler *lgh = NULL;
+char *LogMsgFormat = "%s %s %s %d: %s: %s\n";
+int maxBufSize = 8500;
+char message[8500];
 
 /* LOG Level string */
 static char * iotp_utils_logLevelStr(int level)
@@ -46,7 +49,8 @@ void iotp_utils_logInvoke(IoTPLogLevel level, const char * func, const char * fi
     va_list args;
     char buf[MAX_LOG_BUFSIZE];
 
-    iotp_utils_writeClientVersion();
+    memset(buf, '0', MAX_LOG_BUFSIZE);
+    memset(message, '0', maxBufSize);
 
     if ((int)level <= logLevel) 
     {
@@ -54,14 +58,7 @@ void iotp_utils_logInvoke(IoTPLogLevel level, const char * func, const char * fi
         vsnprintf(buf, MAX_LOG_BUFSIZE, fmts, args);
         va_end(args);
 
-        char *fname = basename((char *)file);
-        char *levelStr = iotp_utils_logLevelStr(level);
-        char *tstamp = __TIMESTAMP__;
-        char *format = "%s %s %s %d: %s: %s\n";
-
-        int len = strlen(tstamp) + strlen(func) + strlen(fname) + strlen(levelStr) + strlen(buf) + strlen(format) - 16;
-        char message[len];
-        snprintf(message, len, format, __TIMESTAMP__, func, basename((char *)file), line, iotp_utils_logLevelStr(level), buf);
+        snprintf(message, maxBufSize, LogMsgFormat, __TIMESTAMP__, func, basename((char *)file), line, iotp_utils_logLevelStr(level), buf);
 
         if ( lgh != NULL ) {
             (*lgh)(level, message);
@@ -178,25 +175,81 @@ void iotp_utils_writeClientVersion(void)
     }
 }
 
+/* check if pointer is a valid function pointer - return 1 if valid */
+int iotp_get_handlerType(void *handler)  
+{
+    Dl_info info;
+    int rc = dladdr(handler, &info);
+    if ( rc == 0 ) return 0;
+    if ( info.dli_sname ) {
+        if ( strcmp(info.dli_sname, "__sF") == 0 ) {
+            return 2; /* stdout or stderr */
+        } else if ( strcmp(info.dli_sname, "usual") == 0 ) {
+            return 3; /* File pointer */
+        }
+    }
+    return 1; /* Function pointer */
+}
+
+
 /* Set log handler */
-IoTP_RC iotp_utils_setLogHandler(IoTPLogHandlerType type, void * handler) 
+IoTP_RC iotp_utils_setLogHandler(IoTPLogTypes type, void * handler) 
 {
     IoTP_RC rc = IoTP_SUCCESS;
 
     if ( handler == NULL ) {
-        LOG(WARN, "NULL Log handler is specified. Use default stdout");
+        LOG(WARN, "NULL Log handler is specified.");
         logger = stdout;
-        rc = IoTP_RC_PARAM_INVALID_VALUE;
+        rc = IoTP_RC_PARAM_NULL_VALUE;
     } else {
-        if ( type == IoTPLogHandler_Callback ) {
-            lgh = (IoTPLogHandler *)handler;
-            LOG(INFO, "Log handler is set to Log callback function.");
-        } else if ( type == IoTPLogHandler_FileDescriptor ) {
-            logger = (FILE *)handler;
-            LOG(INFO, "Log handler is set to specified file descriptor.");
+        int hType = iotp_get_handlerType(handler);
+        if ( type == IoTPLog_Callback ) {
+            if ( hType == 1 ) { 
+                lgh = (IoTPLogHandler *)handler;
+                logger = NULL;
+                iotp_utils_writeClientVersion();
+                LOG(INFO, "Log handler is set to callback function.");
+            } else {
+                lgh = NULL;
+                logger = stdout;
+                rc = IoTP_RC_PARAM_INVALID_VALUE;
+                LOG(WARN, "Invalid Log FuncPointer is specified.");
+            }
+        } else if ( type == IoTPLog_FilePointer ) {
+            if ( hType == 2 || hType == 3 ) { 
+                lgh = NULL;
+                logger = (FILE *)handler;
+                iotp_utils_writeClientVersion();
+                if ( hType == 2 ) {
+                    LOG(INFO, "Log handler is set to %s.", handler == stdout? "stdout":"stderr");
+                } else {
+                    LOG(INFO, "Log handler is set to a file pointer.");
+                }
+            } else {
+                lgh = NULL;
+                logger = stdout;
+                rc = IoTP_RC_PARAM_INVALID_VALUE;
+                LOG(WARN, "Invalid Log FilePointer is specified.");
+            }
+        } else if ( type == IoTPLog_FileDescriptor ) {
+            int *fdaddr = (int *)handler;
+            int fd = *fdaddr;
+            LOG(INFO, "Log file descriptor handle is %d", fd);
+            if ( fd > 0 && fd < 1024 ) { 
+                lgh = NULL;
+                logger = fdopen(fd, "a");
+                iotp_utils_writeClientVersion();
+                LOG(INFO, "Log handler is set to a file descriptor.");
+            } else {
+                lgh = NULL;
+                logger = stdout;
+                rc = IoTP_RC_PARAM_INVALID_VALUE;
+                LOG(WARN, "Invalid Log FileDescriptor handle is specified.");
+            }
         } else {
+            logger = stdout;
             rc = IoTP_RC_PARAM_INVALID_VALUE;
-            LOG(WARN, "Invalid Log handler type is specified. Use default stdout");
+            LOG(WARN, "Invalid Log handler type is specified.");
         }
     }
 

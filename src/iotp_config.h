@@ -110,7 +110,7 @@ typedef struct IoTPConfig IoTPConfig;
 /**
  *  List of Watson IoT Platform clients 
  */
-typedef enum IoTPClientType {
+typedef enum {
     /** Device client */
     IoTPClient_device = 1,
 
@@ -133,19 +133,6 @@ typedef enum IoTPClientType {
     IoTPClient_total = 6 
 
 } IoTPClientType;
-
-
-/**
- *  List of Log handler types 
- */
-typedef enum IoTPLogHandlerType {
-    /** Callback function */
-    IoTPLogHandler_Callback = 1,
-
-    /** File descriptor */
-    IoTPLogHandler_FileDescriptor = 2
-
-} IoTPLogHandlerType;
 
 
 /* List of configuration parameters to create IoTPConfig object */
@@ -299,7 +286,7 @@ typedef enum IoTPLogHandlerType {
  * @return IoTP_RC  - IoTP_SUCCESS for success or IoTP_RC_*
  *
  */
-DLLExport IoTP_RC IoTPConfig_setLogHandler(IoTPLogHandlerType type, void * handler);
+DLLExport IoTP_RC IoTPConfig_setLogHandler(IoTPLogTypes type, void * handler);
 
 /**
  * IoTPConfig_create: Creates IoTPConfig object.
@@ -381,7 +368,7 @@ DLLExport IoTP_RC IoTPConfig_readEnvironment(IoTPConfig *config);
  *                       - IoTP_RC_QUICKSTART_NOT_SUPPORTED if a specified parameter is not valid for quitckstart
  *
  */
-DLLExport IoTP_RC IoTPConfig_setProperty(IoTPConfig * config, const char * name, ...);
+DLLExport IoTP_RC IoTPConfig_setProperty(IoTPConfig * config, const char * name, const char * value);
 
 
 /**
@@ -398,6 +385,26 @@ DLLExport IoTP_RC IoTPConfig_setProperty(IoTPConfig * config, const char * name,
  *
  */
 DLLExport IoTP_RC IoTPConfig_clear(IoTPConfig *config);
+
+
+/*
+ * IoTPConfig_getProperty: Returns the settings of an individual property
+ *
+ * @param config         - A pointer to an IoTPConfig handle.
+ *
+ * @param name           - Name of the property
+ *
+ * @param value          - Buffer to return property value
+ *
+ * @param len            - Length of value buffer
+ *
+ * @return IoTP_RC  - Returns one of the following codes: 
+ *                       - IoTP_SUCCESS for success
+ *                       - IoTP_RC_INVALID_HANDLE if handle is not valid
+ *                       - IoTP_RC_INVALID_PARAM if a specified parameter is not valid
+ *
+ */
+DLLExport IoTP_RC IoTPConfig_getProperty(IoTPConfig *config, const char * name, char ** value, int len);
 
 
 #if defined(__cplusplus)
