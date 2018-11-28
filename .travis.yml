@@ -17,6 +17,7 @@ matrix:
       os: linux
 
 before_install:
+  - chmod +x *.sh
   - ./travis-install.sh
 
 script:
