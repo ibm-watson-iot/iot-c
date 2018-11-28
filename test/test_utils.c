@@ -23,8 +23,7 @@ int failures = 0;
 
 void testStart(const char *desc, int count)
 {
-    printf("\nStart TEST: %s\n", desc);
-    printf("Number of TestSuites: %d\n\n", count);
+    printf("\nTEST-Start: %s | TestSuites=%d\n", desc, count);
     total = 0;
     failures = 0;
 }
@@ -41,15 +40,15 @@ void testAssert(const char *fname, int lineno, char *desc, int val, const char *
     ++total;
     if (!val) {
         ++failures;
-        printf("%2d | Failed | %s | %d | %s | %s\n", total, basename((char *)fname), lineno, desc, buf);
+        printf("TEST-%2d | Failed | %s | %d | %s | %s\n", total, basename((char *)fname), lineno, desc, buf);
     } else {
-        printf("%2d | Passed | %s | %d | %s | %s\n", total, basename((char *)fname), lineno, desc, buf);
+        printf("TEST-%2d | Passed | %s | %d | %s | %s\n", total, basename((char *)fname), lineno, desc, buf);
     }
     fflush(stdout);
 }
 
-void testEnd(void)
+void testEnd(const char *desc, int count)
 {
-    printf("\nTest Status: Total:%d  Failures:%d\n\n", total, failures);
+    printf("\nTEST-Summary: %s : TotalSuites=%d  TotalTests=%d  Failures=%d\n\n", desc, count, total, failures);
 }
 

@@ -110,7 +110,10 @@ typedef enum {
     IoTP_RC_ARGS_INVALID_VALUE = 1012,
     
     /** Error while executing the Client certificate callback */
-    IoTP_RC_CERT_CALLBACK = 1013
+    IoTP_RC_CERT_CALLBACK = 1013,
+
+    /** Can not destoy a handle which is in use */
+    IoTP_RC_HANDLE_IN_USE = 1014
 
 } IoTP_RC;
 

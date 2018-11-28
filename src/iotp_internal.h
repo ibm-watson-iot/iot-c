@@ -66,40 +66,32 @@ char * IoTPClient_names[IoTPClient_total] = {
     "ManagedGateway"
 };
 
-/* Structure for IoTPConfig object */
+/* IoTP client */
+typedef struct iotc {
+        char * typeId;
+        char * deviceId;
+        int    authMethod;
+        char * authToken;
+        char * certificatePath;
+        char * keyPath;
+} iotc;
+/* IoTP application */
+typedef struct iota {
+        char * appId;
+        char * authToken;
+        char * APIKey;
+} iota;
+/* IoTP config object */
 typedef struct IoTPConfig {
-
     char * orgId;
     char * domain;
     char * serverCertificatePath;
     int    port;
     int    logLevel;
     int    MQTTTraceLevel;
-
-    struct {
-        char * typeId;
-        char * deviceId;
-        int    authMethod;
-        char * authToken;
-        char * certificatePath;
-        char * keyPath;
-    } device;
-
-    struct {
-        char * typeId;
-        char * deviceId;
-        int    authMethod;
-        char * authToken;
-        char * certificatePath;
-        char * keyPath;
-    } gateway;
-
-    struct {
-        char * appId;
-        char * authToken;
-        char * APIKey;
-    } application;
-
+    iotc * device;
+    iotc * gateway;
+    iota * application;
 } IoTPConfig;
 
 

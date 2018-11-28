@@ -1,0 +1,28 @@
+sudo: required
+language: c
+
+compiler:
+  - gcc
+  - clang
+
+os:
+  - linux
+  - osx
+
+matrix:
+  exclude:
+    - compiler: gcc
+      os: osx
+    - compiler: clang
+      os: linux
+
+before_install:
+  - ./travis-install.sh
+
+script:
+  - ./travis-build.sh
+
+after_success:
+  - ./travis-run-test.sh
+
+

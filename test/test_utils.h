@@ -36,7 +36,7 @@
 
 DLLExport void testStart(const char * desc, int count);
 DLLExport void testAssert(const char *fname, int lineno, char *desc, int val, const char *fmt, ...);
-DLLExport void testEnd(void);
+DLLExport void testEnd(const char *desc, int count);
 
 
 #endif 

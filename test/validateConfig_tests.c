@@ -25,6 +25,11 @@
  * This file contains test functions to test validation of following APIs:
  * - IoTPConfig_setHandler
  * - IoTPConfig_create
+ * - IoTPConfig_readConfigFile
+ * - IoTPConfig_readEnvironment
+ * - IoTPConfig_setProperty
+ * - IoTPConfig_getProperty
+ * - IoTPConfig_clear
  */
 
 int logCallbackActive = 0;
@@ -109,6 +114,10 @@ int testConfig_create(void)
     int rc = IoTP_SUCCESS;
 
     IoTPConfig *config = NULL;
+
+    rc = IoTPConfig_create(NULL, NULL);
+    TEST_ASSERT("IoTPConfig_create: Init with NULL handle", rc == IoTP_RC_INVALID_HANDLE, "rcE=%d rcA=%d", IoTP_RC_INVALID_HANDLE, rc);
+
     rc = IoTPConfig_create(&config, NULL);
     TEST_ASSERT("IoTPConfig_create: Init with NULL file", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
@@ -441,7 +450,7 @@ int main(int argc, char** argv)
         printf("\n");
     }
 
-    testEnd();
+    testEnd("IBM IoT Platform Client: Config API Tests", count);
 
     return rc;
 }

@@ -102,13 +102,15 @@ void  applicationCommandCallback (char* type, char* id, char* commandName, char 
 
 void logCallback (int level, char * message)
 {
-    fprintf(stdout, "%s\n", message? message:"NULL");
+    if ( level > 0 ) 
+        fprintf(stdout, "%s\n", message? message:"NULL");
     fflush(stdout);
 }
 
 void MQTTTraceCallback (int level, char * message)
 {
-    fprintf(stdout, "%s\n", message? message:"NULL");
+    if ( level > 0 ) 
+        fprintf(stdout, "%s\n", message? message:"NULL");
     fflush(stdout);
 }
 

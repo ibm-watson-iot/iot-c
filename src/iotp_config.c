@@ -35,7 +35,7 @@ IoTP_RC IoTPConfig_create(IoTPConfig **config, const char * configFileName)
     IoTP_RC rc = IoTP_SUCCESS;
 
     /* Check if config handle is valid i.e. not NULL or already inited */
-    if ( *config != NULL ) {
+    if ( config == NULL || *config != NULL ) {
         rc = IoTP_RC_INVALID_HANDLE;
         return rc;
     }
@@ -56,8 +56,9 @@ IoTP_RC IoTPConfig_create(IoTPConfig **config, const char * configFileName)
     (*config)->serverCertificatePath = strdup("./IoTPlatform.pem");
     (*config)->logLevel = LOGLEVEL_TRACE;
     (*config)->MQTTTraceLevel = 5;
-    (*config)->device.authMethod = 0;
-    (*config)->gateway.authMethod = 0;
+    (*config)->device = (iotc *)calloc(1, sizeof(iotc));
+    (*config)->gateway = (iotc *)calloc(1, sizeof(iotc));
+    (*config)->application = (iota *)calloc(1, sizeof(iota));
 
     /* If configuration file is specified - process it */
     if ( configFileName && *configFileName != '\0' ) {
@@ -77,32 +78,36 @@ IoTP_RC IoTPConfig_clear(IoTPConfig *config)
     if (!config) {
         rc = IoTP_RC_INVALID_HANDLE;
     } else {
-        /* Free assigned memory */
+        /* free config object */
+        iotp_utils_freePtr((void *)config->orgId);
         iotp_utils_freePtr((void *)config->domain);
         iotp_utils_freePtr((void *)config->serverCertificatePath);
-        iotp_utils_freePtr((void *)config->orgId);
-        iotp_utils_freePtr((void *)config->device.typeId);
-        iotp_utils_freePtr((void *)config->device.deviceId);
-        iotp_utils_freePtr((void *)config->device.authToken);
-        iotp_utils_freePtr((void *)config->device.certificatePath);
-        iotp_utils_freePtr((void *)config->device.keyPath);
-        iotp_utils_freePtr((void *)config->gateway.typeId);
-        iotp_utils_freePtr((void *)config->gateway.deviceId);
-        iotp_utils_freePtr((void *)config->gateway.authToken);
-        iotp_utils_freePtr((void *)config->gateway.certificatePath);
-        iotp_utils_freePtr((void *)config->gateway.keyPath);
-        iotp_utils_freePtr((void *)config->application.appId);
-        iotp_utils_freePtr((void *)config->application.APIKey);
-        iotp_utils_freePtr((void *)config->application.authToken);
-
-        /* Reset defaults */
-        config->domain = strdup("internetofthings.ibmcloud.com");
-        config->port = 8883;
-        config->serverCertificatePath = strdup("./IoTPlatform.pem");
-        config->device.authMethod = 0;
-        config->gateway.authMethod = 0;
-        config->logLevel = LOGLEVEL_TRACE;
-        config->MQTTTraceLevel = 5;
+        if ( config->device != NULL ) {
+            iotc *device = config->device;
+            iotp_utils_freePtr((void *)device->typeId);
+            iotp_utils_freePtr((void *)device->deviceId);
+            iotp_utils_freePtr((void *)device->authToken);
+            iotp_utils_freePtr((void *)device->certificatePath);
+            iotp_utils_freePtr((void *)device->keyPath);
+            iotp_utils_freePtr((void *)config->device);
+        }
+        if ( config->gateway != NULL ) {
+            iotc *gateway = config->gateway;
+            iotp_utils_freePtr((void *)gateway->typeId);
+            iotp_utils_freePtr((void *)gateway->deviceId);
+            iotp_utils_freePtr((void *)gateway->authToken);
+            iotp_utils_freePtr((void *)gateway->certificatePath);
+            iotp_utils_freePtr((void *)gateway->keyPath);
+            iotp_utils_freePtr((void *)config->gateway);
+        }
+        if ( config->application != NULL ) {
+            iota *application = config->application;
+            iotp_utils_freePtr((void *)application->appId);
+            iotp_utils_freePtr((void *)application->APIKey);
+            iotp_utils_freePtr((void *)application->authToken);
+            iotp_utils_freePtr((void *)config->application);
+        }
+        iotp_utils_freePtr(config);
     }
     return rc;
 }
@@ -221,12 +226,12 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
             if (argptr == NULL || *argptr == '\0') {
                 rc = IoTP_RC_PARAM_NULL_VALUE;
             } else {
-                if ( config->device.typeId ) 
-                    iotp_utils_freePtr((void *)config->device.typeId);
-                config->device.typeId =  strdup(argptr);
+                if ( config->device->typeId ) 
+                    iotp_utils_freePtr((void *)config->device->typeId);
+                config->device->typeId =  strdup(argptr);
             }
             if (rc == IoTP_SUCCESS) {
-                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Device_typeId, config->device.typeId);
+                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Device_typeId, config->device->typeId);
             }
             goto setPropDone;
         }
@@ -236,12 +241,12 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
             if (argptr == NULL || *argptr == '\0') {
                 rc = IoTP_RC_PARAM_NULL_VALUE;
             } else {
-                if ( config->device.deviceId ) 
-                    iotp_utils_freePtr((void *)config->device.deviceId);
-                config->device.deviceId =  strdup(argptr);
+                if ( config->device->deviceId ) 
+                    iotp_utils_freePtr((void *)config->device->deviceId);
+                config->device->deviceId =  strdup(argptr);
             }
             if (rc == IoTP_SUCCESS) {
-                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Device_deviceId, config->device.deviceId);
+                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Device_deviceId, config->device->deviceId);
             }
             goto setPropDone;
         }
@@ -251,16 +256,16 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
             if (argint != 0 ) {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
             } else if (argptr == NULL || *argptr == '\0') {
-                config->device.authMethod =  0;
+                config->device->authMethod =  0;
             } else if ( argptr && !strcasecmp(argptr, "token")) {
-                config->device.authMethod =  1;
+                config->device->authMethod =  1;
             } else if ( argptr && !strcmp(argptr, "cert")) {
-                config->device.authMethod =  2;
+                config->device->authMethod =  2;
             } else {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
             }
             if (rc == IoTP_SUCCESS) {
-                LOG(INFO, "Set config parameter: %s To: %d", IoTPConfig_Device_authMethod, config->device.authMethod);
+                LOG(INFO, "Set config parameter: %s To: %d", IoTPConfig_Device_authMethod, config->device->authMethod);
             }
             goto setPropDone;
         }
@@ -270,16 +275,16 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
             if (argint != 0 ) {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
             } else if ( !argptr || *argptr == '\0' ) {
-                if ( config->device.authToken ) 
-                    iotp_utils_freePtr((void *)config->device.authToken);
-                config->device.authToken =  NULL;
+                if ( config->device->authToken ) 
+                    iotp_utils_freePtr((void *)config->device->authToken);
+                config->device->authToken =  NULL;
             } else {
-                if ( config->device.authToken ) 
-                    iotp_utils_freePtr((void *)config->device.authToken);
-                config->device.authToken =  strdup(argptr);
+                if ( config->device->authToken ) 
+                    iotp_utils_freePtr((void *)config->device->authToken);
+                config->device->authToken =  strdup(argptr);
             }
             if (rc == IoTP_SUCCESS) {
-                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Device_authToken, config->device.authToken? config->device.authToken : "NULL");
+                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Device_authToken, config->device->authToken? config->device->authToken : "NULL");
             }
             goto setPropDone;
         }
@@ -289,16 +294,16 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
             if (argint != 0 ) {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
             } else if ( !argptr || *argptr == '\0' ) {
-                if ( config->device.certificatePath ) 
-                    iotp_utils_freePtr((void *)config->device.certificatePath);
-                config->device.certificatePath =  NULL;
+                if ( config->device->certificatePath ) 
+                    iotp_utils_freePtr((void *)config->device->certificatePath);
+                config->device->certificatePath =  NULL;
             } else {
-                if ( config->device.certificatePath ) 
-                    iotp_utils_freePtr((void *)config->device.certificatePath);
-                config->device.certificatePath =  strdup(argptr);
+                if ( config->device->certificatePath ) 
+                    iotp_utils_freePtr((void *)config->device->certificatePath);
+                config->device->certificatePath =  strdup(argptr);
             }
             if (rc == IoTP_SUCCESS) {
-                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Device_certificatePath, config->device.certificatePath? config->device.certificatePath : "NULL");
+                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Device_certificatePath, config->device->certificatePath? config->device->certificatePath : "NULL");
             }
             goto setPropDone;
         }
@@ -308,16 +313,16 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
             if (argint != 0 ) {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
             } else if ( !argptr || *argptr == '\0' ) {
-                if ( config->device.keyPath ) 
-                    iotp_utils_freePtr((void *)config->device.keyPath);
-                config->device.keyPath =  NULL;
+                if ( config->device->keyPath ) 
+                    iotp_utils_freePtr((void *)config->device->keyPath);
+                config->device->keyPath =  NULL;
             } else {
-                if ( config->device.keyPath ) 
-                    iotp_utils_freePtr((void *)config->device.keyPath);
-                config->device.keyPath =  strdup(argptr);
+                if ( config->device->keyPath ) 
+                    iotp_utils_freePtr((void *)config->device->keyPath);
+                config->device->keyPath =  strdup(argptr);
             }
             if (rc == IoTP_SUCCESS) {
-                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Device_keyPath, config->device.keyPath? config->device.keyPath : "NULL" );
+                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Device_keyPath, config->device->keyPath? config->device->keyPath : "NULL" );
             }
             goto setPropDone;
         }
@@ -331,12 +336,12 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
             if (argptr == NULL || *argptr == '\0') {
                 rc = IoTP_RC_PARAM_NULL_VALUE;
             } else {
-                if ( config->gateway.typeId ) 
-                    iotp_utils_freePtr((void *)config->gateway.typeId);
-                config->gateway.typeId =  strdup(argptr);
+                if ( config->gateway->typeId ) 
+                    iotp_utils_freePtr((void *)config->gateway->typeId);
+                config->gateway->typeId =  strdup(argptr);
             }
             if (rc == IoTP_SUCCESS) {
-                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Gateway_typeId, config->gateway.typeId);
+                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Gateway_typeId, config->gateway->typeId);
             }
             goto setPropDone;
         }
@@ -346,12 +351,12 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
             if (argptr == NULL || *argptr == '\0') {
                 rc = IoTP_RC_PARAM_NULL_VALUE;
             } else {
-                if ( config->gateway.deviceId ) 
-                    iotp_utils_freePtr((void *)config->gateway.deviceId);
-                config->gateway.deviceId =  strdup(argptr);
+                if ( config->gateway->deviceId ) 
+                    iotp_utils_freePtr((void *)config->gateway->deviceId);
+                config->gateway->deviceId =  strdup(argptr);
             }
             if (rc == IoTP_SUCCESS) {
-                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Gateway_deviceId, config->gateway.deviceId);
+                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Gateway_deviceId, config->gateway->deviceId);
             }
             goto setPropDone;
         }
@@ -361,16 +366,16 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
             if (argint != 0 ) {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
             } else if (argptr == NULL || *argptr == '\0') {
-                config->gateway.authMethod =  0;
+                config->gateway->authMethod =  0;
             } else if ( argptr && !strcasecmp(argptr, "token")) {
-                config->gateway.authMethod =  1;
+                config->gateway->authMethod =  1;
             } else if ( argptr && !strcmp(argptr, "cert")) {
-                config->gateway.authMethod =  2;
+                config->gateway->authMethod =  2;
             } else {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
             }
             if (rc == IoTP_SUCCESS) {
-                LOG(INFO, "Set config parameter: %s To: %d", IoTPConfig_Gateway_authMethod, config->gateway.authMethod);
+                LOG(INFO, "Set config parameter: %s To: %d", IoTPConfig_Gateway_authMethod, config->gateway->authMethod);
             }
             goto setPropDone;
         }
@@ -380,16 +385,16 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
             if (argint != 0 ) {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
             } else if ( !argptr || *argptr == '\0' ) {
-                if ( config->gateway.authToken ) 
-                    iotp_utils_freePtr((void *)config->gateway.authToken);
-                config->gateway.authToken =  NULL;
+                if ( config->gateway->authToken ) 
+                    iotp_utils_freePtr((void *)config->gateway->authToken);
+                config->gateway->authToken =  NULL;
             } else {
-                if ( config->gateway.authToken ) 
-                    iotp_utils_freePtr((void *)config->gateway.authToken);
-                config->gateway.authToken =  strdup(argptr);
+                if ( config->gateway->authToken ) 
+                    iotp_utils_freePtr((void *)config->gateway->authToken);
+                config->gateway->authToken =  strdup(argptr);
             }
             if (rc == IoTP_SUCCESS) {
-                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Gateway_authToken, config->gateway.authToken? config->gateway.authToken : "NULL");
+                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Gateway_authToken, config->gateway->authToken? config->gateway->authToken : "NULL");
             }
             goto setPropDone;
         }
@@ -399,16 +404,16 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
             if (argint != 0 ) {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
             } else if ( !argptr || *argptr == '\0' ) {
-                if ( config->gateway.certificatePath ) 
-                    iotp_utils_freePtr((void *)config->gateway.certificatePath);
-                config->gateway.certificatePath =  NULL;
+                if ( config->gateway->certificatePath ) 
+                    iotp_utils_freePtr((void *)config->gateway->certificatePath);
+                config->gateway->certificatePath =  NULL;
             } else {
-                if ( config->gateway.certificatePath ) 
-                    iotp_utils_freePtr((void *)config->gateway.certificatePath);
-                config->gateway.certificatePath =  strdup(argptr);
+                if ( config->gateway->certificatePath ) 
+                    iotp_utils_freePtr((void *)config->gateway->certificatePath);
+                config->gateway->certificatePath =  strdup(argptr);
             }
             if (rc == IoTP_SUCCESS) {
-                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Gateway_certificatePath, config->gateway.certificatePath? config->gateway.certificatePath : "NULL");
+                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Gateway_certificatePath, config->gateway->certificatePath? config->gateway->certificatePath : "NULL");
             }
             goto setPropDone;
         }
@@ -418,16 +423,16 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
             if (argint != 0 ) {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
             } else if ( !argptr || *argptr == '\0' ) {
-                if ( config->gateway.keyPath ) 
-                    iotp_utils_freePtr((void *)config->gateway.keyPath);
-                config->gateway.keyPath =  NULL;
+                if ( config->gateway->keyPath ) 
+                    iotp_utils_freePtr((void *)config->gateway->keyPath);
+                config->gateway->keyPath =  NULL;
             } else {
-                if ( config->gateway.keyPath ) 
-                    iotp_utils_freePtr((void *)config->gateway.keyPath);
-                config->gateway.keyPath =  strdup(argptr);
+                if ( config->gateway->keyPath ) 
+                    iotp_utils_freePtr((void *)config->gateway->keyPath);
+                config->gateway->keyPath =  strdup(argptr);
             }
             if (rc == IoTP_SUCCESS) {
-                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Gateway_keyPath, config->gateway.keyPath? config->gateway.keyPath : "NULL" );
+                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Gateway_keyPath, config->gateway->keyPath? config->gateway->keyPath : "NULL" );
             }
             goto setPropDone;
         }
@@ -443,9 +448,9 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
             } else if (argptr == NULL || *argptr == '\0') {
                 rc = IoTP_RC_PARAM_NULL_VALUE;
             } else {
-                if ( config->application.appId ) 
-                    iotp_utils_freePtr((void *)config->application.appId);
-                config->application.appId = strdup(argptr);
+                if ( config->application->appId ) 
+                    iotp_utils_freePtr((void *)config->application->appId);
+                config->application->appId = strdup(argptr);
             }
             goto setPropDone;
         }
@@ -457,9 +462,9 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
             } else if (argptr == NULL || *argptr == '\0') {
                 rc = IoTP_RC_PARAM_NULL_VALUE;
             } else {
-                if ( config->application.APIKey ) 
-                    iotp_utils_freePtr((void *)config->application.APIKey);
-                config->application.APIKey = strdup(argptr);
+                if ( config->application->APIKey ) 
+                    iotp_utils_freePtr((void *)config->application->APIKey);
+                config->application->APIKey = strdup(argptr);
             }
             goto setPropDone;
         }
@@ -471,9 +476,9 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
             } else if (argptr == NULL || *argptr == '\0') {
                 rc = IoTP_RC_PARAM_NULL_VALUE;
             } else {
-                if ( config->application.authToken ) 
-                    iotp_utils_freePtr((void *)config->application.authToken);
-                config->application.authToken = strdup(argptr);
+                if ( config->application->authToken ) 
+                    iotp_utils_freePtr((void *)config->application->authToken);
+                config->application->authToken = strdup(argptr);
             }
             goto setPropDone;
         }

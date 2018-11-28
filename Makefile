@@ -195,7 +195,7 @@ define run-test
     @echo ==== Run Test: $(notdir $(1))
     @echo ==== Time: $(shell date +%T)
     @echo ---- Use MQTT Paho asynchronous library
-    LD_LIBRARY_PATH=$(paholibdir):$(iotplibdir) $(1)
+    LD_LIBRARY_PATH=$(paholibdir):$(iotplibdir) $(blddir)/test/$(1)
 endef
 
 SED_I = sed -i
@@ -220,21 +220,12 @@ define run-test
     @echo ==== Run Test: $(notdir $(1))
     @echo ==== Time: $(shell date +%T)
     @echo ---- Use MQTT Paho asynchronous library
-    DYLD_LIBRARY_PATH=$(paholibdir):$(iotplibdir) $(1)
+    DYLD_LIBRARY_PATH=$(paholibdir):$(iotplibdir) $(blddir)/test/$(1)
 endef
 
 SED_I = sed -i bak
 
 endif
-
-
-#
-# WIoTP client Samples
-#
-SAMPLE_SRCS = $(wildcard samples/*.c)
-SAMPLE_AS_EXES = $(patsubst samples/%.c, $(blddir)/samples/%_as, $(SAMPLE_SRCS))
-SAMPLE_CS_EXES = $(patsubst samples/%.c, $(blddir)/samples/%_cs, $(SAMPLE_SRCS))
-
 
 # 
 # Unit Tests
@@ -246,23 +237,21 @@ TEST_UTILS_OBJS = $(addprefix $(blddir)/test/,$(TEST_UTILS_O))
 TEST_SRCS = $(wildcard test/*_tests.c)
 TEST_AS_EXES = $(patsubst test/%_tests.c, $(blddir)/test/%_tests_as, $(TEST_SRCS))
 TEST_CS_EXES = $(patsubst test/%_tests.c, $(blddir)/test/%_tests_cs, $(TEST_SRCS))
-TEST_AS_RUN = $(addprefix $(blddir)/test/,$(TEST_AS_EXES))
+TEST_AS_RUN = $(patsubst test/%_tests.c, %_tests_as, $(TEST_SRCS))
 TEST_CS_RUN = $(addprefix $(blddir)/test/,$(TEST_CS_EXES))
 
 #
-# By default build asynchronus library, samples and tests
+# By default build asynchronus library, and tests
 #
 # all: build test-as test-as-run test-cs test-cs-run
 all: build
 
-# build: | paho-mqtt iotp-client-as-libs sample-as iotp-client-cs-libs sample-cs
-build: | iotp-as-libs sample-as
+build: | iotp-as-libs
 
 clean:
 	rm -rf $(blddir)/*
 
 mkdir:
-	-mkdir -p $(blddir)/samples
 	-mkdir -p $(blddir)/test
 	echo OSTYPE is $(OSTYPE)
 
@@ -276,14 +265,11 @@ iotp-gateway-as-libs: iotp-client-as-lib $(GATEWAY_AS_LIB_TARGET)
 iotp-application-as-libs: iotp-client-as-lib $(APPLICATION_AS_LIB_TARGET)
 iotp-as-libs: iotp-device-as-libs iotp-gateway-as-libs iotp-application-as-libs
 
-sample-as: iotp-as-libs  $(SAMPLE_AS_EXES)
-sample-cs: iotp-cs-libs  $(SAMPLE_CS_EXES)
-
 test-as: iotp-as-libs $(TEST_AS_EXES)
 test-cs: iotp-client-cs-libs $(TEST_CS_EXES)
 
-test-as-run: build test-as $(TEST_AS_RUN)
-test-cs-run: build test-cs $(TEST_CS_RUN)
+test-as-run: $(TEST_AS_RUN)
+test-cs-run: $(TEST_CS_RUN)
 
 paho-mqtt-download:
 	echo "Downloading paho mqtt c source and setup for build"
@@ -344,31 +330,22 @@ $(IOTPLIB_AS_TARGET): $(IOTP_AS_SRCS) $(IOTP_HEADERS) $(blddir)/iotp_version.h
 	-ln -s lib$(IOTPLIB_AS).so.$(VERSION)  $(blddir)/lib$(IOTPLIB_AS).so.$(MAJOR_VERSION)
 	-ln -s lib$(IOTPLIB_AS).so.$(MAJOR_VERSION) $(blddir)/lib$(IOTPLIB_AS).so
 
-$(blddir)/samples/%.o: samples/%.c
-	$(CC) -c -g -O -o $@ $< $(INCDIRS)
-
-$(blddir)/samples/%_as: $(blddir)/samples/%.o
-	$(CC) -g -O -o $@ $^ -l$(CLIENT_AS_LIB_NAME) -l$(DEVICE_AS_LIB_NAME) -l$(GATEWAY_AS_LIB_NAME) -l$(APPLICATION_AS_LIB_NAME) -l$(PAHO_MQTT_AS_LIB_NAME) $(FLAGS_EXES) \
-
-%(blddir)/samples/%_cs: $(blddir)/samples/%.o $(IOTPLIB_CS_TARGET)
-	$(CC) -g -o $@ $^ -l$(IOTPLIB_CS) -l$(PAHO_MQTT_CS_LIB_NAME) $(FLAGS_EXES)
-
 $(TEST_UTILS_OBJS): $(TEST_UTILS_SRCS)
-	$(CC) -c -g -o $@ $< -I $(srcdir)
+	$(CC) -c -g -o $@ $< -I $(srcdir) -I $(pahomqttdir)/src
 
 $(blddir)/test/%_tests.o: test/%_tests.c
-	$(CC) -c -g -o $@ $< -I $(srcdir)
+	$(CC) -c -g -o $@ $< -I $(srcdir) -I $(pahomqttdir)/src
 
 $(blddir)/test/%_tests_as: $(blddir)/test/%_tests.o $(TEST_UTILS_OBJS) iotp-as-libs
 	$(CC) -g -o $@ $< $(TEST_UTILS_OBJS) -l$(CLIENT_AS_LIB_NAME) -l$(DEVICE_AS_LIB_NAME) -l$(GATEWAY_AS_LIB_NAME) -l$(APPLICATION_AS_LIB_NAME) -l$(PAHO_MQTT_AS_LIB_NAME) $(FLAGS_EXES)
 
-%(blddir)/test/%_tests_cs: $(blddir)/samples/%_tests.o $(TEST_UTILS_OBJS) $(IOTPLIB_CS_TARGET)
+%(blddir)/test/%_tests_cs: $(blddir)/test/%_tests.o $(TEST_UTILS_OBJS) $(IOTPLIB_CS_TARGET)
 	$(CC) -g -o $@ $^ $(TEST_UTILS_OBJS) -l$(IOTPLIB_CS) -l$(PAHO_MQTT_CS_LIB_NAME) $(FLAGS_EXES)
 
-$(TEST_AS_RUN): $(TEST_AS_EXES)
-	$(call run-test,$<)
+$(TEST_AS_RUN):
+	$(call run-test,$@)
 
-$(TEST_CS_RUN): $(TEST_CS_EXES)
+$(TEST_CS_RUN): test-cs
 	$(call run-test,$<)
 
 strip_options:

@@ -195,7 +195,6 @@ void onUnSubscribeFailure(void* context, MQTTAsync_failureData* response)
 }
 
 /* Creates IoTPClient */
-/* TODO: check for errors and return error codes, add logs */
 IoTP_RC iotp_client_create(void **iotpClient, IoTPConfig *config, IoTPClientType type)
 {
     IoTP_RC rc = IoTP_SUCCESS;
@@ -206,7 +205,7 @@ IoTP_RC iotp_client_create(void **iotpClient, IoTPConfig *config, IoTPClientType
     int len = 0;
 
     /* Check if client and config handles are valid */
-    if ( *iotpClient != NULL || config == NULL ) {
+    if ( iotpClient == NULL || *iotpClient != NULL || config == NULL ) {
         rc = IoTP_RC_INVALID_HANDLE;
         LOG(ERROR, "Invalid (%s) handle (%s) or config handle (%s)", IoTPClient_names[type], *iotpClient?"Invalid":"Valid", config?"Valid":"Invalid");
         return rc;
@@ -233,24 +232,25 @@ IoTP_RC iotp_client_create(void **iotpClient, IoTPConfig *config, IoTPClientType
 
     LOG(INFO, "OrganizationID: %s", orgId);
     LOG(INFO, "ConnectionURI: %s", connectionURI);
+    LOG(INFO, "Port: %d", port);
 
     /* set client id */
     if ( type == IoTPClient_device || type == IoTPClient_managed_device ) {
-        len = orgIdLen + strlen(config->device.typeId) + strlen(config->device.deviceId) + 5;
+        len = orgIdLen + strlen(config->device->typeId) + strlen(config->device->deviceId) + 5;
         clientId = malloc(len);
-        snprintf(clientId, len, "d:%s:%s:%s", orgId, config->device.typeId, config->device.deviceId);
+        snprintf(clientId, len, "d:%s:%s:%s", orgId, config->device->typeId, config->device->deviceId);
     } else if ( type == IoTPClient_gateway || type == IoTPClient_managed_gateway ) {
-        len = orgIdLen + strlen(config->gateway.typeId) + strlen(config->gateway.deviceId) + 5;
+        len = orgIdLen + strlen(config->gateway->typeId) + strlen(config->gateway->deviceId) + 5;
         clientId = malloc(len);
-        snprintf(clientId, len, "g:%s:%s:%s", orgId, config->gateway.typeId, config->gateway.deviceId);
+        snprintf(clientId, len, "g:%s:%s:%s", orgId, config->gateway->typeId, config->gateway->deviceId);
     } else if ( type == IoTPClient_application ) {
-        len = orgIdLen + strlen(config->application.appId) + 4;
+        len = orgIdLen + strlen(config->application->appId) + 4;
         clientId = malloc(len);
-        snprintf(clientId, len, "a:%s:%s", orgId, config->application.appId);
+        snprintf(clientId, len, "a:%s:%s", orgId, config->application->appId);
     } else if ( type == IoTPClient_Application ) {
-        len = orgIdLen + strlen(config->application.appId) + 4;
+        len = orgIdLen + strlen(config->application->appId) + 4;
         clientId = malloc(len);
-        snprintf(clientId, len, "A:%s:%s", orgId, config->application.appId);
+        snprintf(clientId, len, "A:%s:%s", orgId, config->application->appId);
     }
 
     LOG(INFO, "ClientId: %s", clientId);
@@ -265,6 +265,25 @@ IoTP_RC iotp_client_create(void **iotpClient, IoTPConfig *config, IoTPClientType
     client->inited = 1;
     client->keepAliveInterval = 60;
 
+    /* create MQTT Async client handle */
+    MQTTAsync                   mqttClient;
+    MQTTAsync_createOptions     create_opts = MQTTAsync_createOptions_initializer;
+
+    /* Create MQTT Async client - by default use MQTT V5 */
+    create_opts.MQTTVersion = MQTTVERSION_5;
+    create_opts.sendWhileDisconnected = 1;
+
+    rc = MQTTAsync_createWithOptions(&mqttClient, client->connectionURI, client->clientId, MQTTCLIENT_PERSISTENCE_NONE, NULL, &create_opts);
+    if ( rc != MQTTASYNC_SUCCESS ) {
+        LOG(ERROR, "MQTTAsync_createWithOptions failed: rc=%d",rc);
+        iotp_client_destroy(client);
+        client = NULL;
+        return rc;
+    }
+
+    client->mqttClient = (void *)mqttClient;
+
+    /* set client in IoTP client structure */
     *iotpClient = client;
 
     return rc;
@@ -297,20 +316,27 @@ IoTP_RC iotp_client_setMQTTLogHandler(void *iotpClient, IoTPLogHandler *cb)
 IoTP_RC iotp_client_destroy(void *iotpClient)
 {
     IoTP_RC rc = IoTP_SUCCESS;
-
-    /* Check if client handle is valid */
-    if ( iotpClient == NULL ) {
-        rc = IoTP_RC_INVALID_HANDLE;
-        return rc;
-    } 
-
     IoTPClient *client = (IoTPClient *)iotpClient;
     IoTPHandlers *handlers = NULL;
     int i = 0;
 
-    /* disconnect client - ignore errors */
-    if ( iotp_client_disconnect(iotpClient) != IoTP_SUCCESS ) {
-        LOG(WARN, "Failed to disconnect the client.");
+    /* Check if client handle is valid */
+    if ( client == NULL ) {
+        rc = IoTP_RC_INVALID_HANDLE;
+        return rc;
+    } 
+
+    /* Can not destroy if client is still connected */
+    if ( client->connected == 1 ) {
+        rc = IoTP_RC_HANDLE_IN_USE;
+        LOG(ERROR, "Can not destory a client in connected state: rc=%d", rc);
+        return rc;
+    }
+
+    /* Destroy MQTT Client */
+    MQTTAsync *mqttClient = (MQTTAsync *)client->mqttClient;
+    if ( mqttClient != NULL ) {
+        MQTTAsync_destroy(mqttClient);
     }
 
     iotp_utils_freePtr((void *)client->clientId);
@@ -324,7 +350,11 @@ IoTP_RC iotp_client_destroy(void *iotpClient)
     }
 
     iotp_utils_freePtr((void *)handlers);
+
+    /* set client config to NULL - so that config object is not affected */
+    client->config = NULL;
     iotp_utils_freePtr((void *)client);
+
     client = NULL;
 
     return rc;
@@ -338,35 +368,18 @@ IoTP_RC iotp_client_connect(void *iotpClient)
     IoTPClient *client = (IoTPClient *)iotpClient;
 
     /* Sanity check */
-    if ( !client ) {
+    if ( client == NULL || client->mqttClient == NULL ) {
         rc = IoTP_RC_INVALID_HANDLE;
         LOG(ERROR, "Invalid client handle. rc=%d", rc);
         return rc;
     }
 
-    MQTTAsync                   mqttClient;
     MQTTAsync_connectOptions    conn_opts = MQTTAsync_connectOptions_initializer;
     MQTTAsync_SSLOptions        ssl_opts = MQTTAsync_SSLOptions_initializer;
     /* MQTTAsync_disconnectOptions disc_opts = MQTTAsync_disconnectOptions_initializer; */
-    MQTTAsync_createOptions     create_opts = MQTTAsync_createOptions_initializer;
     /* MQTTAsync_willOptions       will_opts = MQTTAsync_willOptions_initializer; */
 
     int port = client->config->port;
-
-    /* Create MQTT Async client - by default use MQTT V5 */
-    create_opts.MQTTVersion = MQTTVERSION_5;
-    create_opts.sendWhileDisconnected = 1;
-
-    LOG(INFO, "ConnectionURI: %s", client->connectionURI);
-    LOG(INFO, "ClientID: %s", client->clientId);
-
-    rc = MQTTAsync_createWithOptions(&mqttClient, client->connectionURI, client->clientId, MQTTCLIENT_PERSISTENCE_NONE, NULL, &create_opts);
-    if ( rc != MQTTASYNC_SUCCESS ) {
-        LOG(WARN, "MQTTAsync_createWithOptions returned rc=%d",rc);
-        return rc;
-    }
-
-    client->mqttClient = (void *)mqttClient;
 
     /* set connection options */
     conn_opts.keepAliveInterval = client->keepAliveInterval;
@@ -385,33 +398,32 @@ IoTP_RC iotp_client_connect(void *iotpClient)
         conn_opts.ssl = &ssl_opts;
 
         if ( client->type == IoTPClient_application || client->type == IoTPClient_Application ) {
-            conn_opts.username = client->config->application.APIKey;
-            conn_opts.password = client->config->application.authToken;
+            conn_opts.username = client->config->application->APIKey;
+            conn_opts.password = client->config->application->authToken;
         } else if ( client->type == IoTPClient_device || client->type == IoTPClient_managed_device ) {
-            if ( client->config->device.authToken ) {
+            if ( client->config->device->authToken ) {
                 conn_opts.username = "use-token-auth";
-                conn_opts.password = client->config->device.authToken;
+                conn_opts.password = client->config->device->authToken;
             }
-            if ( client->config->device.certificatePath ) {
+            if ( client->config->device->certificatePath ) {
                 conn_opts.ssl->enableServerCertAuth = 1;
                 conn_opts.ssl->trustStore = client->config->serverCertificatePath;
-                conn_opts.ssl->keyStore = client->config->device.certificatePath;
-                conn_opts.ssl->privateKey = client->config->device.keyPath;
+                conn_opts.ssl->keyStore = client->config->device->certificatePath;
+                conn_opts.ssl->privateKey = client->config->device->keyPath;
             }
         } else if ( client->type == IoTPClient_gateway || client->type == IoTPClient_managed_gateway ) {
-            if ( client->config->gateway.authToken ) {
+            if ( client->config->gateway->authToken ) {
                 conn_opts.username = "use-token-auth";
-                conn_opts.password = client->config->gateway.authToken;
+                conn_opts.password = client->config->gateway->authToken;
             }
-            if ( client->config->gateway.certificatePath ) {
+            if ( client->config->gateway->certificatePath ) {
                 conn_opts.ssl->enableServerCertAuth = 1;
                 conn_opts.ssl->trustStore = client->config->serverCertificatePath;
-                conn_opts.ssl->keyStore = client->config->gateway.certificatePath;
-                conn_opts.ssl->privateKey = client->config->gateway.keyPath;
+                conn_opts.ssl->keyStore = client->config->gateway->certificatePath;
+                conn_opts.ssl->privateKey = client->config->gateway->keyPath;
             }
         }
     }
-    
     
     /* Set callbacks */
     MQTTAsync_setCallbacks((MQTTAsync *)client->mqttClient, (void *)client, NULL, iotp_client_messageArrived, NULL);
@@ -708,6 +720,11 @@ IoTP_RC iotp_client_disconnect(void *iotpClient)
     if ( !client ) {
         rc = IoTP_RC_INVALID_HANDLE;
         LOG(ERROR, "Invalid client handle. rc=%d", rc);
+        return rc;
+    }
+
+    /* check if client is connected */
+    if ( client->connected == 0 ) {
         return rc;
     }
 

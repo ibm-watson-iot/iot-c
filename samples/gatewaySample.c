@@ -102,13 +102,15 @@ void  gatewayCommandCallback (char* type, char* id, char* commandName, char *for
 
 void logCallback (int level, char * message)
 {
-    fprintf(stdout, "%s\n", message? message:"NULL");
+    if ( level > 0 )
+        fprintf(stdout, "%s\n", message? message:"NULL");
     fflush(stdout);
 }
 
 void MQTTTraceCallback (int level, char * message)
 {
-    fprintf(stdout, "%s\n", message? message:"NULL");
+    if ( level > 0 )
+        fprintf(stdout, "%s\n", message? message:"NULL");
     fflush(stdout);
 }
 

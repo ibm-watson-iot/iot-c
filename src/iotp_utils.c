@@ -120,8 +120,10 @@ char * iotp_utils_trim(char *str)
 /* Function to free the allocated memory for character string. */
 void iotp_utils_freePtr(void * p)
 {
-    if (p != NULL)
+    if (p != NULL) {
         free(p);
+        p = NULL;
+    } 
 }
 
 /* generate UUID */
