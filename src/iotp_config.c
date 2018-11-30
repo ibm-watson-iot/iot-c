@@ -637,6 +637,8 @@ IoTP_RC IoTPConfig_readConfigFile(IoTPConfig *config, const char *configFileName
 IoTP_RC IoTPConfig_readEnvironment(IoTPConfig *config) 
 {
     IoTP_RC rc = IoTP_SUCCESS;
+    char *env = *environ;
+    int i = 1;
 
     /* sanity check */
     if (!config) {
@@ -644,9 +646,9 @@ IoTP_RC IoTPConfig_readEnvironment(IoTPConfig *config)
         return rc;
     }
 
-    for ( char **env = environ; *env; ++env )
+    for ( ; env; i++ )
     {
-        char *envval = strdup(*env);
+        char *envval = strdup(env);
         char *prop = strtok(envval, "=");
         char *value = strtok(NULL, "=");
         if (prop) iotp_utils_trim(prop);
@@ -659,6 +661,8 @@ IoTP_RC IoTPConfig_readEnvironment(IoTPConfig *config)
             if ( rc != IoTP_SUCCESS )
                 return rc;
         }
+
+        env = *(environ + i);
     }
 
     return rc;
