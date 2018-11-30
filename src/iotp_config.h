@@ -88,6 +88,9 @@
    
  */
 
+/* IoTP Client names - defined in iotp_config.c */
+extern char * IoTPClient_names[];
+
 /**
  * IoTPLogHandler: Callback to process log and trace messages from IoTP Client
  *

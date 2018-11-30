@@ -110,24 +110,12 @@ SED_COMMAND = sed \
 # Includes configuration APIs, Logging APIs, Error codes and utility functions
 #
 UTILS_C = iotp_utils.c iotp_config.c
-UTILS_O = $(UTILS_C:.c=.o)
-UTILS_SRCS = $(addprefix $(srcdir)/,$(UTILS_C))
-UTILS_OBJS = $(addprefix $(blddir)/,$(UTILS_O))
-UTILS_LIB_NAME = iotp-utils
-UTILS_LIB_TARGET = $(blddir)/lib$(UTILS_LIB_NAME).so.$(VERSION)
-
 #
 # IBM Watson IoT platform MQTT Async client library
 # - The APIs in this library is used by WIoTP client libraries
 #   - Device, Gateway, Application, Managed (device and gateway)
 #
 CLIENT_AS_C = iotp_async.c
-CLIENT_AS_O = $(CLIENT_AS_C:.c=.o)
-CLIENT_AS_SRCS = $(addprefix $(srcdir)/,$(CLIENT_AS_C))
-CLIENT_AS_OBJS = $(addprefix $(blddir)/,$(CLIENT_AS_O))
-CLIENT_AS_LIB_NAME = iotp-as-client
-CLIENT_AS_LIB_TARGET = $(blddir)/lib$(CLIENT_AS_LIB_NAME).so.$(VERSION)
-
 # 
 # WIoTP Async client libraries, for:
 # - Device
@@ -138,7 +126,7 @@ CLIENT_AS_LIB_TARGET = $(blddir)/lib$(CLIENT_AS_LIB_NAME).so.$(VERSION)
 #
 # Device Library
 #
-DEVICE_AS_C = iotp_device.c
+DEVICE_AS_C = $(UTILS_C) $(CLIENT_AS_C) iotp_device.c
 DEVICE_AS_O = $(DEVICE_AS_C:.c=.o)
 DEVICE_AS_SRCS = $(addprefix $(srcdir)/,$(DEVICE_AS_C))
 DEVICE_AS_OBJS = $(addprefix $(blddir)/,$(DEVICE_AS_O))
@@ -146,7 +134,7 @@ DEVICE_AS_LIB_NAME = iotp-as-device
 DEVICE_AS_LIB_TARGET = $(blddir)/lib$(DEVICE_AS_LIB_NAME).so.$(VERSION)
 
 # Gateway Library
-GATEWAY_AS_C = iotp_gateway.c
+GATEWAY_AS_C = $(UTILS_C) $(CLIENT_AS_C) iotp_gateway.c
 GATEWAY_AS_O = $(GATEWAY_AS_C:.c=.o)
 GATEWAY_AS_SRCS = $(addprefix $(srcdir)/,$(GATEWAY_AS_C))
 GATEWAY_AS_OBJS = $(addprefix $(blddir)/,$(GATEWAY_AS_O))
@@ -154,12 +142,21 @@ GATEWAY_AS_LIB_NAME = iotp-as-gateway
 GATEWAY_AS_LIB_TARGET = $(blddir)/lib$(GATEWAY_AS_LIB_NAME).so.$(VERSION)
 
 # Application Library
-APPLICATION_AS_C = iotp_application.c
+APPLICATION_AS_C = $(UTILS_C) $(CLIENT_AS_C) iotp_application.c
 APPLICATION_AS_O = $(APPLICATION_AS_C:.c=.o)
 APPLICATION_AS_SRCS = $(addprefix $(srcdir)/,$(APPLICATION_AS_C))
 APPLICATION_AS_OBJS = $(addprefix $(blddir)/,$(APPLICATION_AS_O))
 APPLICATION_AS_LIB_NAME = iotp-as-application
 APPLICATION_AS_LIB_TARGET = $(blddir)/lib$(APPLICATION_AS_LIB_NAME).so.$(VERSION)
+
+# IoTP Library (optional)
+# For device applications that may include APIs exposed by device or gateway library
+IOTP_AS_C = $(UTILS_C) $(CLIENT_AS_C) iotp_device.c iotp_gateway.c iotp_application.c
+IOTP_AS_O = $(IOTP_AS_C:.c=.o)
+IOTP_AS_SRCS = $(addprefix $(srcdir)/,$(IOTP_AS_C))
+IOTP_AS_OBJS = $(addprefix $(blddir)/,$(IOTP_AS_O))
+IOTP_AS_LIB_NAME = iotp-as
+IOTP_AS_LIB_TARGET = $(blddir)/lib$(IOTP_AS_LIB_NAME).so.$(VERSION)
 
 
 #
@@ -171,12 +168,9 @@ EXELIBS = $(START_GROUP) -lpthread -lssl -lcrypto $(END_GROUP)
 LDLIBS  = $(START_GROUP) -lpthread -lssl -lcrypto -ldl $(END_GROUP)
 DEFINES = -DOPENSSL -DOPENSSL_LOAD_CONF
 
-CCFLAGS_SO = $(CFLAGS) -g -fPIC -Os -Wall -fvisibility=hidden $(INCDIRS)
-FLAGS_EXES = $(LDFLAGS) $(INCDIRS) $(EXELIBS) $(LIBDIRS) -l$(UTILS_LIB_NAME)
-
-LDFLAGS_UTILS = $(LDFLAGS) $(DEFINES) -shared $(LDLIBS)
-LDFLAGS_AS_CLIENT = $(LDFLAGS_UTILS) -l$(UTILS_LIB_NAME) -l$(PAHO_MQTT_AS_LIB_NAME)
-LDFLAGS_AS = $(LDFLAGS_AS_CLIENT) -l$(CLIENT_AS_LIB_NAME)
+CCFLAGS_SO = $(CFLAGS) -g -fPIC -Os -Wall -fvisibility=hidden $(INCDIRS) $(DEFINES)
+LDFLAGS_AS = $(LDFLAGS) $(DEFINES) -shared $(LDLIBS) $(LIBDIRS) -l$(PAHO_MQTT_AS_LIB_NAME)
+FLAGS_EXES = $(LDFLAGS) $(INCDIRS) $(EXELIBS) $(LIBDIRS)
 
 #
 # OS Specifics Flags, helper functions
@@ -185,10 +179,10 @@ ifeq ($(OSTYPE),Linux)
 
 START_GROUP = -Wl,--start-group
 END_GROUP = -Wl,--end-group
-LDFLAGS_UTILS += -Wl,-soname,lib$(UTILS_LIB_NAME).so.$(MAJOR_VERSION) -Wl,-no-whole-archive
-LDFLAGS_AS_CLIENT += -Wl,-soname,lib$(CLIENT_AS_LIB_NAME).so.$(MAJOR_VERSION) -Wl,-no-whole-archive
 LDFLAGS_AS_BEGIN = -Wl,-soname,lib
 LDFLAGS_AS_END = .so.$(MAJOR_VERSION) -Wl,-no-whole-archive
+LDCONFIG = echo
+SED_I = sed -i
 
 define run-test
     @echo
@@ -198,22 +192,17 @@ define run-test
     LD_LIBRARY_PATH=$(paholibdir):$(iotplibdir) $(blddir)/test/$(1)
 endef
 
-SED_I = sed -i
-
 else ifeq ($(OSTYPE),Darwin)
 
 START_GROUP =
 END_GROUP =
 LIBDIRS += -L /usr/local/opt/openssl/lib
 CCFLAGS_SO += -Wno-deprecated-declarations -DOSX -I /usr/local/opt/openssl/include -I $(pahomqttdir)/src
-LDFLAGS_CS += -Wl,-install_name,$(IOTPLIB_CS).$(MAJOR_VERSION) -L $(blddir) -L /usr/local/opt/openssl/lib -L $(pahomqttdir)/build/output
-LDFLAGS_UTILS += -Wl,-install_name,lib$(UTILS_LIB_NAME).so.$(MAJOR_VERSION) $(LIBDIRS)
-LDFLAGS_AS_CLIENT += -Wl,-install_name,lib$(CLIENT_AS_LIB_NAME).so.$(MAJOR_VERSION) $(LIBDIRS)
 LDFLAGS_AS_BEGIN = -Wl,-install_name,lib
 LDFLAGS_AS_END = .so.$(MAJOR_VERSION) $(LIBDIRS)
-FLAGS_EXE += -DOSX
 FLAGS_EXES += -L /usr/local/opt/openssl/lib -L $(TOP)/$(blddir)
 LDCONFIG = echo
+SED_I = sed -i bak
 
 define run-test
     @echo
@@ -222,8 +211,6 @@ define run-test
     @echo ---- Use MQTT Paho asynchronous library
     DYLD_LIBRARY_PATH=$(paholibdir):$(iotplibdir) $(blddir)/test/$(1)
 endef
-
-SED_I = sed -i bak
 
 endif
 
@@ -241,12 +228,11 @@ TEST_AS_RUN = $(patsubst test/%_tests.c, %_tests_as, $(TEST_SRCS))
 TEST_CS_RUN = $(addprefix $(blddir)/test/,$(TEST_CS_EXES))
 
 #
-# By default build asynchronus library, and tests
+# By default build IoTP asynchronus client libraries
 #
-# all: build test-as test-as-run test-cs test-cs-run
 all: build
 
-build: | iotp-as-libs
+build: | mkdir iotp-as-libs
 
 clean:
 	rm -rf $(blddir)/*
@@ -255,15 +241,19 @@ mkdir:
 	-mkdir -p $(blddir)/test
 	echo OSTYPE is $(OSTYPE)
 
-paho-mqtt: mkdir paho-mqtt-download paho-mqtt-build
-iotp-version: $(blddir)/iotp_version.h
-iotp-utils-lib: paho-mqtt iotp-version $(UTILS_LIB_TARGET)
-iotp-client-as-lib: iotp-utils-lib $(CLIENT_AS_LIB_TARGET)
 
-iotp-device-as-libs: iotp-client-as-lib $(DEVICE_AS_LIB_TARGET)
-iotp-gateway-as-libs: iotp-client-as-lib $(GATEWAY_AS_LIB_TARGET)
-iotp-application-as-libs: iotp-client-as-lib $(APPLICATION_AS_LIB_TARGET)
-iotp-as-libs: iotp-device-as-libs iotp-gateway-as-libs iotp-application-as-libs
+# Paho MQTT C library
+paho-mqtt: mkdir paho-mqtt-download paho-mqtt-build
+
+# IoTP asynchronous client libraries 
+iotp-version: $(blddir)/iotp_version.h
+iotp-device-as-lib: paho-mqtt iotp-version $(DEVICE_AS_LIB_TARGET)
+iotp-gateway-as-lib: paho-mqtt iotp-version $(GATEWAY_AS_LIB_TARGET)
+iotp-application-as-lib: paho-mqtt iotp-version $(APPLICATION_AS_LIB_TARGET)
+iotp-as-libs: iotp-device-as-lib iotp-gateway-as-lib iotp-application-as-lib
+
+# IoTP asynchrous client library with device, gateway, and application APIs
+iotp-as-lib: paho-mqtt iotp-version $(IOTP_AS_LIB_TARGET)
 
 test-as: iotp-as-libs $(TEST_AS_EXES)
 test-cs: iotp-client-cs-libs $(TEST_CS_EXES)
@@ -294,41 +284,25 @@ $(blddir)/iotp_version.h: $(srcdir)/iotp_version.h.in
 $(blddir)/%.o: $(srcdir)/%.c
 	$(CC) $(CCFLAGS_SO) -c $< -o $@
 
-$(UTILS_LIB_TARGET): $(UTILS_OBJS)
-	$(CC) $(LDFLAGS_UTILS) -o $@ $(UTILS_OBJS)
-	-ln -s lib$(UTILS_LIB_NAME).so.$(VERSION) $(blddir)/lib$(UTILS_LIB_NAME).so.$(MAJOR_VERSION)
-	-ln -s lib$(UTILS_LIB_NAME).so.$(MAJOR_VERSION) $(blddir)/lib$(UTILS_LIB_NAME).so
-
-$(CLIENT_AS_LIB_TARGET): $(CLIENT_AS_OBJS)
-	$(CC) $(LDFLAGS_AS_CLIENT) -o $@ $(CLIENT_AS_OBJS)
-	-ln -s lib$(CLIENT_AS_LIB_NAME).so.$(VERSION) $(blddir)/lib$(CLIENT_AS_LIB_NAME).so.$(MAJOR_VERSION)
-	-ln -s lib$(CLIENT_AS_LIB_NAME).so.$(MAJOR_VERSION) $(blddir)/lib$(CLIENT_AS_LIB_NAME).so
-
-$(DEVICE_AS_LIB_TARGET): $(DEVICE_AS_OBJS)
-	$(CC) $(LDFLAGS_AS) $(LDFLAGS_AS_BEGIN)$(DEVICE_AS_LIB_NAME)$(LDFLAGS_AS_END) -o $@ $(DEVICE_AS_OBJS)
+$(DEVICE_AS_LIB_TARGET): $(DEVICE_AS_SRCS) $(blddir)/iotp_version.h
+	$(CC) $(CCFLAGS_SO) -o $@ $(DEVICE_AS_SRCS) $(LDFLAGS_AS)
 	-ln -s lib$(DEVICE_AS_LIB_NAME).so.$(VERSION) $(blddir)/lib$(DEVICE_AS_LIB_NAME).so.$(MAJOR_VERSION)
 	-ln -s lib$(DEVICE_AS_LIB_NAME).so.$(MAJOR_VERSION) $(blddir)/lib$(DEVICE_AS_LIB_NAME).so
 
-$(GATEWAY_AS_LIB_TARGET): $(GATEWAY_AS_OBJS)
-	$(CC) $(LDFLAGS_AS) $(LDFLAGS_AS_BEGIN)$(GATEWAY_AS_LIB_NAME)$(LDFLAGS_AS_END) -o $@ $(GATEWAY_AS_OBJS)
+$(GATEWAY_AS_LIB_TARGET): $(GATEWAY_AS_SRCS) $(blddir)/iotp_version.h
+	$(CC) $(CCFLAGS_SO) -o $@ $(GATEWAY_AS_SRCS) $(LDFLAGS_AS)
 	-ln -s lib$(GATEWAY_AS_LIB_NAME).so.$(VERSION) $(blddir)/lib$(GATEWAY_AS_LIB_NAME).so.$(MAJOR_VERSION)
 	-ln -s lib$(GATEWAY_AS_LIB_NAME).so.$(MAJOR_VERSION) $(blddir)/lib$(GATEWAY_AS_LIB_NAME).so
 
-$(APPLICATION_AS_LIB_TARGET): $(APPLICATION_AS_OBJS)
-	$(CC) $(LDFLAGS_AS) $(LDFLAGS_AS_BEGIN)$(APPLICATION_AS_LIB_NAME)$(LDFLAGS_AS_END) -o $@ $(APPLICATION_AS_OBJS)
+$(APPLICATION_AS_LIB_TARGET): $(APPLICATION_AS_SRCS) $(blddir)/iotp_version.h
+	$(CC) $(CCFLAGS_SO) -o $@ $(APPLICATION_AS_SRCS) $(LDFLAGS_AS)
 	-ln -s lib$(APPLICATION_AS_LIB_NAME).so.$(VERSION) $(blddir)/lib$(APPLICATION_AS_LIB_NAME).so.$(MAJOR_VERSION)
 	-ln -s lib$(APPLICATION_AS_LIB_NAME).so.$(MAJOR_VERSION) $(blddir)/lib$(APPLICATION_AS_LIB_NAME).so
 
-
-$(IOTPLIB_CS_TARGET): $(IOTP_CS_SRCS) $(IOTP_HEADERS) $(blddir)/iotp_version.h
-	$(CC) $(CCFLAGS_SO) -o $@ $(IOTP_CS_SRCS) -DOPENSSL -DOPENSSL_LOAD_CONF $(LDFLAGS_CS) -l$(PAHO_MQTT_CS_LIB_NAME)
-	-ln -s lib$(IOTPLIB_CS).so.$(VERSION)  $(blddir)/lib$(IOTPLIB_CS).so.$(MAJOR_VERSION)
-	-ln -s lib$(IOTPLIB_CS).so.$(MAJOR_VERSION) $(blddir)/lib$(IOTPLIB_CS).so
-
-$(IOTPLIB_AS_TARGET): $(IOTP_AS_SRCS) $(IOTP_HEADERS) $(blddir)/iotp_version.h
-	$(CC) $(CCFLAGS_SO) -o $@ $(IOTP_AS_SRCS) -DOPENSSL -DOPENSSL_LOAD_CONF $(LDFLAGS_AS) -l$(PAHO_MQTT_AS_LIB_NAME)
-	-ln -s lib$(IOTPLIB_AS).so.$(VERSION)  $(blddir)/lib$(IOTPLIB_AS).so.$(MAJOR_VERSION)
-	-ln -s lib$(IOTPLIB_AS).so.$(MAJOR_VERSION) $(blddir)/lib$(IOTPLIB_AS).so
+$(IOTP_AS_LIB_TARGET): $(IOTP_AS_SRCS) $(blddir)/iotp_version.h
+	$(CC) $(CCFLAGS_SO) -o $@ $(IOTP_AS_SRCS) $(LDFLAGS_AS)
+	-ln -s lib$(IOTP_AS_LIB_NAME).so.$(VERSION) $(blddir)/lib$(IOTP_AS_LIB_NAME).so.$(MAJOR_VERSION)
+	-ln -s lib$(IOTP_AS_LIB_NAME).so.$(MAJOR_VERSION) $(blddir)/lib$(IOTP_AS_LIB_NAME).so
 
 $(TEST_UTILS_OBJS): $(TEST_UTILS_SRCS)
 	$(CC) -c -g -o $@ $< -I $(srcdir) -I $(pahomqttdir)/src
@@ -336,17 +310,11 @@ $(TEST_UTILS_OBJS): $(TEST_UTILS_SRCS)
 $(blddir)/test/%_tests.o: test/%_tests.c
 	$(CC) -c -g -o $@ $< -I $(srcdir) -I $(pahomqttdir)/src
 
-$(blddir)/test/%_tests_as: $(blddir)/test/%_tests.o $(TEST_UTILS_OBJS) iotp-as-libs
-	$(CC) -g -o $@ $< $(TEST_UTILS_OBJS) -l$(CLIENT_AS_LIB_NAME) -l$(DEVICE_AS_LIB_NAME) -l$(GATEWAY_AS_LIB_NAME) -l$(APPLICATION_AS_LIB_NAME) -l$(PAHO_MQTT_AS_LIB_NAME) $(FLAGS_EXES)
-
-%(blddir)/test/%_tests_cs: $(blddir)/test/%_tests.o $(TEST_UTILS_OBJS) $(IOTPLIB_CS_TARGET)
-	$(CC) -g -o $@ $^ $(TEST_UTILS_OBJS) -l$(IOTPLIB_CS) -l$(PAHO_MQTT_CS_LIB_NAME) $(FLAGS_EXES)
+$(blddir)/test/%_tests_as: $(blddir)/test/%_tests.o $(TEST_UTILS_OBJS) iotp-device-as-lib
+	$(CC) -g -o $@ $< $(TEST_UTILS_OBJS) -l$(DEVICE_AS_LIB_NAME) -l$(PAHO_MQTT_AS_LIB_NAME) $(FLAGS_EXES)
 
 $(TEST_AS_RUN):
 	$(call run-test,$@)
-
-$(TEST_CS_RUN): test-cs
-	$(call run-test,$<)
 
 strip_options:
 	$(eval INSTALL_OPTS := -s)
@@ -364,20 +332,9 @@ install-as: build
 	$(INSTALL_DATA) $(srcdir)/iotp_mqttclient.h $(DESTDIR)$(includedir)
 	$(LDCONFIG) $(DESTDIR)$(libdir)
 	
-install-cs: build
-	mkdir -p $(DESTDIR)$(PREFIX)$(includedir)
-	$(INSTALL_DATA) $(INSTALL_OPTS) $(IOTPLIB_CS_TARGET) $(DESTDIR)$(libdir)
-	-ln -s lib$(IOTPLIB_CS).so.$(MAJOR_VERSION) $(DESTDIR)$(libdir)/lib$(IOTPLIB_CS).so
-	@if test ! -f $(DESTDIR)$(libdir)/lib$(IOTPLIB_CS).so.$(MAJOR_VERSION); then ln -s lib$(IOTPLIB_CS).so.$(VERSION) $(DESTDIR)$(libdir)/lib$(IOTPLIB_CS).so.$(MAJOR_VERSION); fi
-	$(INSTALL_DATA) $(srcdir)/iotp_mqttclient.h $(DESTDIR)$(includedir)
-	$(LDCONFIG) $(DESTDIR)$(libdir)
-	
 uninstall:
-	- rm $(DESTDIR)$(libdir)/$(IOTPLIB_CS) 
 	- rm $(DESTDIR)$(libdir)/$(IOTPLIB_AS) 
-	- rm $(DESTDIR)$(libdir)/lib$(IOTPLIB_CS).so
 	- rm $(DESTDIR)$(libdir)/lib$(IOTPLIB_AS).so
-	- rm $(DESTDIR)$(libdir)/lib$(IOTPLIB_CS).so.$(MAJOR_VERSION)
 	- rm $(DESTDIR)$(libdir)/lib$(IOTPLIB_AS).so.$(MAJOR_VERSION)
 	- rm $(DESTDIR)$(includedir)/iotp_mqttclient.h
 	$(LDCONFIG) $(DESTDIR)$(libdir)

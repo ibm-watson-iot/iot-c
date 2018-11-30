@@ -19,7 +19,15 @@
 #include "iotp_config.h"
 #include "iotp_internal.h"
 
-extern char **environ;
+/* Array of IoTP Client names */
+char * IoTPClient_names[IoTPClient_total] = {
+    "Device",
+    "Gateway",
+    "Application",
+    "ScalableApplication",
+    "ManagedDevice",
+    "ManagedGateway"
+};
 
 /* IoTPConfig_setLogHandler: Sets log handler */
 IoTP_RC IoTPConfig_setLogHandler(IoTPLogTypes type, void * handler)

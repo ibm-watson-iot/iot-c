@@ -46,10 +46,17 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <ctype.h>
+
+#if defined(OSX)
 #include <dlfcn.h>
+#endif
 
 #include "iotp_rc.h"
 
+/* Environment variables */
+extern char **environ;
+
+/* IoTP Clients logger handle */
 extern FILE *logger;
 
 /*

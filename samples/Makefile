@@ -15,19 +15,35 @@
 #
 #*******************************************************************************/
 
+SHELL = /bin/sh
+.PHONY: clean, mkdir
+
+
+ifeq ($(OS),Windows_NT)
+        OSTYPE ?= $(OS)
+        MACHINETYPE ?= $(PROCESSOR_ARCHITECTURE)
+else
+        OSTYPE ?= $(shell uname -s)
+        MACHINETYPE ?= $(shell uname -m)
+endif # OS
+
+ifeq ($(OSTYPE),linux)
+        OSTYPE = Linux
+endif
+
 current_dir := $(shell pwd)
-parent_dir := $(shell dirname ${current_dir})
+parent_dir := $(shell dirname $(current_dir))
 
 ifndef blddir
-    blddir = ${parent_dir}/build/samples
+    blddir = $(parent_dir)/build/samples
 endif
 
 ifndef samplesrcdir
-    samplesrcdir = ${parent_dir}/samples
+    samplesrcdir = $(parent_dir)/samples
 endif
 
 ifndef srcdir
-    srcdir = ${parent_dir}/src
+    srcdir = $(parent_dir)/src
 endif
 
 ifndef pahomqttdir
@@ -40,25 +56,60 @@ RM = rm -f
 INCDIRS = -I $(srcdir) -I $(pahomqttdir)/src
 LIBDIRS = -L $(parent_dir)/build -L $(pahomqttdir)/build/output
 CFLAGS = $(INCDIRS) -fPIC -Wall -Wextra -O2 -g
-LDFLAGS = $(LIBDIRS) -lpaho-mqtt3as -liotp-utils -liotp-as-client -liotp-as-device -liotp-as-gateway -liotp-as-application
+IOTPLIBS = -lpaho-mqtt3as -liotp-as-device -liotp-as-gateway -liotp-as-application
+LDFLAGS_DEV = ${START_GROUP} -lpthread -lssl -lcrypto ${END_GROUP} $(LIBDIRS) -lpaho-mqtt3as -liotp-as-device
+LDFLAGS_GWY = ${START_GROUP} -lpthread -lssl -lcrypto ${END_GROUP} $(LIBDIRS) -lpaho-mqtt3as -liotp-as-gateway
+LDFLAGS_APP = ${START_GROUP} -lpthread -lssl -lcrypto ${END_GROUP} $(LIBDIRS) -lpaho-mqtt3as -liotp-as-application
 
-SAMPLE_SRCS = $(wildcard *.c)
-SAMPLES = $(patsubst %.c, $(blddir)/%, $(SAMPLE_SRCS))
+ifeq ($(OSTYPE),Linux)
 
-.PHONY: all clean ${SAMPLES}
+START_GROUP = -Wl,--start-group
+END_GROUP = -Wl,--end-group
+EXTRA_LIB = -ldl
+FLAGS_EXES +=
+
+else ifeq ($(OSTYPE),Darwin)
+
+START_GROUP =
+END_GROUP =
+EXTRA_LIB = -ldl
+FLAGS_EXES += -L /usr/local/opt/openssl/lib
+
+endif
+
+
+DEV_SAMPLE_SRCS = $(wildcard device*.c)
+DEV_SAMPLES = $(patsubst %.c, $(blddir)/%, $(DEV_SAMPLE_SRCS))
+
+GWY_SAMPLE_SRCS = $(wildcard gateway*.c)
+GWY_SAMPLES = $(patsubst %.c, $(blddir)/%, $(GWY_SAMPLE_SRCS))
+
+APP_SAMPLE_SRCS = $(wildcard application*.c)
+APP_SAMPLES = $(patsubst %.c, $(blddir)/%, $(APP_SAMPLE_SRCS))
+
+
+.PHONY: all clean $(DEV_SAMPLES) $(GWY_SAMPLES) $(APP_SAMPLES)
 
 all: mkdir build
 
 mkdir:
-	@mkdir -p $(blddir)/samples
+	@mkdir -p $(blddir)
 
-build: ${SAMPLES}
+build: $(DEV_SAMPLES) $(GWY_SAMPLES) $(APP_SAMPLES)
 
-${SAMPLES}: ${blddir}/%: ${samplesrcdir}/%.c
-	$(CC) -o $@ $< ${CFLAGS} ${LDFLAGS}
+
+$(DEV_SAMPLES): $(blddir)/%: $(DEV_SAMPLE_SRCS)
+	$(CC) -o $@ $< $(INCDIRS) $(LDFLAGS_DEV) $(FLAGS_EXES)
+
+$(GWY_SAMPLES): $(blddir)/%: $(GWY_SAMPLE_SRCS)
+	$(CC) -o $@ $< $(INCDIRS) $(LDFLAGS_GWY) $(FLAGS_EXES)
+
+$(APP_SAMPLES): $(blddir)/%: $(APP_SAMPLE_SRCS)
+	$(CC) -o $@ $< $(INCDIRS) $(LDFLAGS_APP) $(FLAGS_EXES)
+
 
 clean:
-	-${RM} -r $(blddir)
+	-$(RM) -r $(blddir)
 
 print-% : ; @echo $* = $($*)
 

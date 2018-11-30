@@ -56,16 +56,6 @@
 #include "iotp_config.h"
 #include "iotp_utils.h"
 
-/* Array of IoTP Client names */
-char * IoTPClient_names[IoTPClient_total] = {
-    "Device",
-    "Gateway",
-    "Application",
-    "ScalableApplication",
-    "ManagedDevice",
-    "ManagedGateway"
-};
-
 /* IoTP client */
 typedef struct iotc {
         char * typeId;
