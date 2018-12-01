@@ -40,6 +40,7 @@ IoTP_RC IoTPDevice_create(IoTPDevice **device, IoTPConfig *config)
 IoTP_RC IoTPDevice_setMQTTLogHandler(IoTPDevice *device, IoTPLogHandler *cb) 
 {
     IoTP_RC rc = IoTP_SUCCESS;
+
     rc = iotp_client_setMQTTLogHandler((void *)device, cb);
     if ( rc != IoTP_SUCCESS ) {
         LOG(ERROR, "Failed to set MQTT Log handler: rc=%d", rc);
@@ -52,9 +53,10 @@ IoTP_RC IoTPDevice_setMQTTLogHandler(IoTPDevice *device, IoTPLogHandler *cb)
 IoTP_RC IoTPDevice_destroy(IoTPDevice *device)
 {
     IoTP_RC rc = IoTP_SUCCESS;
+    int destroyMQTTClient = 1;
 
     /* disconnect and destroy client */
-    rc = iotp_client_destroy((void *)device);
+    rc = iotp_client_destroy((void *)device, destroyMQTTClient);
     if ( rc != IoTP_SUCCESS ) {
         LOG(ERROR, "Failed to destroy IoTPDevice: rc=%d", rc);
     }

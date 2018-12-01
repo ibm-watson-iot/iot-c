@@ -21,6 +21,7 @@
 
 /* Array of IoTP Client names */
 char * IoTPClient_names[IoTPClient_total] = {
+    "Unknown",
     "Device",
     "Gateway",
     "Application",
@@ -43,10 +44,17 @@ IoTP_RC IoTPConfig_create(IoTPConfig **config, const char * configFileName)
     IoTP_RC rc = IoTP_SUCCESS;
 
     /* Check if config handle is valid i.e. not NULL or already inited */
-    if ( config == NULL || *config != NULL ) {
-        rc = IoTP_RC_INVALID_HANDLE;
+    if ( config == NULL ) {
+        rc = IoTP_RC_PARAM_NULL_VALUE;
+        LOG(ERROR, "NULL configuration object is specified: rc=%d", rc);
         return rc;
     }
+    if ( config && *config != NULL ) {
+        rc = IoTP_RC_INVALID_HANDLE;
+        LOG(ERROR, "Configuration object is already initialized: rc=%d", rc);
+        return rc;
+    }
+
 
     iotp_utils_writeClientVersion();
     LOG(INFO, "Create config object from file: %s", configFileName?configFileName:"");
@@ -84,7 +92,8 @@ IoTP_RC IoTPConfig_clear(IoTPConfig *config)
 
     /* sanity check */
     if (!config) {
-        rc = IoTP_RC_INVALID_HANDLE;
+        rc = IoTP_RC_PARAM_NULL_VALUE;
+        LOG(ERROR, "NULL configuration object is specified: rc=%d", rc);
     } else {
         /* free config object */
         iotp_utils_freePtr((void *)config->orgId);
@@ -131,11 +140,13 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
 
     /* sanity check */
     if (!config) {
-        rc = IoTP_RC_INVALID_HANDLE;
+        rc = IoTP_RC_PARAM_NULL_VALUE;
+        LOG(ERROR, "NULL configuration object is specified: rc=%d", rc);
         return rc;
     }
     if (!name || *name == '\0') {
         rc = IoTP_RC_INVALID_PARAM;
+        LOG(ERROR, "Invalid configuration parameter is specified: rc=%d", rc);
         return rc;
     }
 
@@ -150,6 +161,7 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
         if ( !strcasecmp(name, IoTPConfig_Platform_domain)) {
             if (argint != 0) {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
+                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
             } else if (argptr == NULL || *argptr == '\0') {
                 if ( config->domain ) 
                     iotp_utils_freePtr((void *)config->domain);
@@ -173,6 +185,7 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
                 config->port = 8883;
             } else {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
+                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
             }
             if (rc == IoTP_SUCCESS) {
                 LOG(INFO, "Set config parameter: %s To: %d", IoTPConfig_Platform_port, config->port);
@@ -184,6 +197,7 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
         if ( !strcasecmp(name, IoTPConfig_Platform_serverCertificatePath)) {
             if (argint != 0) {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
+                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
             } else if (argptr == NULL || *argptr == '\0') {
                 if ( config->serverCertificatePath ) 
                     iotp_utils_freePtr((void *)config->serverCertificatePath);
@@ -207,12 +221,15 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
         if ( !strcasecmp(name, IoTPConfig_Organization_id)) {
             if (argptr == NULL || *argptr == '\0') {
                 rc = IoTP_RC_PARAM_NULL_VALUE;
+                LOG(ERROR, "NULL configuration value is specified: rc=%d", rc);
             } else if (argint != 0 ) {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
+                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
             } else {
                 int len = strlen(argptr);
                 if ( len != 6 ) {
                     rc = IoTP_RC_PARAM_INVALID_VALUE;
+                    LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
                 } else {
                     if ( config->orgId ) 
                         iotp_utils_freePtr((void *)config->orgId);
@@ -231,8 +248,9 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
     if ( !strncasecmp(name, "Device.", 7)) {
         /* Process Device.typeId */
         if ( !strcasecmp(name, IoTPConfig_Device_typeId)) {
-            if (argptr == NULL || *argptr == '\0') {
+            if (argptr == NULL || (argptr && *argptr == '\0')) {
                 rc = IoTP_RC_PARAM_NULL_VALUE;
+                LOG(ERROR, "NULL configuration value is specified: rc=%d", rc);
             } else {
                 if ( config->device->typeId ) 
                     iotp_utils_freePtr((void *)config->device->typeId);
@@ -246,7 +264,8 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
 
         /* Process Device.deviceId */
         if ( !strcasecmp(name, IoTPConfig_Device_deviceId)) {
-            if (argptr == NULL || *argptr == '\0') {
+            if (argptr == NULL || (argptr && *argptr == '\0')) {
+                LOG(ERROR, "NULL configuration value is specified: rc=%d", rc);
                 rc = IoTP_RC_PARAM_NULL_VALUE;
             } else {
                 if ( config->device->deviceId ) 
@@ -263,6 +282,7 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
         if ( !strcasecmp(name, IoTPConfig_Device_authMethod)) {
             if (argint != 0 ) {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
+                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
             } else if (argptr == NULL || *argptr == '\0') {
                 config->device->authMethod =  0;
             } else if ( argptr && !strcasecmp(argptr, "token")) {
@@ -271,6 +291,7 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
                 config->device->authMethod =  2;
             } else {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
+                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
             }
             if (rc == IoTP_SUCCESS) {
                 LOG(INFO, "Set config parameter: %s To: %d", IoTPConfig_Device_authMethod, config->device->authMethod);
@@ -282,6 +303,7 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
         if ( !strcasecmp(name, IoTPConfig_Device_authToken)) {
             if (argint != 0 ) {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
+                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
             } else if ( !argptr || *argptr == '\0' ) {
                 if ( config->device->authToken ) 
                     iotp_utils_freePtr((void *)config->device->authToken);
@@ -301,6 +323,7 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
         if ( !strcasecmp(name, IoTPConfig_Device_certificatePath)) {
             if (argint != 0 ) {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
+                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
             } else if ( !argptr || *argptr == '\0' ) {
                 if ( config->device->certificatePath ) 
                     iotp_utils_freePtr((void *)config->device->certificatePath);
@@ -320,6 +343,7 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
         if ( !strcasecmp(name, IoTPConfig_Device_keyPath)) {
             if (argint != 0 ) {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
+                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
             } else if ( !argptr || *argptr == '\0' ) {
                 if ( config->device->keyPath ) 
                     iotp_utils_freePtr((void *)config->device->keyPath);
@@ -341,8 +365,9 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
     if ( !strncasecmp(name, "Gateway.", 8)) {
         /* Process Gateway.typeId */
         if ( !strcasecmp(name, IoTPConfig_Gateway_typeId)) {
-            if (argptr == NULL || *argptr == '\0') {
+            if (argptr == NULL || (argptr && *argptr == '\0')) {
                 rc = IoTP_RC_PARAM_NULL_VALUE;
+                LOG(ERROR, "NULL configuration value is specified: rc=%d", rc);
             } else {
                 if ( config->gateway->typeId ) 
                     iotp_utils_freePtr((void *)config->gateway->typeId);
@@ -356,8 +381,9 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
 
         /* Process Gateway.deviceId */
         if ( !strcasecmp(name, IoTPConfig_Gateway_deviceId)) {
-            if (argptr == NULL || *argptr == '\0') {
+            if (argptr == NULL || (argptr && *argptr == '\0')) {
                 rc = IoTP_RC_PARAM_NULL_VALUE;
+                LOG(ERROR, "NULL configuration value is specified: rc=%d", rc);
             } else {
                 if ( config->gateway->deviceId ) 
                     iotp_utils_freePtr((void *)config->gateway->deviceId);
@@ -373,7 +399,8 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
         if ( !strcasecmp(name, IoTPConfig_Gateway_authMethod)) {
             if (argint != 0 ) {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
-            } else if (argptr == NULL || *argptr == '\0') {
+                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
+            } else if (argptr == NULL || (argptr && *argptr == '\0')) {
                 config->gateway->authMethod =  0;
             } else if ( argptr && !strcasecmp(argptr, "token")) {
                 config->gateway->authMethod =  1;
@@ -381,6 +408,7 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
                 config->gateway->authMethod =  2;
             } else {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
+                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
             }
             if (rc == IoTP_SUCCESS) {
                 LOG(INFO, "Set config parameter: %s To: %d", IoTPConfig_Gateway_authMethod, config->gateway->authMethod);
@@ -392,7 +420,8 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
         if ( !strcasecmp(name, IoTPConfig_Gateway_authToken)) {
             if (argint != 0 ) {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
-            } else if ( !argptr || *argptr == '\0' ) {
+                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
+            } else if ( !argptr || (argptr && *argptr == '\0')) {
                 if ( config->gateway->authToken ) 
                     iotp_utils_freePtr((void *)config->gateway->authToken);
                 config->gateway->authToken =  NULL;
@@ -411,7 +440,8 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
         if ( !strcasecmp(name, IoTPConfig_Gateway_certificatePath)) {
             if (argint != 0 ) {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
-            } else if ( !argptr || *argptr == '\0' ) {
+                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
+            } else if ( !argptr || (argptr && *argptr == '\0')) {
                 if ( config->gateway->certificatePath ) 
                     iotp_utils_freePtr((void *)config->gateway->certificatePath);
                 config->gateway->certificatePath =  NULL;
@@ -430,7 +460,8 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
         if ( !strcasecmp(name, IoTPConfig_Gateway_keyPath)) {
             if (argint != 0 ) {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
-            } else if ( !argptr || *argptr == '\0' ) {
+                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
+            } else if ( !argptr || (argptr && *argptr == '\0')) {
                 if ( config->gateway->keyPath ) 
                     iotp_utils_freePtr((void *)config->gateway->keyPath);
                 config->gateway->keyPath =  NULL;
@@ -453,8 +484,10 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
         if ( !strcasecmp(name, IoTPConfig_Application_appId)) {
             if (argint != 0 ) {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
-            } else if (argptr == NULL || *argptr == '\0') {
+                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
+            } else if (argptr == NULL || (argptr && *argptr == '\0')) {
                 rc = IoTP_RC_PARAM_NULL_VALUE;
+                LOG(ERROR, "NULL configuration value is specified: rc=%d", rc);
             } else {
                 if ( config->application->appId ) 
                     iotp_utils_freePtr((void *)config->application->appId);
@@ -467,8 +500,10 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
         if ( !strcasecmp(name, IoTPConfig_Application_APIKey)) {
             if (argint != 0 ) {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
-            } else if (argptr == NULL || *argptr == '\0') {
+                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
+            } else if (argptr == NULL || (argptr && *argptr == '\0')) {
                 rc = IoTP_RC_PARAM_NULL_VALUE;
+                LOG(ERROR, "NULL configuration value is specified: rc=%d", rc);
             } else {
                 if ( config->application->APIKey ) 
                     iotp_utils_freePtr((void *)config->application->APIKey);
@@ -481,8 +516,10 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
         if ( !strcasecmp(name, IoTPConfig_Application_authToken)) {
             if (argint != 0 ) {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
-            } else if (argptr == NULL || *argptr == '\0') {
+                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
+            } else if (argptr == NULL || (argptr && *argptr == '\0')) {
                 rc = IoTP_RC_PARAM_NULL_VALUE;
+                LOG(ERROR, "NULL configuration value is specified: rc=%d", rc);
             } else {
                 if ( config->application->authToken ) 
                     iotp_utils_freePtr((void *)config->application->authToken);
@@ -501,6 +538,7 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
             LOG(INFO, "argint=%d", argint);
             if (argint < 1 || argint > 5) {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
+                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
             } else {
                 config->logLevel = argint;
                 iotp_utils_setLogLevel(config->logLevel);
@@ -511,7 +549,8 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
         /* Process Debug.MQTTTraceLevel */
         if ( !strcasecmp(name, IoTPConfig_Debug_MQTTTraceLevel)) {
             if (argint < 1 || argint > 6) {
-                rc = IoTP_RC_PARAM_NULL_VALUE;
+                rc = IoTP_RC_PARAM_INVALID_VALUE;
+                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
             } else {
                 config->MQTTTraceLevel = argint;
             }
@@ -521,11 +560,12 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
 
     /* Could not find any valid configuration */
     rc = IoTP_RC_INVALID_PARAM;
+    LOG(ERROR, "Invalid configuration parameter is specified: rc=%d", rc);
 
 setPropDone:
 
     if (rc != IoTP_SUCCESS) {
-        LOG(ERROR, "Could not set parameter %s. rc=%d", name, rc);
+        LOG(ERROR, "Could not set configuration parameter %s. rc=%d", name, rc);
     }
 
     return rc;
@@ -545,7 +585,7 @@ IoTP_RC IoTPConfig_readConfigFile(IoTPConfig *config, const char *configFileName
     /* sanity check */
     if (!config) {
         rc = IoTP_RC_INVALID_HANDLE;
-        LOG(ERROR, "Invalid config handle");
+        LOG(ERROR, "Invalid config handle: rc=%d", rc);
         return rc;
     }
     if (!configFileName || *configFileName == '\0') {
@@ -643,6 +683,7 @@ IoTP_RC IoTPConfig_readEnvironment(IoTPConfig *config)
     /* sanity check */
     if (!config) {
         rc = IoTP_RC_INVALID_HANDLE;
+        LOG(ERROR, "Invalid config handle: rc=%d", rc);
         return rc;
     }
 
@@ -676,6 +717,7 @@ IoTP_RC IoTPConfig_getProperty(IoTPConfig *config, const char * name, char ** va
 
     if (!config) {
         rc = IoTP_RC_INVALID_HANDLE;
+        LOG(ERROR, "Invalid config handle: rc=%d", rc);
         return rc;
     }
     if (!name || *name == '\0') {
@@ -715,3 +757,4 @@ getPropDone:
 
     return rc;
 }
+

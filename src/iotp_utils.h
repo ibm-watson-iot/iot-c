@@ -167,6 +167,7 @@ DLLExport void iotp_utils_generateUUID(char* uuid_str);
 DLLExport void iotp_utils_delay(long milsecs);
 DLLExport void iotp_utils_writeClientVersion(void);
 DLLExport IoTP_RC iotp_utils_setLogHandler(IoTPLogTypes type, void * handler);
+DLLExport IoTP_RC iotp_utils_fileExist(const char * filePath);
 
 #define LOG(sev, fmts...) \
         iotp_utils_logInvoke((LOGLEVEL_##sev), __FUNCTION__, __FILE__, __LINE__, fmts);

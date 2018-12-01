@@ -115,7 +115,7 @@ typedef struct {
 typedef struct IoTPClient {
     int                 inited;
     IoTPClientType      type;
-    IoTPConfig *        config;
+    void *              config;
     char *              clientId;
     char *              connectionURI;
     void *              mqttClient;
@@ -125,7 +125,7 @@ typedef struct IoTPClient {
 } IoTPClient;
 
 DLLExport IoTP_RC iotp_client_create(void **client, IoTPConfig *config, IoTPClientType type);
-DLLExport IoTP_RC iotp_client_destroy(void *client);
+DLLExport IoTP_RC iotp_client_destroy(void *client, int destroyMQTTClient);
 DLLExport IoTP_RC iotp_client_connect(void *client);
 DLLExport IoTP_RC iotp_client_disconnect(void *client);
 DLLExport IoTP_RC iotp_client_setHandler(void *client, char * topic, int type, IoTPCallbackHandler handler);

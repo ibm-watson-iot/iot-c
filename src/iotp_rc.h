@@ -113,7 +113,13 @@ typedef enum {
     IoTP_RC_CERT_CALLBACK = 1013,
 
     /** Can not destoy a handle which is in use */
-    IoTP_RC_HANDLE_IN_USE = 1014
+    IoTP_RC_HANDLE_IN_USE = 1014,
+
+    /** File does not exist or can not access */
+    IoTP_RC_NO_ACCESS = 1015,
+
+    /** IoTP Client is not connected to the platform */
+    IoTP_RC_NOT_CONNECTED = 1016
 
 } IoTP_RC;
 

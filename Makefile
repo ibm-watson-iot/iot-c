@@ -184,14 +184,6 @@ LDFLAGS_AS_END = .so.$(MAJOR_VERSION) -Wl,-no-whole-archive
 LDCONFIG = echo
 SED_I = sed -i
 
-define run-test
-    @echo
-    @echo ==== Run Test: $(notdir $(1))
-    @echo ==== Time: $(shell date +%T)
-    @echo ---- Use MQTT Paho asynchronous library
-    LD_LIBRARY_PATH=$(paholibdir):$(iotplibdir) $(blddir)/test/$(1)
-endef
-
 else ifeq ($(OSTYPE),Darwin)
 
 START_GROUP =
@@ -204,28 +196,7 @@ FLAGS_EXES += -L /usr/local/opt/openssl/lib -L $(TOP)/$(blddir)
 LDCONFIG = echo
 SED_I = sed -i bak
 
-define run-test
-    @echo
-    @echo ==== Run Test: $(notdir $(1))
-    @echo ==== Time: $(shell date +%T)
-    @echo ---- Use MQTT Paho asynchronous library
-    DYLD_LIBRARY_PATH=$(paholibdir):$(iotplibdir) $(blddir)/test/$(1)
-endef
-
 endif
-
-# 
-# Unit Tests
-#
-TEST_UTILS_C = test_utils.c
-TEST_UTILS_O = $(TEST_UTILS_C:.c=.o)
-TEST_UTILS_SRCS = $(addprefix test/,$(TEST_UTILS_C))
-TEST_UTILS_OBJS = $(addprefix $(blddir)/test/,$(TEST_UTILS_O))
-TEST_SRCS = $(wildcard test/*_tests.c)
-TEST_AS_EXES = $(patsubst test/%_tests.c, $(blddir)/test/%_tests_as, $(TEST_SRCS))
-TEST_CS_EXES = $(patsubst test/%_tests.c, $(blddir)/test/%_tests_cs, $(TEST_SRCS))
-TEST_AS_RUN = $(patsubst test/%_tests.c, %_tests_as, $(TEST_SRCS))
-TEST_CS_RUN = $(addprefix $(blddir)/test/,$(TEST_CS_EXES))
 
 #
 # By default build IoTP asynchronus client libraries
@@ -238,7 +209,7 @@ clean:
 	rm -rf $(blddir)/*
 
 mkdir:
-	-mkdir -p $(blddir)/test
+	-mkdir -p $(blddir)
 	echo OSTYPE is $(OSTYPE)
 
 
@@ -255,11 +226,6 @@ iotp-as-libs: iotp-device-as-lib iotp-gateway-as-lib iotp-application-as-lib
 # IoTP asynchrous client library with device, gateway, and application APIs
 iotp-as-lib: paho-mqtt iotp-version $(IOTP_AS_LIB_TARGET)
 
-test-as: iotp-as-libs $(TEST_AS_EXES)
-test-cs: iotp-client-cs-libs $(TEST_CS_EXES)
-
-test-as-run: $(TEST_AS_RUN)
-test-cs-run: $(TEST_CS_RUN)
 
 paho-mqtt-download:
 	echo "Downloading paho mqtt c source and setup for build"
@@ -303,18 +269,6 @@ $(IOTP_AS_LIB_TARGET): $(IOTP_AS_SRCS) $(blddir)/iotp_version.h
 	$(CC) $(CCFLAGS_SO) -o $@ $(IOTP_AS_SRCS) $(LDFLAGS_AS)
 	-ln -s lib$(IOTP_AS_LIB_NAME).so.$(VERSION) $(blddir)/lib$(IOTP_AS_LIB_NAME).so.$(MAJOR_VERSION)
 	-ln -s lib$(IOTP_AS_LIB_NAME).so.$(MAJOR_VERSION) $(blddir)/lib$(IOTP_AS_LIB_NAME).so
-
-$(TEST_UTILS_OBJS): $(TEST_UTILS_SRCS)
-	$(CC) -c -g -o $@ $< -I $(srcdir) -I $(pahomqttdir)/src
-
-$(blddir)/test/%_tests.o: test/%_tests.c
-	$(CC) -c -g -o $@ $< -I $(srcdir) -I $(pahomqttdir)/src
-
-$(blddir)/test/%_tests_as: $(blddir)/test/%_tests.o $(TEST_UTILS_OBJS) iotp-device-as-lib
-	$(CC) -g -o $@ $< $(TEST_UTILS_OBJS) -l$(DEVICE_AS_LIB_NAME) -l$(PAHO_MQTT_AS_LIB_NAME) $(FLAGS_EXES)
-
-$(TEST_AS_RUN):
-	$(call run-test,$@)
 
 strip_options:
 	$(eval INSTALL_OPTS := -s)

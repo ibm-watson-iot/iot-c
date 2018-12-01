@@ -38,6 +38,7 @@ IoTP_RC IoTPApplication_create(IoTPApplication **application, IoTPConfig *config
 IoTP_RC IoTPApplication_setMQTTLogHandler(IoTPApplication *application, IoTPLogHandler *cb)
 {
     IoTP_RC rc = IoTP_SUCCESS;
+
     rc = iotp_client_setMQTTLogHandler((void *)application, cb);
     return rc;
 }
@@ -46,8 +47,9 @@ IoTP_RC IoTPApplication_setMQTTLogHandler(IoTPApplication *application, IoTPLogH
 IoTP_RC IoTPApplication_destroy(IoTPApplication *application)
 {
     IoTP_RC rc = IoTP_SUCCESS;
+    int destroyMQTTClient = 1;
 
-    rc = iotp_client_destroy((void *)application);
+    rc = iotp_client_destroy((void *)application, destroyMQTTClient);
     if ( rc != IoTP_SUCCESS ) {
         LOG(ERROR, "Failed to destroy IoTPGateway: rc=%d", rc);
     }

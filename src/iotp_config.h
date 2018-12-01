@@ -132,8 +132,8 @@ typedef enum {
     /** Managed gateway client */
     IoTPClient_managed_gateway = 6,
 
-    /* Number of client types */
-    IoTPClient_total = 6 
+    /* Number of client types - should be the last entry in this enum */
+    IoTPClient_total = 7 
 
 } IoTPClientType;
 

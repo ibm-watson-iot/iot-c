@@ -177,6 +177,24 @@ void iotp_utils_writeClientVersion(void)
     }
 }
 
+/* check if file exist */
+IoTP_RC iotp_utils_fileExist(const char * filePath)
+{
+    IoTP_RC rc = IoTP_SUCCESS;
+
+    if (filePath == NULL) {
+        rc = IoTP_RC_PARAM_NULL_VALUE;
+        return rc;
+    }
+
+    if ( access( filePath, R_OK ) != -1 ) {
+        rc = IoTP_RC_NO_ACCESS;
+        return rc;
+    }
+
+    return rc;
+}
+
 /* check if pointer is a valid function pointer - return 1 if valid */
 int iotp_get_handlerType(void *handler)  
 {

@@ -116,7 +116,7 @@ int testConfig_create(void)
     IoTPConfig *config = NULL;
 
     rc = IoTPConfig_create(NULL, NULL);
-    TEST_ASSERT("IoTPConfig_create: Init with NULL handle", rc == IoTP_RC_INVALID_HANDLE, "rcE=%d rcA=%d", IoTP_RC_INVALID_HANDLE, rc);
+    TEST_ASSERT("IoTPConfig_create: Init with NULL handle", rc == IoTP_RC_PARAM_NULL_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_NULL_VALUE, rc);
 
     rc = IoTPConfig_create(&config, NULL);
     TEST_ASSERT("IoTPConfig_create: Init with NULL file", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
@@ -127,7 +127,7 @@ int testConfig_create(void)
     TEST_ASSERT("IoTPConfig_clear: Clear config object", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
     config = NULL;
-    rc = IoTPConfig_create(&config, "./test/iotpclient.cfg");
+    rc = IoTPConfig_create(&config, "./iotpclient.cfg");
     TEST_ASSERT("IoTPConfig_create: With valid file", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
     return rc;
 
@@ -141,7 +141,7 @@ int testConfig_clear(void)
     IoTPConfig *config = NULL;
 
     rc = IoTPConfig_clear(config);
-    TEST_ASSERT("IoTPConfig_clear: Clear NULL config object", rc == IoTP_RC_INVALID_HANDLE, "rcE=%d rcA=%d", IoTP_RC_INVALID_HANDLE, rc);
+    TEST_ASSERT("IoTPConfig_clear: Clear NULL config object", rc == IoTP_RC_PARAM_NULL_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_NULL_VALUE, rc);
 
     rc = IoTPConfig_create(&config, NULL);
     TEST_ASSERT("IoTPConfig_create: Init with NULL file", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
@@ -163,7 +163,7 @@ int testConfig_setProperty(void)
     TEST_ASSERT("IoTPConfig_create: Init with NULL file", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
     rc = IoTPConfig_setProperty(NULL, "platform.domain", "xxxx.com");
-    TEST_ASSERT("IoTPConfig_setProperty: NULL config object", rc == IoTP_RC_INVALID_HANDLE, "rcE=%d rcA=%d", IoTP_RC_INVALID_HANDLE, rc);
+    TEST_ASSERT("IoTPConfig_setProperty: NULL config object", rc == IoTP_RC_PARAM_NULL_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_NULL_VALUE, rc);
 
     rc = IoTPConfig_setProperty(config, NULL, "xxxx.com");
     TEST_ASSERT("IoTPConfig_setProperty: NULL config param", rc == IoTP_RC_INVALID_PARAM, "rcE=%d rcA=%d", IoTP_RC_INVALID_PARAM, rc);
@@ -382,16 +382,16 @@ int testConfig_readConfigFile(void)
     rc = IoTPConfig_readConfigFile(config, "/usr/sbin/xxxxx");
     TEST_ASSERT("IoTPConfig_readConfigFile: Invalid config file", rc == IoTP_RC_FILE_OPEN, "rcE=%d rcA=%d", IoTP_RC_FILE_OPEN, rc);
 
-    rc = IoTPConfig_readConfigFile(config, "./test/iotpclient.cfg");
+    rc = IoTPConfig_readConfigFile(config, "./iotpclient.cfg");
     TEST_ASSERT("IoTPConfig_readConfigFile: Valid config file", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
-    rc = IoTPConfig_readConfigFile(config, "./test/invalidconfig1.cfg");
+    rc = IoTPConfig_readConfigFile(config, "./invalidconfig1.cfg");
     TEST_ASSERT("IoTPConfig_readConfigFile: Invalid config - catagory", rc == IoTP_RC_INVALID_PARAM, "rcE=%d rcA=%d", IoTP_RC_INVALID_PARAM, rc);
 
-    rc = IoTPConfig_readConfigFile(config, "./test/invalidconfig2.cfg");
+    rc = IoTPConfig_readConfigFile(config, "./invalidconfig2.cfg");
     TEST_ASSERT("IoTPConfig_readConfigFile: Invalid config - prop", rc == IoTP_RC_INVALID_PARAM, "rcE=%d rcA=%d", IoTP_RC_INVALID_PARAM, rc);
 
-    rc = IoTPConfig_readConfigFile(config, "./test/invalidconfig3.cfg");
+    rc = IoTPConfig_readConfigFile(config, "./invalidconfig3.cfg");
     TEST_ASSERT("IoTPConfig_readConfigFile: Invalid config - category prop", rc == IoTP_RC_INVALID_PARAM, "rcE=%d rcA=%d", IoTP_RC_INVALID_PARAM, rc);
 
     return rc;

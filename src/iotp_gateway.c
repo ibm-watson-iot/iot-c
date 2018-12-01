@@ -38,6 +38,7 @@ IoTP_RC IoTPGateway_create(IoTPGateway **gateway, IoTPConfig *config)
 IoTP_RC IoTPGateway_setMQTTLogHandler(IoTPGateway *gateway, IoTPLogHandler *cb)
 {
     IoTP_RC rc = IoTP_SUCCESS;
+
     rc = iotp_client_setMQTTLogHandler((void *)gateway, cb);
     return rc;
 }
@@ -46,8 +47,9 @@ IoTP_RC IoTPGateway_setMQTTLogHandler(IoTPGateway *gateway, IoTPLogHandler *cb)
 IoTP_RC IoTPGateway_destroy(IoTPGateway *gateway)
 {
     IoTP_RC rc = IoTP_SUCCESS;
+    int destroyMQTTClient = 1;
 
-    rc = iotp_client_destroy((void *)gateway);
+    rc = iotp_client_destroy((void *)gateway, destroyMQTTClient);
     if ( rc != IoTP_SUCCESS ) {
         LOG(ERROR, "Failed to destory IoTPGateway: rc=%d", rc);
     }
