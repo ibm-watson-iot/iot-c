@@ -15,7 +15,7 @@ make -C test
 echo "Make samples"
 make -C samples
 
-echo "Make doxygen docs"
-make html
+# echo "Make doxygen docs"
+# make html
 
 
