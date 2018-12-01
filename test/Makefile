@@ -50,6 +50,10 @@ ifndef iotplibdir
   iotplibdir = $(parent_dir)/build
 endif
 
+ifndef paholibdir
+  paholibdir = $(parent_dir)/paho.mqtt.c/build/output
+endif
+
 ifndef pahomqttdir
   pahomqttdir = $(parent_dir)/paho.mqtt.c
 endif
