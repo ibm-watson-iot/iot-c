@@ -32,7 +32,7 @@ addons:
       - doxygen
   homebrew:
     packages:
-    - doxgen
+    - doxygen
     update: true
 
 env:
