@@ -30,6 +30,10 @@ addons:
   apt:
     packages:
       - doxygen
+  homebrew:
+    packages:
+    - doxgen
+    update: true
 
 env:
   global:

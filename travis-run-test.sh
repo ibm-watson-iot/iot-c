@@ -11,5 +11,6 @@ OSTYPE=`uname -s`
 export OSTYPE
 
 echo "Run tests"
+echo "ORGID: $orgid"
 make -C test run_tests
 
