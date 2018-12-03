@@ -15,7 +15,9 @@ make -C test
 echo "Make samples"
 make -C samples
 
-echo "Make doxygen docs"
-make html
+if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+    echo "Make doxygen docs"
+    make html
+fi
 
 
