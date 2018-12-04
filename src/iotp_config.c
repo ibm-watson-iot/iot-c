@@ -75,6 +75,8 @@ IoTP_RC IoTPConfig_create(IoTPConfig **config, const char * configFileName)
     (*config)->device = (iotc *)calloc(1, sizeof(iotc));
     (*config)->gateway = (iotc *)calloc(1, sizeof(iotc));
     (*config)->application = (iota *)calloc(1, sizeof(iota));
+    (*config)->keepAliveInterval = 60;
+    (*config)->automaticReconnect = 0;
 
     /* If configuration file is specified - process it */
     if ( configFileName && *configFileName != '\0' ) {

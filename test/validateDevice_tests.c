@@ -83,6 +83,7 @@ int testDevice_create(void)
     return rc;
 }
 
+/* Tests: MQTT Log handler setup */
 int testDevice_setMQTTLogHandler(void)
 {
     int rc = IoTP_SUCCESS;
@@ -100,7 +101,7 @@ int testDevice_setMQTTLogHandler(void)
     rc = IoTPDevice_setMQTTLogHandler(device, &MQTTTraceCallback);
     TEST_ASSERT("IoTPDevice_setMQTTLogHandler: Valid log handler", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
     rc = IoTPDevice_connect(device);
-    TEST_ASSERT("IoTPDevice_setMQTTLogHandler: Connect client", rc == -8, "rcE=%d rcA=%d", -8, rc);
+    TEST_ASSERT("IoTPDevice_setMQTTLogHandler: Connect client", rc == -15, "rcE=%d rcA=%d", -15, rc);
     sleep(2);
     /* TEST_ASSERT("IoTPDevice_setMQTTLogHandler: Verify loghandler", mqttLogCallbackActive == 1, "rcE=%d rcA=%d", mqttLogCallbackActiveExp, mqttLogCallbackActive); */
     rc = IoTPDevice_destroy(device);
@@ -111,6 +112,7 @@ int testDevice_setMQTTLogHandler(void)
 }
 
 
+/* Tests: Device connect */
 int testDevice_connect(void)
 {
     int rc = IoTP_SUCCESS;
@@ -123,7 +125,7 @@ int testDevice_connect(void)
     rc = IoTPDevice_connect(NULL);
     TEST_ASSERT("IoTPDevice_connect: NULL", rc == IoTP_RC_INVALID_HANDLE, "rcE=%d rcA=%d", IoTP_RC_INVALID_HANDLE, rc);
     rc = IoTPDevice_connect(device);
-    TEST_ASSERT("IoTPDevice_connect: Connect client", rc == -8, "rcE=%d rcA=%d", -8, rc);
+    TEST_ASSERT("IoTPDevice_connect: Connect client", rc == -15, "rcE=%d rcA=%d", -15, rc);
     rc = IoTPDevice_destroy(device);
     TEST_ASSERT("IoTPDevice_connect: Destroy a valid device handle", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
     rc = IoTPConfig_clear(config);
@@ -131,6 +133,7 @@ int testDevice_connect(void)
     return rc;
 }
 
+/* Tests: Device disconnect */
 int testDevice_disconnect(void)
 {
     int rc = IoTP_SUCCESS;
@@ -141,7 +144,7 @@ int testDevice_disconnect(void)
     rc = IoTPDevice_create(&device, config);
     TEST_ASSERT("IoTPDevice_disconnect: Create device with valid config", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
     rc = IoTPDevice_connect(device);
-    TEST_ASSERT("IoTPDevice_disconnect: Connect client", rc == -8, "rcE=%d rcA=%d", -8, rc);
+    TEST_ASSERT("IoTPDevice_disconnect: Connect client", rc == -15, "rcE=%d rcA=%d", -15, rc);
     rc = IoTPDevice_disconnect(device);
     TEST_ASSERT("IoTPDevice_disconnect: Disconnect client", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
     rc = IoTPDevice_destroy(device);
@@ -152,10 +155,42 @@ int testDevice_disconnect(void)
 }
 
 
+/* Tests: Send event */
+int testDevice_sendEvent(void)
+{
+    int rc = IoTP_SUCCESS;
+    IoTPConfig *config = NULL;
+    IoTPDevice *device = NULL;
+
+    rc = IoTPDevice_sendEvent(device, NULL, NULL, NULL, 0, NULL);
+    TEST_ASSERT("IoTPDevice_sendEvent: Invalid device object", rc == IoTP_RC_PARAM_NULL_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_NULL_VALUE, rc);
+    rc = IoTPConfig_create(&config, "./iotpclient.cfg");
+    TEST_ASSERT("IoTPDevice_sendEvent: Create config object", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+    rc = IoTPDevice_create(&device, config);
+    TEST_ASSERT("IoTPDevice_sendEvent: Create device with valid config", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+    rc = IoTPDevice_sendEvent(device, NULL, NULL, NULL, 0, NULL);
+    TEST_ASSERT("IoTPDevice_sendEvent: Invalid event ID", rc == IoTP_RC_PARAM_NULL_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_NULL_VALUE, rc);
+    rc = IoTPDevice_sendEvent(device, "status", NULL, NULL, 0, NULL);
+    TEST_ASSERT("IoTPDevice_sendEvent: Invalid format", rc == IoTP_RC_PARAM_NULL_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_NULL_VALUE, rc);
+    rc = IoTPDevice_sendEvent(device, "status", NULL, "json", -1, NULL);
+    TEST_ASSERT("IoTPDevice_sendEvent: Invalid QoS -1", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_NULL_VALUE, rc);
+    rc = IoTPDevice_sendEvent(device, "status", NULL, "json", 3, NULL);
+    TEST_ASSERT("IoTPDevice_sendEvent: Invalid QoS 3", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_NULL_VALUE, rc);
+    rc = IoTPDevice_connect(device);
+    TEST_ASSERT("IoTPDevice_sendEvnt: Connect client", rc == -15, "rcE=%d rcA=%d", -15, rc);
+    rc = IoTPDevice_disconnect(device);
+    TEST_ASSERT("IoTPDevice_sendEvent: Disconnect client", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+    rc = IoTPDevice_destroy(device);
+    TEST_ASSERT("IoTPDevice_sendEvent: Destroy a valid device handle", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+    rc = IoTPConfig_clear(config);
+    TEST_ASSERT("IoTPDevice_sendEvent: Clear Config", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+    return rc;
+}
+
 int main(int argc, char** argv)
 {
     int rc = 0;
-    int (*tests[])() = {testDevice_create, testDevice_setMQTTLogHandler, testDevice_connect, testDevice_disconnect};
+    int (*tests[])() = {testDevice_create, testDevice_setMQTTLogHandler, testDevice_connect, testDevice_disconnect, testDevice_sendEvent};
     int i;
     int count = (int)TEST_COUNT(tests);
 

@@ -96,11 +96,17 @@ IoTP_RC IoTPDevice_sendEvent(IoTPDevice *device, char *eventId, char *data, char
     IoTP_RC rc = IoTP_SUCCESS;
 
     /* Sanity check */
-    if ( !eventId || *eventId == '\0' || !formatString || *formatString == '\0' ) {
+    if ( !device || !eventId || *eventId == '\0' || !formatString || *formatString == '\0' ) {
         rc = IoTP_RC_PARAM_NULL_VALUE;
-        LOG(WARN, "IoTPDevice_sendEvent received invalid or NULL arguments: rc=%d", rc);
+        LOG(WARN, "IoTPDevice_sendEvent received NULL arguments: rc=%d", rc);
         return rc;
     }
+    if ( qos != QoS0 && qos != QoS1 && qos != QoS2 ) {
+        rc = IoTP_RC_PARAM_INVALID_VALUE;
+        LOG(WARN, "IoTPDevice_sendEvent received invalid arguments: rc=%d", rc);
+        return rc;
+    }
+
 
     /* Set topic string */
     char *format = "iot-2/evt/%s/fmt/%s";

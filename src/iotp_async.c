@@ -435,7 +435,6 @@ IoTP_RC iotp_client_create(void **iotpClient, IoTPConfig *config, IoTPClientType
     client->connectionURI = connectionURI;
     client->mqttClient = NULL;
     client->handlers = (IoTPHandlers *) calloc(1, sizeof(IoTPHandlers));
-    client->keepAliveInterval = 60;
 
     /* create MQTT Async client handle */
     MQTTAsync                   mqttClient;
@@ -560,13 +559,13 @@ IoTP_RC iotp_client_connect(void *iotpClient)
     int port = config->port;
 
     /* set connection options */
-    conn_opts.keepAliveInterval = client->keepAliveInterval;
+    conn_opts.keepAliveInterval = config->keepAliveInterval;
     conn_opts.cleansession = 1;
     conn_opts.onSuccess5 = onConnect;
     conn_opts.onFailure5 = onConnectFailure;
     conn_opts.MQTTVersion = 4;
     conn_opts.context = client;
-    /* conn_opts.automaticReconnect = 1; */
+    conn_opts.automaticReconnect = config->automaticReconnect;
 
     /* set authentication credentials */
     ssl_opts.enableServerCertAuth = 0;
@@ -643,7 +642,9 @@ IoTP_RC iotp_client_publish(void *iotpClient, char *topic, char *payload, int qo
     opts.onFailure5 = onSendFailure;
     opts.context = client;
 
-    int payloadlen = strlen(payload);
+    int payloadlen = 0;
+    if ( payload && *payload != '\0' )
+        payloadlen = strlen(payload);
 
     pubmsg.payload = payload;
     pubmsg.payloadlen = payloadlen;
@@ -654,11 +655,14 @@ IoTP_RC iotp_client_publish(void *iotpClient, char *topic, char *payload, int qo
                     pubmsg.qos, pubmsg.retained, pubmsg.payloadlen, payload);
 
     rc = MQTTAsync_send(mqttClient, topic, payloadlen, payload, qos, 0, &opts);
-    if ( rc != MQTTASYNC_SUCCESS ) {
+    if ( rc != MQTTASYNC_SUCCESS && rc != IoTP_RC_INVALID_HANDLE ) {
         LOG(ERROR, "MQTTAsync_send returned error: rc=%d", rc);
-        LOG(WARN, "Connection lost, retry connection and republish message.\n");
-        iotp_client_retry_connection(mqttClient);
-        rc = MQTTAsync_send(mqttClient, topic, payloadlen, payload, qos, 0, &opts);
+        IoTPConfig *config = client->config;
+        if ( config->automaticReconnect == 1 ) {
+            LOG(WARN, "Connection lost, retry connection and republish message.\n");
+            iotp_client_retry_connection(mqttClient);
+            rc = MQTTAsync_send(mqttClient, topic, payloadlen, payload, qos, 0, &opts);
+        }
     }
 
     return rc;

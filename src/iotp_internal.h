@@ -82,6 +82,8 @@ typedef struct IoTPConfig {
     iotc * device;
     iotc * gateway;
     iota * application;
+    int    automaticReconnect;
+    int    keepAliveInterval;
 } IoTPConfig;
 
 
@@ -120,7 +122,6 @@ typedef struct IoTPClient {
     char *              connectionURI;
     void *              mqttClient;
     IoTPHandlers *      handlers;
-    int                 keepAliveInterval;
     int                 connected;
 } IoTPClient;
 
