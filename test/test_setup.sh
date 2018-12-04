@@ -55,27 +55,9 @@ NODEVTYPE=2
 # Script will add devices: iot_test_dev1, iot_test_dev2, ...
 NODEV=5
 
-#
-# Sanity check
-#
-if [ "${ORG}" == "" ]
-then
-    echo 
-    echo "ERROR: Invalid OrgID: ${ORG}"
-    echo
-    exit 1
-else
-    echo
-    echo "Run tests using WiOTP instance ${ORG}"
-    echo
-fi
-
-# Set default DEVTOKEN to iotTestPassw0rd is DEVTOKEN is not specified.
-if [ "${DEVTOKEN}" == "" ]
-then
-    DEVTOKEN="iotTestPassw0rd"
-fi
-
+echo
+echo "Run tests using WiOTP instance ${ORG}"
+echo
 
 # Set for verbose output
 # VERBOSE="-v"
