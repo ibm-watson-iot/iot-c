@@ -35,7 +35,7 @@ ACTION=$1
 #
 ORG="${orgid}"
 APIKEY="${apikey}"
-APITOKEN="${token}"
+APITOKEN="${apitoken}"
 DEVICETOKEN="${devtoken}"
 
 # 
