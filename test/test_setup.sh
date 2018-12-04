@@ -1,0 +1,198 @@
+#!/bin/bash
+#*******************************************************************************
+#  Copyright (c) 2018 IBM Corp.
+#
+#  All rights reserved. This program and the accompanying materials
+#  are made available under the terms of the Eclipse Public License v1.0
+#  and Eclipse Distribution License v1.0 which accompany this distribution.
+#
+#  The Eclipse Public License is available at
+#     http://www.eclipse.org/legal/epl-v10.html
+#  and the Eclipse Distribution License is available at
+#    http://www.eclipse.org/org/documents/edl-v10.php.
+#
+#  Contributors:
+#     Ranjan Dasgupta - initial drop of WIoTP samples for NXP i.MX
+#
+#*******************************************************************************/
+#
+# Test setup
+#
+# Creates and removes sets of device types and devices in WIoTP service.
+#
+
+ACTION=$1
+if [ $# -ne 1 ]
+then
+    echo "USAGE: $0 create|delete|testconnection"
+    exit 1
+fi
+
+# Script action - valid actions are create and delete
+ACTION=$1
+
+# Organization ID, API Key and Token are from encrypted environment variables in travis.
+#
+ORG="${orgid}"
+APIKEY="${apikey}"
+APITOKEN="${token}"
+DEVICETOKEN="${devtoken}"
+
+# 
+# To use the script in your own test environment, logon to Watson IoT platform 
+# dashboard to create API key, uncomment and set the following variables:
+#
+# ORG="xxxxxx"
+# APIKEY="a-xxxxxx-xxxxxxxxxx"
+# APITOKEN="xxxxxxxxxxxxxxxxxx"
+# DEVTOKEN="iotTestPassw0rd"
+
+# Specify number of device types.
+# Script will add device types: iot_test_devType1, iot_test_devType2, ...
+NODEVTYPE=2
+
+# Specify number of devices of each types
+# Script will add devices: iot_test_dev1, iot_test_dev2, ...
+NODEV=5
+
+#
+# Sanity check
+#
+if [ "${ORG}" == "" ] || [ "${ORG}" == "" ] || [ "${ORG}" == "" ]
+then
+    echo 
+    echo "ERROR: OrgID, API Key or API Token is empty."
+    echo
+    exit 1
+fi
+
+# Set default DEVTOKEN to iotTestPassw0rd is DEVTOKEN is not specified.
+if [ "${DEVTOKEN}" == "" ]
+then
+    DEVTOKEN="iotTestPassw0rd"
+fi
+
+
+# Set for verbose output
+# VERBOSE="-v"
+
+#
+# Test connection to platform
+#
+if [ "${ACTION}" == "testconnection" ]
+then
+    echo
+    echo "Test WIoTP connectivity"
+    curl -v -u "${APIKEY}:${APITOKEN}" -k --url https://${ORG}.internetofthings.ibmcloud.com/api/v0002/bulk/devices
+    echo
+    exit 0
+fi
+
+
+#
+# Create action
+#
+if [ "${ACTION}" == "create" ]
+then
+ 
+    #
+    # Create Device Types
+    #
+    i=1
+    while [ $i -le $NODEVTYPE ]
+    do
+        devType="iotc_test_devType${i}"
+        echo "Create device type: ${devType}"
+        PAYLOAD="{\"id\":\"${devType}\",\"classId\":\"Device\",\"deviceInfo\":{},\"metadata\":{}}"
+        # echo ${PAYLOAD}
+        curl -k -u "${APIKEY}:${APITOKEN}" --request POST \
+             --url https://${ORG}.internetofthings.ibmcloud.com/api/v0002/device/types \
+             --header 'content-type: application/json' \
+             --data "${PAYLOAD}" ${VERBOSE}
+        echo
+        echo
+        ((i = i + 1 ))
+    
+        #
+        # Create Devices
+        #
+        j=1
+        while [ $j -le $NODEV ]
+        do
+            dev="iotc_test_dev${j}"
+            echo "Create device: ${dev}"
+            PAYLOAD="{\"deviceId\":\"${dev}\",\"authToken\":\"${DEVTOKEN}\",\"deviceInfo\":{},\"location\":{},\"metadata\":{}}"
+            curl -k -u "${APIKEY}:${APITOKEN}" --request POST \
+                --url https://${ORG}.internetofthings.ibmcloud.com/api/v0002/device/types/${devType}/devices \
+                --header 'content-type: application/json' \
+                --data "${PAYLOAD}"  ${VERBOSE}
+            echo
+            ((j = j + 1 ))
+        done
+        echo 
+    done
+    echo
+    
+    echo "Verify device are created"
+    curl -u "${APIKEY}:${APITOKEN}" -k --url https://${ORG}.internetofthings.ibmcloud.com/api/v0002/bulk/devices ${VERBOSE}
+    echo
+    echo
+
+    exit 0
+
+fi
+
+
+#
+# Delete action
+#
+if [ "${ACTION}" == "delete" ]
+then
+
+    #
+    # Delete device types and devices
+    i=1
+    while [ $i -le $NODEVTYPE ]
+    do
+        devType="iotc_test_devType${i}"
+    
+        #
+        # Delete Devices
+        #
+        j=1
+        while [ $j -le $NODEV ]
+        do
+            dev="iotc_test_dev${j}"
+            echo "Delete device: ${dev}"
+            curl --request DELETE -u "${APIKEY}:${APITOKEN}" -k  ${VERBOSE} \
+                --url https://${ORG}.internetofthings.ibmcloud.com/api/v0002/device/types/${devType}/devices/${dev}
+
+            echo
+            ((j = j + 1 ))
+        done
+        echo 
+    
+        #
+        # Delete Device Type
+        #
+        echo "Delete device type: ${devType}"
+        curl --request DELETE -u "${APIKEY}:${APITOKEN}" -k \
+             --url https://${ORG}.internetofthings.ibmcloud.com/api/v0002/device/types/${devType}  ${VERBOSE}
+        echo
+        echo
+        ((i = i + 1 ))
+    done
+    echo
+    
+    echo "Verify devices are removed"
+    curl -u "${APIKEY}:${APITOKEN}" -k --url https://${ORG}.internetofthings.ibmcloud.com/api/v0002/bulk/devices ${VERBOSE}
+    echo ""
+    exit 0
+
+fi
+
+echo
+echo "ERROR: Unsupported action ${ACTION} is specified"
+echo "USAGE: $0 create|delete"
+echo
+exit 1

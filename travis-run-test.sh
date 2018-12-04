@@ -1,4 +1,23 @@
 #!/bin/bash
+#*******************************************************************************
+#  Copyright (c) 2018 IBM Corp.
+#
+#  All rights reserved. This program and the accompanying materials
+#  are made available under the terms of the Eclipse Public License v1.0
+#  and Eclipse Distribution License v1.0 which accompany this distribution.
+#
+#  The Eclipse Public License is available at
+#     http://www.eclipse.org/legal/epl-v10.html
+#  and the Eclipse Distribution License is available at
+#    http://www.eclipse.org/org/documents/edl-v10.php.
+#
+#  Contributors:
+#     Ranjan Dasgupta - initial drop of WIoTP samples for NXP i.MX
+#
+#*******************************************************************************/
+#
+# This script setups up test environment and execute unit and functional tests
+#
 
 set -e
 
@@ -10,18 +29,31 @@ export CURDIR
 OSTYPE=`uname -s`
 export OSTYPE
 
-echo "Run tests"
+echo "Running tests on ${OSTYPE}"
 
-echo "Get Device Data from platform"
+#
+# Test Setup - create device types and devices in the platform test organization
+#
+echo "Setup tests: create device types and devices in WIoTP service"
+chmod +x ./test/test_setup.sh
+./test/test_setup.sh create
+echo
+echo
 
-TESTORG="${orgid}"
-export TESTORG
+#
+# Run tests
+#
+echo "Run test suites"
+make -C test run_tests
+echo
 
-echo "OrgID: ${TESTORG}"
-curl --request GET \
-     -u "${apikey}:${token}" -k -v --url https://${orgid}.internetofthings.ibmcloud.com/api/v0002/bulk/devices
+#
+# Test Cleanup - delete device types and devices in the platform test organization
+#
+echo "Setup tests: delete device types and devices in WIoTP service"
+./test/test_setup.sh delete
+echo
+echo
 
 
-# echo "Run tests"
-# make -C test run_tests
 
