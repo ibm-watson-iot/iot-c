@@ -58,12 +58,16 @@ NODEV=5
 #
 # Sanity check
 #
-if [ "${ORG}" == "" ] || [ "${ORG}" == "" ] || [ "${ORG}" == "" ]
+if [ "${ORG}" == "" ]
 then
     echo 
-    echo "ERROR: OrgID, API Key or API Token is empty."
+    echo "ERROR: Invalid OrgID: ${ORG}"
     echo
     exit 1
+else
+    echo
+    echo "Run tests using WiOTP instance ${ORG}"
+    echo
 fi
 
 # Set default DEVTOKEN to iotTestPassw0rd is DEVTOKEN is not specified.
