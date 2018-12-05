@@ -107,18 +107,21 @@ VAL_CONFIG_TEST = $(patsubst %.c, $(blddir)/%, $(VAL_CONFIG_TEST_SRCS))
 VAL_DEVICE_TEST_SRCS = validateDevice_tests.c
 VAL_DEVICE_TEST = $(patsubst %.c, $(blddir)/%, $(VAL_DEVICE_TEST_SRCS))
 
+SYS_DEVICE_TEST_SRCS = systemDevice_tests.c
+SYS_DEVICE_TEST = $(patsubst %.c, $(blddir)/%, $(SYS_DEVICE_TEST_SRCS))
 
-TEST_RUN = validateConfig_tests validateDevice_tests
+
+TEST_RUN = validateConfig_tests validateDevice_tests systemDevice_tests
 
 
-.PHONY: all clean $(VAT_CONFIG_TEST) $(VAL_DEVICE_TEST)
+.PHONY: all clean $(VAT_CONFIG_TEST) $(VAL_DEVICE_TEST) $(SYS_DEVICE_TEST)
 
 all: mkdir build
 
 mkdir:
 	@mkdir -p $(blddir)
 
-build: $(VAL_CONFIG_TEST) $(VAL_DEVICE_TEST)
+build: $(VAL_CONFIG_TEST) $(VAL_DEVICE_TEST) $(SYS_DEVICE_TEST)
 
 run_tests: $(TEST_RUN)
 
@@ -126,9 +129,11 @@ run_tests: $(TEST_RUN)
 $(VAL_CONFIG_TEST): $(TEST_UTIL_SRCS) $(VAL_CONFIG_TEST_SRCS)
 	$(CC) -o $@ $(TEST_UTIL_SRCS) $(VAL_CONFIG_TEST_SRCS) $(INCDIRS) $(LDFLAGS_DEV) $(FLAGS_EXES)
 
-
 $(VAL_DEVICE_TEST): $(TEST_UTIL_SRCS) $(VAL_DEVICE_TEST_SRCS)
 	$(CC) -o $@ $(TEST_UTIL_SRCS) $(VAL_DEVICE_TEST_SRCS) $(INCDIRS) $(LDFLAGS_DEV) $(FLAGS_EXES)
+
+$(SYS_DEVICE_TEST): $(TEST_UTIL_SRCS) $(SYS_DEVICE_TEST_SRCS)
+	$(CC) -o $@ $(TEST_UTIL_SRCS) $(SYS_DEVICE_TEST_SRCS) $(INCDIRS) $(LDFLAGS_DEV) $(FLAGS_EXES)
 
 $(TEST_RUN):
 	$(call run-test,$@)

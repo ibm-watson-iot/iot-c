@@ -244,13 +244,13 @@ paho-mqtt-build:
 	echo "Build paho mqtt c"
 	make -C paho.mqtt.c
 
-build-test:
+tests:
 	make -C test
 
-run-test:
+run-tests:
 	make -C test run_tests
 
-build-samples:
+sample:
 	make -C samples
 
 $(blddir)/iotp_version.h: $(srcdir)/iotp_version.h.in

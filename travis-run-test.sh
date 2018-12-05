@@ -35,8 +35,8 @@ echo "Running tests on ${OSTYPE}"
 # Test Setup - create device types and devices in the platform test organization
 #
 echo "Setup tests: create device types and devices in WIoTP service"
-chmod +x ./test/test_setup.sh
-./test/test_setup.sh create
+chmod +x ./test/test.sh
+./test/test.sh setup
 echo
 echo
 
@@ -51,7 +51,7 @@ echo
 # Test Cleanup - delete device types and devices in the platform test organization
 #
 echo "Setup tests: delete device types and devices in WIoTP service"
-./test/test_setup.sh delete
+./test/test.sh cleanup
 echo
 echo
 
