@@ -1,44 +1,34 @@
 sudo: required
 language: c
-
 compiler:
 - gcc
 - clang
-
 os:
 - linux
 - osx
-
 matrix:
   exclude:
   - compiler: gcc
     os: osx
   - compiler: clang
     os: linux
-
 before_install:
 - chmod +x *.sh
 - "./travis-install.sh"
-
 script:
 - "./travis-build.sh"
-
 after_success:
 - "./travis-setup-test.sh"
 - "./travis-run-test.sh"
 - "./travis-cleanup-test.sh"
-
 addons:
   apt:
     packages:
-      - doxygen
+    - doxygen
   homebrew:
     packages:
     - doxygen
     update: true
-
 env:
   global:
-    - secure: "SeuMdnIND4Rf9dY3Gn5l6MZcfdRn/QVh9Fky9kMhBSl8kiWf+pQtFSV7RIenzROCucvVV6dAFLLMKSLAd9q+5bsDvEe/8C4r5M1aEewsMRZXrIWxUXEbG9WwYRXXx5HpcyzMDZQ362NeyJn/Io2qM/HkgzHC5KKZd3iF/UJh3koRSxnobpKUdXrSN+hB2QP3X7DLgrwyzh9kAd+R6RheAuv79YWfkLVatPa1qqQQMvv0Yq81vGlO9MiXFRHKKLrNwjml6p7hmCZ+YWAZvpRwBry3De7CeLtDG/2SJbuawdWYY/YIN+vGfqNywEq6jaA1JEIG/2zYf50ZtidI9uTrgy8RzDgHYNbMp9zJ2zFYnBJHZ6GrpwKXc5+D0RGG8TO5WSz9ksBVIOfQYeBnmogtvu2UFO7bPnYlDQTp1LTAHOVqe/ul5DnU7UTRHgn8kyl6ZViY1T6wmlYc9tDuL0GAk1A3w3c+fZ4LqFF0gK5k3ZIcTboIcJwqqWTbU+tMwuhs6FKtuLiaBcqog0nync3BaVINfknHgKq/xk/Ivm8rG5XgWTQ0ibyttCgbqBC8P3wdvEZOmOF45fJwCpC9U+BZMDDZFjxhlAP5i1Cfqn20T7dNjHX6ortJ5kw90EOocYcvrP+R7fKPLcNRE2dfdGBmqexftcUydJ92X+XE/rPOO/Q="
-
-
+    secure: LcrlLy4xCLDYyjDrbD/JZN4B47Ti/pG5typhgfEVUFieAFoHi3/HZ1S4VWxXsDSQELED5zc8QrxiA0WBz4/OZSUxVTOUvgv3uxSih+QyfZwoccv/Kk1ZtDZl6nkhgKvDRtGcEJ1XepZ93g8cz9bEAFPg/BM/UG1yZQnCFAGbEC5BC5gBe9aFkU5LIY2jAyNIE8ujH9k84VTYfZZc5uXlBpoLd4HIDXJzsEM81oT9lztxPEprJxybtucSjb+8bN8d0mvOL5bipoWklmhqzUfl/sLZh3h46OZ/F7eV8RgNJXAEZ7TZOTPAcYaJRWclFpIFzA1CDg2hXugGpgZWi3XzeN1ZrJjL/1yiSGCWTR3cGQamm7CUVngall+10A0qIwatnZQ57awUZsg9u8+SKt4pjf+CH5j8AAKC4kLn5qsQWAmFGoX1cejX0itBYWtStvKm/7JbC9wCRrA5vVmTZCyqUtySMpyX+Wzj5ELiwjW7lYXMG8Ptk0c0VVW7OF+24wwEyb+F0zqnq+tcLM2GVHmRUqrqlDygt6rdHuYntUbx/Y0LTRdIyUoxqlkwYqHc1Aa8Q9eSytRHOnPyFI8yT6QimqTWGZZa4ITZ6HFFZawnWquGIcRF97qa/CB6Dc0qCAXOo0zZp/GmXYzMWiDesas2cvx2IoggmDxLy+LWaYuRt2g=
