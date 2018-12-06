@@ -61,7 +61,6 @@ echo
 
 # Set for verbose output
 # VERBOSE="-v"
-VERBOSE="-S"
 
 #
 # Test connection to platform
