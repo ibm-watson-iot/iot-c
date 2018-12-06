@@ -70,6 +70,11 @@ int test_sendEvent(void)
     rc = IoTPDevice_sendEvent(device, "status", data, "json", QoS0, NULL);
     TEST_ASSERT("test_sendEvent: Send event QoS0", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
+    rc = IoTPDevice_disconnect(device);
+    TEST_ASSERT("test_sendEvent: Disconnect client", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+
+    sleep(2);
+
     rc = IoTPDevice_destroy(device);
     TEST_ASSERT("test_sendEvent: Destroy a valid device handle", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 

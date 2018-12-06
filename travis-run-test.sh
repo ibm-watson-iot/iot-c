@@ -48,12 +48,17 @@ echo "Run test suites"
 ( make run-tests ) | tee -a test.log
 echo
 
+echo
 echo "Failed tests:"
-grep "^TEST-" test.log | grep "Failed"
+echo "-------------"
+grep "TEST-" test.log | grep "Failed"
 echo
 echo "Test Summaries:"
+echo "---------------"
 grep "TEST-Summary" test.log
 echo
+echo
+
 
 #
 # Test Cleanup - delete device types and devices in the platform test organization

@@ -560,7 +560,7 @@ IoTP_RC iotp_client_connect(void *iotpClient)
 
     /* set connection options */
     conn_opts.keepAliveInterval = config->keepAliveInterval;
-    conn_opts.cleansession = 1;
+    conn_opts.cleansession = 0;
     conn_opts.onSuccess5 = onConnect;
     conn_opts.onFailure5 = onConnectFailure;
     conn_opts.MQTTVersion = MQTTVERSION_5;
