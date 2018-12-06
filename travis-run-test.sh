@@ -44,7 +44,7 @@ echo
 # Run tests
 #
 echo "Run test suites"
-make run_tests
+make run-tests
 echo
 
 #
