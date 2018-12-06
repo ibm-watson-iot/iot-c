@@ -697,9 +697,14 @@ IoTP_RC IoTPConfig_readEnvironment(IoTPConfig *config)
         if (prop) iotp_utils_trim(prop);
         if (value) iotp_utils_trim(value);
 
-        if ( prop && !strncasecmp(prop, "IoTPConfig.", 11) && value && *value != '\0' )
+        if ( prop && !strncasecmp(prop, "IoTPConfig_", 11) && value && *value != '\0' )
         {
             char *name = prop + 11;
+            /* replace _ with . */
+            char *p = name;
+            for (; *p; ++p) {
+                if (*p == '_') *p = '.';
+            }
             rc = IoTPConfig_setProperty(config, name, value);
             if ( rc != IoTP_SUCCESS )
                 return rc;

@@ -12,7 +12,7 @@
 #    http://www.eclipse.org/org/documents/edl-v10.php.
 #
 #  Contributors:
-#     Ranjan Dasgupta - initial drop of WIoTP samples for NXP i.MX
+#     Ranjan Dasgupta - initial drop of iot-c test
 #
 #*******************************************************************************/
 #
@@ -33,10 +33,10 @@ ACTION=$1
 
 # Organization ID, API Key and Token are from encrypted environment variables in travis.
 #
-ORG="${IoTPConfig.Organization.id}"
-APIKEY="${IoTPConfig.Application.APIKey}"
-APITOKEN="${IoTPConfig.Application.authToken}"
-DEVICETOKEN="${IoTPConfig.Device.authToken}"
+ORG="${IoTPConfig_Organization_id}"
+APIKEY="${IoTPConfig_Application_APIKey}"
+APITOKEN="${IoTPConfig_Application_authToken}"
+DEVICETOKEN="${IoTPConfig_Device_authToken}"
 
 # 
 # To use the script in your own test environment, logon to Watson IoT platform 

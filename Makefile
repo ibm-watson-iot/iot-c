@@ -110,12 +110,14 @@ SED_COMMAND = sed \
 # Includes configuration APIs, Logging APIs, Error codes and utility functions
 #
 UTILS_C = iotp_utils.c iotp_config.c
+UTILS_H = iotp_utils.h iotp_config.h iotp_rc.h
 #
 # IBM Watson IoT platform MQTT Async client library
 # - The APIs in this library is used by WIoTP client libraries
 #   - Device, Gateway, Application, Managed (device and gateway)
 #
 CLIENT_AS_C = iotp_async.c
+CLIENT_AS_H = iotp_internal.h
 # 
 # WIoTP Async client libraries, for:
 # - Device
@@ -127,24 +129,30 @@ CLIENT_AS_C = iotp_async.c
 # Device Library
 #
 DEVICE_AS_C = $(UTILS_C) $(CLIENT_AS_C) iotp_device.c
+DEVICE_AS_H = $(UTILS_H) $(CLIENT_AS_H) iotp_device.h
 DEVICE_AS_O = $(DEVICE_AS_C:.c=.o)
 DEVICE_AS_SRCS = $(addprefix $(srcdir)/,$(DEVICE_AS_C))
+DEVICE_AS_HEADERS = $(addprefix $(srcdir)/,$(DEVICE_AS_H))
 DEVICE_AS_OBJS = $(addprefix $(blddir)/,$(DEVICE_AS_O))
 DEVICE_AS_LIB_NAME = iotp-as-device
 DEVICE_AS_LIB_TARGET = $(blddir)/lib$(DEVICE_AS_LIB_NAME).so.$(VERSION)
 
 # Gateway Library
 GATEWAY_AS_C = $(UTILS_C) $(CLIENT_AS_C) iotp_gateway.c
+GATEWAY_AS_H = $(UTILS_H) $(CLIENT_AS_H) iotp_gateway.h
 GATEWAY_AS_O = $(GATEWAY_AS_C:.c=.o)
 GATEWAY_AS_SRCS = $(addprefix $(srcdir)/,$(GATEWAY_AS_C))
+GATEWAY_AS_HEADERS = $(addprefix $(srcdir)/,$(GATEWAY_AS_H))
 GATEWAY_AS_OBJS = $(addprefix $(blddir)/,$(GATEWAY_AS_O))
 GATEWAY_AS_LIB_NAME = iotp-as-gateway
 GATEWAY_AS_LIB_TARGET = $(blddir)/lib$(GATEWAY_AS_LIB_NAME).so.$(VERSION)
 
 # Application Library
 APPLICATION_AS_C = $(UTILS_C) $(CLIENT_AS_C) iotp_application.c
+APPLICATION_AS_H = $(UTILS_H) $(CLIENT_AS_H) iotp_application.h
 APPLICATION_AS_O = $(APPLICATION_AS_C:.c=.o)
 APPLICATION_AS_SRCS = $(addprefix $(srcdir)/,$(APPLICATION_AS_C))
+APPLICATION_AS_HEADERS = $(addprefix $(srcdir)/,$(APPLICATION_AS_H))
 APPLICATION_AS_OBJS = $(addprefix $(blddir)/,$(APPLICATION_AS_O))
 APPLICATION_AS_LIB_NAME = iotp-as-application
 APPLICATION_AS_LIB_TARGET = $(blddir)/lib$(APPLICATION_AS_LIB_NAME).so.$(VERSION)
@@ -152,8 +160,10 @@ APPLICATION_AS_LIB_TARGET = $(blddir)/lib$(APPLICATION_AS_LIB_NAME).so.$(VERSION
 # IoTP Library (optional)
 # For device applications that may include APIs exposed by device or gateway library
 IOTP_AS_C = $(UTILS_C) $(CLIENT_AS_C) iotp_device.c iotp_gateway.c iotp_application.c
+IOTP_AS_H = $(UTILS_H) $(CLIENT_AS_H) iotp_device.h iotp_gateway.h iotp_application.h
 IOTP_AS_O = $(IOTP_AS_C:.c=.o)
 IOTP_AS_SRCS = $(addprefix $(srcdir)/,$(IOTP_AS_C))
+IOTP_AS_HEADERS = $(addprefix $(srcdir)/,$(IOTP_AS_H))
 IOTP_AS_OBJS = $(addprefix $(blddir)/,$(IOTP_AS_O))
 IOTP_AS_LIB_NAME = iotp-as
 IOTP_AS_LIB_TARGET = $(blddir)/lib$(IOTP_AS_LIB_NAME).so.$(VERSION)
@@ -250,8 +260,8 @@ tests:
 run-tests:
 	make -C test run_tests
 
-sample:
-	make -C samples
+samples:
+	make -C sample
 
 $(blddir)/iotp_version.h: $(srcdir)/iotp_version.h.in
 	$(SED_COMMAND) $< > $@
@@ -259,22 +269,22 @@ $(blddir)/iotp_version.h: $(srcdir)/iotp_version.h.in
 $(blddir)/%.o: $(srcdir)/%.c
 	$(CC) $(CCFLAGS_SO) -c $< -o $@
 
-$(DEVICE_AS_LIB_TARGET): $(DEVICE_AS_SRCS) $(blddir)/iotp_version.h
+$(DEVICE_AS_LIB_TARGET): $(DEVICE_AS_SRCS) $(DEVICE_AS_HEADERS) $(blddir)/iotp_version.h
 	$(CC) $(CCFLAGS_SO) -o $@ $(DEVICE_AS_SRCS) $(LDFLAGS_AS)
 	-ln -s lib$(DEVICE_AS_LIB_NAME).so.$(VERSION) $(blddir)/lib$(DEVICE_AS_LIB_NAME).so.$(MAJOR_VERSION)
 	-ln -s lib$(DEVICE_AS_LIB_NAME).so.$(MAJOR_VERSION) $(blddir)/lib$(DEVICE_AS_LIB_NAME).so
 
-$(GATEWAY_AS_LIB_TARGET): $(GATEWAY_AS_SRCS) $(blddir)/iotp_version.h
+$(GATEWAY_AS_LIB_TARGET): $(GATEWAY_AS_SRCS) $(GATEWAY_AS_HEADERS) $(blddir)/iotp_version.h
 	$(CC) $(CCFLAGS_SO) -o $@ $(GATEWAY_AS_SRCS) $(LDFLAGS_AS)
 	-ln -s lib$(GATEWAY_AS_LIB_NAME).so.$(VERSION) $(blddir)/lib$(GATEWAY_AS_LIB_NAME).so.$(MAJOR_VERSION)
 	-ln -s lib$(GATEWAY_AS_LIB_NAME).so.$(MAJOR_VERSION) $(blddir)/lib$(GATEWAY_AS_LIB_NAME).so
 
-$(APPLICATION_AS_LIB_TARGET): $(APPLICATION_AS_SRCS) $(blddir)/iotp_version.h
+$(APPLICATION_AS_LIB_TARGET): $(APPLICATION_AS_SRCS) $(APPLICATION_AS_HEADERS) $(blddir)/iotp_version.h
 	$(CC) $(CCFLAGS_SO) -o $@ $(APPLICATION_AS_SRCS) $(LDFLAGS_AS)
 	-ln -s lib$(APPLICATION_AS_LIB_NAME).so.$(VERSION) $(blddir)/lib$(APPLICATION_AS_LIB_NAME).so.$(MAJOR_VERSION)
 	-ln -s lib$(APPLICATION_AS_LIB_NAME).so.$(MAJOR_VERSION) $(blddir)/lib$(APPLICATION_AS_LIB_NAME).so
 
-$(IOTP_AS_LIB_TARGET): $(IOTP_AS_SRCS) $(blddir)/iotp_version.h
+$(IOTP_AS_LIB_TARGET): $(IOTP_AS_SRCS) $(IOTP_AS_HEADERS) $(blddir)/iotp_version.h
 	$(CC) $(CCFLAGS_SO) -o $@ $(IOTP_AS_SRCS) $(LDFLAGS_AS)
 	-ln -s lib$(IOTP_AS_LIB_NAME).so.$(VERSION) $(blddir)/lib$(IOTP_AS_LIB_NAME).so.$(MAJOR_VERSION)
 	-ln -s lib$(IOTP_AS_LIB_NAME).so.$(MAJOR_VERSION) $(blddir)/lib$(IOTP_AS_LIB_NAME).so

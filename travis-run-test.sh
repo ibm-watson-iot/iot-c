@@ -12,7 +12,7 @@
 #    http://www.eclipse.org/org/documents/edl-v10.php.
 #
 #  Contributors:
-#     Ranjan Dasgupta - initial drop of WIoTP samples for NXP i.MX
+#     Ranjan Dasgupta - initial drop of WIoTP iot-c client
 #
 #*******************************************************************************/
 #
@@ -44,7 +44,7 @@ echo
 # Run tests
 #
 echo "Run test suites"
-make -C test run_tests
+make run_tests
 echo
 
 #

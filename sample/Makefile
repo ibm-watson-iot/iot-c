@@ -11,7 +11,7 @@
 #    http://www.eclipse.org/org/documents/edl-v10.php.
 #
 #  Contributors:
-#     Ranjan Dasgupta - initial drop of WIoTP samples for NXP i.MX
+#     Ranjan Dasgupta - initial drop of WIoTP iot-c client samples
 #
 #*******************************************************************************/
 
@@ -35,11 +35,11 @@ current_dir := $(shell pwd)
 parent_dir := $(shell dirname $(current_dir))
 
 ifndef blddir
-    blddir = $(parent_dir)/build/samples
+    blddir = $(parent_dir)/build/sample
 endif
 
 ifndef samplesrcdir
-    samplesrcdir = $(parent_dir)/samples
+    samplesrcdir = $(parent_dir)/sample
 endif
 
 ifndef srcdir

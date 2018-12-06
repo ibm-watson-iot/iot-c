@@ -11,7 +11,7 @@
 #    http://www.eclipse.org/org/documents/edl-v10.php.
 #
 #  Contributors:
-#     Ranjan Dasgupta - initial drop of WIoTP samples for NXP i.MX
+#     Ranjan Dasgupta - initial drop of iot-c tests
 #
 #*******************************************************************************/
 
