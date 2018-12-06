@@ -19,7 +19,7 @@
 # This script setups up test environment and execute unit and functional tests
 #
 
-set -e
+# set -e
 
 cd iot-c
 
@@ -34,7 +34,9 @@ echo "Running tests on ${OSTYPE}"
 #
 # Test Setup - create device types and devices in the platform test organization
 #
-echo "Setup tests: create device types and devices in WIoTP service"
+echo "===================================================================="
+echo "    Setup tests: create device types and devices in WIoTP service"
+echo "===================================================================="
 chmod +x ./test/test.sh
 ./test/test.sh setup
 echo
@@ -44,10 +46,15 @@ echo
 # Run tests
 #
 rm -f test.log
-echo "Run test suites"
+echo "===================================================================="
+echo "    Run test suites"
+echo "===================================================================="
 ( make run-tests ) | tee -a test.log
 echo
 
+echo "===================================================================="
+echo "    Test execution summary"
+echo "===================================================================="
 echo
 echo "Failed tests:"
 echo "-------------"
@@ -63,7 +70,9 @@ echo
 #
 # Test Cleanup - delete device types and devices in the platform test organization
 #
-echo "Setup tests: delete device types and devices in WIoTP service"
+echo "===================================================================="
+echo "    Setup tests: delete device types and devices in WIoTP service"
+echo "===================================================================="
 ./test/test.sh cleanup
 echo
 echo

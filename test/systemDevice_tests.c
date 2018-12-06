@@ -53,6 +53,8 @@ int test_sendEvent(void)
     int rc = IoTP_SUCCESS;
     IoTPConfig *config = NULL;
     IoTPDevice *device = NULL;
+    char *data = "{\"d\" : {\"SensorID\": \"Test\", \"Reading\": 7 }}";
+    int i = 0;
 
     rc = IoTPConfig_create(&config, "./iotpclient.cfg");
     TEST_ASSERT("test_sendEvent: Create config object", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
@@ -66,8 +68,13 @@ int test_sendEvent(void)
     rc = IoTPDevice_connect(device);
     TEST_ASSERT("test_sendEvent: Connect client", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
-    char *data = "{ \"d\": { \"temp\": 30 }}";
-    rc = IoTPDevice_sendEvent(device, "status", data, "json", QoS0, NULL);
+    while ( i < 5 )
+    {
+        rc = IoTPDevice_sendEvent(device,"status","json", data , QoS0, NULL);
+        sleep(5);
+        i++;
+    }
+
     TEST_ASSERT("test_sendEvent: Send event QoS0", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
     rc = IoTPDevice_disconnect(device);
