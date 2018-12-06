@@ -36,7 +36,7 @@ ACTION=$1
 ORG="${IoTPConfig_Organization_id}"
 APIKEY="${IoTPConfig_Application_APIKey}"
 APITOKEN="${IoTPConfig_Application_authToken}"
-DEVICETOKEN="${IoTPConfig_Device_authToken}"
+DEVTOKEN="${IoTPConfig_Device_authToken}"
 
 # 
 # To use the script in your own test environment, logon to Watson IoT platform 
@@ -116,12 +116,14 @@ then
             ((j = j + 1 ))
         done
         echo 
-    done
-    echo
     
-    echo "Verify device are created"
-    curl -u "${APIKEY}:${APITOKEN}" -k --url https://${ORG}.internetofthings.ibmcloud.com/api/v0002/bulk/devices ${VERBOSE}
-    echo
+        echo "Verify device are created"
+        curl -u "${APIKEY}:${APITOKEN}" -k ${VERBOST} \
+             --url https://${ORG}.internetofthings.ibmcloud.com/api/v0002/bulk/devices?typeId=${devType}
+        echo
+        echo
+
+    done
     echo
 
     exit 0
@@ -157,6 +159,13 @@ then
             ((j = j + 1 ))
         done
         echo 
+
+        echo "Verify device are deleted"
+        curl -u "${APIKEY}:${APITOKEN}" -k ${VERBOST} \
+             --url https://${ORG}.internetofthings.ibmcloud.com/api/v0002/bulk/devices?typeId=${devType}
+        echo
+        echo
+
     
         #
         # Delete Device Type
@@ -170,9 +179,6 @@ then
     done
     echo
     
-    echo "Verify devices are removed"
-    curl -u "${APIKEY}:${APITOKEN}" -k --url https://${ORG}.internetofthings.ibmcloud.com/api/v0002/bulk/devices ${VERBOSE}
-    echo ""
     exit 0
 
 fi

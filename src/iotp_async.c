@@ -563,7 +563,7 @@ IoTP_RC iotp_client_connect(void *iotpClient)
     conn_opts.cleansession = 1;
     conn_opts.onSuccess5 = onConnect;
     conn_opts.onFailure5 = onConnectFailure;
-    conn_opts.MQTTVersion = 4;
+    conn_opts.MQTTVersion = MQTTVERSION_5;
     conn_opts.context = client;
     conn_opts.automaticReconnect = config->automaticReconnect;
 

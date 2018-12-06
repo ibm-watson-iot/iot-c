@@ -2,5 +2,6 @@ build
 download
 paho.mqtt.c
 doc/IoTP_C_Client_Docs
+test.log
 temp
 

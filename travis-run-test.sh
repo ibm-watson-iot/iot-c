@@ -43,8 +43,16 @@ echo
 #
 # Run tests
 #
+rm -f test.log
 echo "Run test suites"
-make run-tests
+( make run-tests ) | tee -a test.log
+echo
+
+echo "Failed tests:"
+grep "^TEST-" test.log | grep "Failed"
+echo
+echo "Test Summaries:"
+grep "TEST-Summary" test.log
 echo
 
 #
