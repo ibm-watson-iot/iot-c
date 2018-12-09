@@ -84,10 +84,10 @@ int testConfig_setLogHandle(void)
     }
  
     rc = IoTPConfig_setLogHandler(IoTPLog_FileDescriptor, stdout);
-    TEST_ASSERT("IoTPConfig_setLogHandler: FileDescriptor is stdout.", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
+    TEST_ASSERT("IoTPConfig_setLogHandler: FileDescriptor is stdout.", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
     rc = IoTPConfig_setLogHandler(IoTPLog_FileDescriptor, stderr);
-    TEST_ASSERT("IoTPConfig_setLogHandler: FileDescriptor is stderr.", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
+    TEST_ASSERT("IoTPConfig_setLogHandler: FileDescriptor is stderr.", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
     rc = IoTPConfig_setLogHandler(IoTPLog_FileDescriptor, logCallback);
     TEST_ASSERT("IoTPConfig_setLogHandler: FileDescriptor is stderr.", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
@@ -413,7 +413,7 @@ int testConfig_readEnvironment(void)
     rc = IoTPConfig_readEnvironment(NULL);
     TEST_ASSERT("IoTPConfig_readEnvironment: Invalid config object", rc == IoTP_RC_INVALID_HANDLE, "rcE=%d rcA=%d", IoTP_RC_INVALID_HANDLE, rc);
 
-    setenv ("IoTPConfig_Platform_domain", "test.com", 0);
+    setenv ("IOTP_PLATFORM_DOMAIN", "test.com", 0);
 
     rc = IoTPConfig_readEnvironment(config);
     TEST_ASSERT("IoTPConfig_readEnvironment: Read env domain", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);

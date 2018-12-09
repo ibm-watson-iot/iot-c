@@ -58,6 +58,7 @@ void usage(void) {
 
 /* Signal handler - to support CTRL-C to quit */
 void sigHandler(int signo) {
+    signal(SIGINT, NULL);
     fprintf(stdout, "Received signal: %d\n", signo);
     interrupt = 1;
 }
@@ -203,7 +204,11 @@ int main(int argc, char *argv[])
     fprintf(stdout, "Received a signal - exiting publish event cycle.\n");
 
     /* Disconnect gateway */
-    IoTPGateway_disconnect(gateway);
+    rc = IoTPGateway_disconnect(gateway);
+    if ( rc != IoTP_SUCCESS ) {
+        fprintf(stderr, "ERROR: Failed to disconnect from  Watson IoT Platform: rc=%d\n", rc);
+        exit(1);
+    }
 
     /* Destroy client */
     IoTPGateway_destroy(gateway);

@@ -33,10 +33,10 @@ ACTION=$1
 
 # Organization ID, API Key and Token are from encrypted environment variables in travis.
 #
-ORG="${IoTPConfig_Organization_id}"
-APIKEY="${IoTPConfig_Application_APIKey}"
-APITOKEN="${IoTPConfig_Application_authToken}"
-DEVTOKEN="${IoTPConfig_Device_authToken}"
+ORG="${IOTP_ORGANIZATION_ID}"
+APIKEY="${IOTP_APPLICATION_APIKEY}"
+APITOKEN="${IOTP_APPLICATION_AUTHTOKEN}"
+DEVTOKEN="${IOTP_DEVICE_AUTHTOKEN}"
 
 # 
 # To use the script in your own test environment, logon to Watson IoT platform 

@@ -49,6 +49,7 @@
 char *configFilePath = NULL;
 volatile int interrupt = 0;
 char *progname = "deviceSample";
+int useEnv = 0;
 
 /* Usage text */
 void usage(void) {
@@ -58,6 +59,7 @@ void usage(void) {
 
 /* Signal handler - to support CTRL-C to quit */
 void sigHandler(int signo) {
+    signal(SIGINT, NULL);
     fprintf(stdout, "Received signal: %d\n", signo);
     interrupt = 1;
 }
@@ -75,6 +77,9 @@ void getopts(int argc, char** argv)
                 configFilePath = argv[count];
             else
                 usage();
+        }
+        if (strcmp(argv[count], "-e") == 0) {
+            useEnv = 1;
         }
         count++;
     }
@@ -141,6 +146,7 @@ int main(int argc, char *argv[])
     rc = IoTPConfig_setLogHandler(IoTPLog_FileDescriptor, stdout);
     if ( rc != 0 ) {
         fprintf(stderr, "WARN: Failed to set IoTP Client log handler: rc=%d\n", rc);
+        exit(1);
     }
 
     /* Create IoTPConfig object using configuration options defined in the configuration file. */
@@ -149,6 +155,11 @@ int main(int argc, char *argv[])
         fprintf(stderr, "ERROR: Failed to initialize configuration: rc=%d\n", rc);
         exit(1);
     }
+
+    /* read additional config from environment */
+    if ( useEnv == 1 ) {
+        IoTPConfig_readEnvironment(config);
+    } 
 
     /* Create IoTPDevice object */
     rc = IoTPDevice_create(&device, config);
@@ -200,10 +211,14 @@ int main(int argc, char *argv[])
         sleep(10);
     }
 
-    fprintf(stdout, "Received a signal - exiting publish event cycle.\n");
+    fprintf(stdout, "Publish event cycle is complete.\n");
 
     /* Disconnect device */
-    IoTPDevice_disconnect(device);
+    rc = IoTPDevice_disconnect(device);
+    if ( rc != IoTP_SUCCESS ) {
+        fprintf(stderr, "ERROR: Failed to disconnect from  Watson IoT Platform: rc=%d\n", rc);
+        exit(1);
+    }
 
     /* Destroy client */
     IoTPDevice_destroy(device);

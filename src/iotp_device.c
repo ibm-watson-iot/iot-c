@@ -116,7 +116,7 @@ IoTP_RC IoTPDevice_sendEvent(IoTPDevice *device, char *eventId, char *data, char
 
     LOG(DEBUG,"Send event. topic: %s", topic);
 
-    rc = iotp_client_publish((void *)device, topic, data, qos);
+    rc = iotp_client_publish((void *)device, topic, data, qos, props);
 
     if ( rc != IoTP_SUCCESS ) {
         LOG(ERROR, "IoTPDevice failed to send event: %s rc=%d", eventId, rc);

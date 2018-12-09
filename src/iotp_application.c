@@ -103,7 +103,7 @@ IoTP_RC IoTPApplication_sendEvent(IoTPApplication *application, char *typeId, ch
 
     LOG(DEBUG,"Send event. topic: %s", topic);
 
-    rc = iotp_client_publish((void *)application, topic, data, qos);
+    rc = iotp_client_publish((void *)application, topic, data, qos, props);
 
     if ( rc != IoTP_SUCCESS ) {
         LOG(ERROR, "Failed to send event: %s rc=%d", topic, rc);
@@ -132,7 +132,7 @@ IoTP_RC IoTPApplication_sendCommand(IoTPApplication *application, char *typeId, 
 
     LOG(DEBUG,"Send command. topic: %s", topic);
 
-    rc = iotp_client_publish((void *)application, topic, data, qos);
+    rc = iotp_client_publish((void *)application, topic, data, qos, props);
 
     if ( rc != IoTP_SUCCESS ) {
         LOG(ERROR, "Failed to send command: %s rc=%d", topic, rc);

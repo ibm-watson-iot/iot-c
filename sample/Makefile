@@ -99,13 +99,13 @@ build: $(DEV_SAMPLES) $(GWY_SAMPLES) $(APP_SAMPLES)
 
 
 $(DEV_SAMPLES): $(blddir)/%: $(DEV_SAMPLE_SRCS)
-	$(CC) -o $@ $< $(INCDIRS) $(LDFLAGS_DEV) $(FLAGS_EXES)
+	$(CC) -g -o $@ $< $(INCDIRS) $(LDFLAGS_DEV) $(FLAGS_EXES)
 
 $(GWY_SAMPLES): $(blddir)/%: $(GWY_SAMPLE_SRCS)
-	$(CC) -o $@ $< $(INCDIRS) $(LDFLAGS_GWY) $(FLAGS_EXES)
+	$(CC) -g -o $@ $< $(INCDIRS) $(LDFLAGS_GWY) $(FLAGS_EXES)
 
 $(APP_SAMPLES): $(blddir)/%: $(APP_SAMPLE_SRCS)
-	$(CC) -o $@ $< $(INCDIRS) $(LDFLAGS_APP) $(FLAGS_EXES)
+	$(CC) -g -o $@ $< $(INCDIRS) $(LDFLAGS_APP) $(FLAGS_EXES)
 
 
 clean:

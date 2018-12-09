@@ -57,7 +57,7 @@ IoTP_RC IoTPConfig_create(IoTPConfig **config, const char * configFileName)
 
 
     iotp_utils_writeClientVersion();
-    LOG(INFO, "Create config object from file: %s", configFileName?configFileName:"");
+    LOG(INFO, "Create configuration object from file: %s", configFileName?configFileName:"");
 
     /* Create configuration handle */
     *config = (IoTPConfig *)calloc(1, sizeof(IoTPConfig));
@@ -77,6 +77,7 @@ IoTP_RC IoTPConfig_create(IoTPConfig **config, const char * configFileName)
     (*config)->application = (iota *)calloc(1, sizeof(iota));
     (*config)->keepAliveInterval = 60;
     (*config)->automaticReconnect = 0;
+    (*config)->cleanStart = 0;
 
     /* If configuration file is specified - process it */
     if ( configFileName && *configFileName != '\0' ) {
@@ -190,7 +191,7 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
                 LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
             }
             if (rc == IoTP_SUCCESS) {
-                LOG(INFO, "Set config parameter: %s To: %d", IoTPConfig_Platform_port, config->port);
+                LOG(DEBUG, "Set config parameter: %s To: %d", IoTPConfig_Platform_port, config->port);
             }
             goto setPropDone;
         }
@@ -537,7 +538,6 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
         /* Process Debug.logLevel */
         if ( !strcasecmp(name, IoTPConfig_Debug_logLevel)) {
             argint = atoi(argptr); 
-            LOG(INFO, "argint=%d", argint);
             if (argint < 1 || argint > 5) {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
                 LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
@@ -601,7 +601,7 @@ IoTP_RC IoTPConfig_readConfigFile(IoTPConfig *config, const char *configFileName
         return rc;
     }
 
-    LOG(TRACE, "Process config file: %s", configFileName?configFileName:"" );
+    LOG(TRACE, "Read configuration from config file: %s", configFileName?configFileName:"" );
 
     /* Process configuration file entries */
     if (rc == IoTP_SUCCESS) {
@@ -640,7 +640,7 @@ IoTP_RC IoTPConfig_readConfigFile(IoTPConfig *config, const char *configFileName
                 len = strlen(category) + strlen(prop) + 2;
                 propname = (char *)malloc(len);
                 snprintf(propname, len, "%s.%s", category, prop);
-                LOG(DEBUG, "Process config parameter: %s  value=%s", propname, value);
+                LOG(TRACE, "Process config parameter: %s  value=%s", propname, value);
                 rc = IoTPConfig_setProperty(config, propname, value);
                 iotp_utils_freePtr((void *)propname);
                 if ( rc != IoTP_SUCCESS )
@@ -697,17 +697,20 @@ IoTP_RC IoTPConfig_readEnvironment(IoTPConfig *config)
         if (prop) iotp_utils_trim(prop);
         if (value) iotp_utils_trim(value);
 
-        if ( prop && !strncasecmp(prop, "IoTPConfig_", 11) && value && *value != '\0' )
+        if ( prop && *prop != '\0' && !strncasecmp(prop, "IOTP_", 5) && value && *value != '\0' )
         {
-            char *name = prop + 11;
+            IoTP_RC rc1 = IoTP_SUCCESS;
+            char *name = prop + 5;
             /* replace _ with . */
             char *p = name;
             for (; *p; ++p) {
                 if (*p == '_') *p = '.';
             }
-            rc = IoTPConfig_setProperty(config, name, value);
-            if ( rc != IoTP_SUCCESS )
-                return rc;
+            rc1 = IoTPConfig_setProperty(config, name, value);
+            /* Ignore invalid environment - just log errors */
+            if ( rc1 != IoTP_SUCCESS ) {
+                LOG(WARN, "Either environment variable (%s) could not be mapped to any configuration item or specified value is not valid", prop, value?value:"" );
+            }
         }
 
         env = *(environ + i);

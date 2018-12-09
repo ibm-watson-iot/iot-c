@@ -207,7 +207,7 @@ int iotp_get_handlerType(void *handler)
         retval = 3;
     } else {
         if ( info.dli_sname ) {
-            printf("dli_sname: %s\n", info.dli_sname);
+            /* printf("dli_sname: %s\n", info.dli_sname); */
             if ( strcmp(info.dli_sname, "usual") == 0 || strcmp(info.dli_sname, "__sF") == 0 ) {
                 retval = 2; /* File pointer */
             } else {
@@ -267,7 +267,7 @@ IoTP_RC iotp_utils_setLogHandler(IoTPLogTypes type, void * handler)
                 LOG(WARN, "Invalid Log FilePointer is specified.");
             }
         } else if ( type == IoTPLog_FileDescriptor ) {
-            if ( hType == 3 ) { 
+            if ( hType == 2 || hType == 3 ) {
                 int *fdaddr = (int *)handler;
                 int fd = *fdaddr;
                 lgh = NULL;

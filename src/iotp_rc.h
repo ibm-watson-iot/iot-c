@@ -119,7 +119,10 @@ typedef enum {
     IoTP_RC_NO_ACCESS = 1015,
 
     /** IoTP Client is not connected to the platform */
-    IoTP_RC_NOT_CONNECTED = 1016
+    IoTP_RC_NOT_CONNECTED = 1016,
+
+    /** IoTP Client action timed out */
+    IoTP_RC_TIMEOUT = 1017
 
 } IoTP_RC;
 

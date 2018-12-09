@@ -52,6 +52,8 @@
 #include <signal.h>
 #include <ctype.h>
 
+#include <MQTTProperties.h>
+
 #include "iotp_rc.h"
 #include "iotp_config.h"
 #include "iotp_utils.h"
@@ -84,6 +86,7 @@ typedef struct IoTPConfig {
     iota * application;
     int    automaticReconnect;
     int    keepAliveInterval;
+    int    cleanStart;
 } IoTPConfig;
 
 
@@ -132,7 +135,7 @@ DLLExport IoTP_RC iotp_client_disconnect(void *client);
 DLLExport IoTP_RC iotp_client_setHandler(void *client, char * topic, int type, IoTPCallbackHandler handler);
 DLLExport IoTP_RC iotp_client_subscribe(void *client, char *topic, int qos);
 DLLExport IoTP_RC iotp_client_unsubscribe(void *client, char *topic);
-DLLExport IoTP_RC iotp_client_publish(void *client, char *topic, char *payload, int qos);
+DLLExport IoTP_RC iotp_client_publish(void *client, char *topic, char *payload, int qos, MQTTProperties *props);
 DLLExport IoTP_RC iotp_client_retry_connection(void *client);
 DLLExport IoTP_RC iotp_client_isConnected(void *client);
 DLLExport IoTP_RC iotp_client_setMQTTLogHandler(void *client, IoTPLogHandler *cb);

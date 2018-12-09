@@ -302,7 +302,7 @@ void onConnectFailure(void* context, MQTTAsync_failureData5 *response)
     if ( client && client->clientId )
         clientId = client->clientId;
     LOG(INFO, "Client (id=%s) connection has failed. rc=%d", clientId? clientId:"NULL", response? response->code:0);
-    client->connected = 0;
+    client->connected = -1;
 }
 
 /* Callback function to process successful send */
@@ -503,6 +503,7 @@ IoTP_RC iotp_client_destroy(void *iotpClient, int destroyMQTTClient)
     } 
 
     /* if client is connected, disconnect and destory */
+/*
     if ( iotp_client_isConnected(iotpClient) == IoTP_SUCCESS ) {
         MQTTAsync *mqttClient = (MQTTAsync *)client->mqttClient;
         iotp_client_disconnect(iotpClient);
@@ -510,6 +511,7 @@ IoTP_RC iotp_client_destroy(void *iotpClient, int destroyMQTTClient)
             MQTTAsync_destroy(mqttClient);
         }
     }
+*/
 
     iotp_utils_freePtr((void *)client->clientId);
     iotp_utils_freePtr((void *)client->connectionURI);
@@ -560,6 +562,7 @@ IoTP_RC iotp_client_connect(void *iotpClient)
 
     /* set connection options */
     conn_opts.keepAliveInterval = config->keepAliveInterval;
+    conn_opts.cleanstart = config->cleanStart;
     conn_opts.cleansession = 0;
     conn_opts.onSuccess5 = onConnect;
     conn_opts.onFailure5 = onConnectFailure;
@@ -606,11 +609,25 @@ IoTP_RC iotp_client_connect(void *iotpClient)
     MQTTAsync_setCallbacks((MQTTAsync *)client->mqttClient, (void *)client, NULL, iotp_client_messageArrived, NULL);
            
     if ((rc = MQTTAsync_connect((MQTTAsync *)client->mqttClient, &conn_opts)) == MQTTASYNC_SUCCESS) {
+        int cycle = 0;
         LOG(INFO, "MQTTAsync_connect is called: ClientType=%d ClientId=%s  ConnectionURI=%s", 
             client->type, client->clientId, client->connectionURI);
-    
-        /* add some delay for MQTT Client to get created */
-        iotp_utils_delay(50);
+
+        /* wait till client is disconnected */
+        while ( client->connected == 0 ) {
+            iotp_utils_delay(3000);
+            if ( client->connected == -1 ) {
+                LOG(ERROR, "Connection failed");
+                client->connected = 0;
+                break;
+            }
+            LOG(INFO, "Wait for client to connect: cycle=%d", cycle);
+            if ( cycle > 40 )  {
+                rc = IoTP_RC_TIMEOUT;
+                break;
+            }
+            cycle++;
+        }
 
     } else {
         LOG(INFO, "MQTTAsync_connect returned error: ClientType=%d ClientId=%s  ConnectionURI=%s rc=%d", 
@@ -622,7 +639,7 @@ IoTP_RC iotp_client_connect(void *iotpClient)
 
 
 /* Function used to publish the given data to the topic with the given QoS */
-IoTP_RC iotp_client_publish(void *iotpClient, char *topic, char *payload, int qos)
+IoTP_RC iotp_client_publish(void *iotpClient, char *topic, char *payload, int qos, MQTTProperties *props)
 {
     IoTP_RC rc = IoTP_SUCCESS;
     IoTPClient *client = (IoTPClient *)iotpClient;
@@ -634,6 +651,13 @@ IoTP_RC iotp_client_publish(void *iotpClient, char *topic, char *payload, int qo
         return rc;
     }
 
+    /* if client is not connected, return error */
+    if ( client->connected == 0 ) {
+        rc = IoTP_RC_NOT_CONNECTED;
+        LOG(ERROR, "Failed to publish. Client is not coeecnted: rc=%d", rc);
+        return rc;
+    }
+
     MQTTAsync_responseOptions opts = MQTTAsync_responseOptions_initializer;
     MQTTAsync_message pubmsg = MQTTAsync_message_initializer;
     MQTTAsync mqttClient = (MQTTAsync *)client->mqttClient;
@@ -641,6 +665,9 @@ IoTP_RC iotp_client_publish(void *iotpClient, char *topic, char *payload, int qo
     opts.onSuccess5 = onSend;
     opts.onFailure5 = onSendFailure;
     opts.context = client;
+    if (props != NULL) {
+        opts.properties = *props;
+    }
 
     int payloadlen = 0;
     if ( payload && *payload != '\0' )
@@ -903,6 +930,7 @@ IoTP_RC iotp_client_disconnect(void *iotpClient)
 {
     IoTP_RC rc = 0;
     IoTPClient *client = (IoTPClient *)iotpClient;
+    int cycle = 0;
 
     /* Sanity check */
     if (client == NULL || (client && client->config == NULL)) {
@@ -917,13 +945,26 @@ IoTP_RC iotp_client_disconnect(void *iotpClient)
     opts.onSuccess5 = onDisconnect;
     opts.context = client;
 
-    if (iotp_client_isConnected(iotpClient)) {
+    if ( client->connected == 1 ) {
+        LOG(INFO, "Disconnect client");
         int mqttRC = 0;
         mqttRC = MQTTAsync_disconnect(mqttClient, &opts);
         if ( mqttRC == MQTTASYNC_DISCONNECTED ) {
             rc = IoTP_SUCCESS;
         } else {
             rc = mqttRC;
+           return rc;
+        }
+
+        /* wait till client is disconnected */
+        while ( client->connected == 1 ) { 
+            iotp_utils_delay(3000);
+            LOG(INFO, "Wait for client to disconnect: cycle=%d", cycle);
+            if ( cycle > 40 )  {
+                rc = IoTP_RC_TIMEOUT;
+                break;
+            }
+            cycle++;
         }
     }
 

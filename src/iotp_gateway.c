@@ -101,7 +101,7 @@ IoTP_RC IoTPGateway_sendEvent(IoTPGateway *gateway, char *eventId, char *data, c
 
     LOG(DEBUG,"Calling publishData to publish to topic - %s",publishTopic);
 
-    rc = iotp_client_publish((void *)gateway, publishTopic, data, qos);
+    rc = iotp_client_publish((void *)gateway, publishTopic, data, qos, props);
 
     if ( rc != IoTP_SUCCESS ) {
         LOG(ERROR, "Failed to send event: %s rc=%d", eventId, rc);
@@ -128,7 +128,7 @@ IoTP_RC IoTPGateway_sendDeviceEvent(IoTPGateway *gateway, char *typeId, char *de
 
     LOG(DEBUG,"Calling publishData to publish to topic - %s",publishTopic);
 
-    rc = iotp_client_publish((void *)gateway, publishTopic, data, qos);
+    rc = iotp_client_publish((void *)gateway, publishTopic, data, qos, props);
 
     if ( rc != IoTP_SUCCESS ) {
         LOG(ERROR, "Failed to send event: %s rc=%d", eventId, rc);
