@@ -49,7 +49,12 @@ rm -f test.log
 echo "===================================================================="
 echo "    Run test suites"
 echo "===================================================================="
-( make run-tests ) | tee -a test.log
+if [ "${OSTYPE}" == "Darwin" ]
+then
+    echo "By pass test"
+else
+    ( make run-tests ) | tee -a test.log
+fi
 echo
 
 echo "===================================================================="
@@ -73,7 +78,7 @@ echo
 echo "===================================================================="
 echo "    Setup tests: delete device types and devices in WIoTP service"
 echo "===================================================================="
-# ./test/test.sh cleanup
+./test/test.sh cleanup
 echo
 echo
 
