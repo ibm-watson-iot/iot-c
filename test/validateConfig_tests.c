@@ -413,7 +413,7 @@ int testConfig_readEnvironment(void)
     rc = IoTPConfig_readEnvironment(NULL);
     TEST_ASSERT("IoTPConfig_readEnvironment: Invalid config object", rc == IoTP_RC_INVALID_HANDLE, "rcE=%d rcA=%d", IoTP_RC_INVALID_HANDLE, rc);
 
-    setenv ("IOTP_PLATFORM_DOMAIN", "test.com", 0);
+    setenv ("WIOTP_PLATFORM_DOMAIN", "test.com", 0);
 
     rc = IoTPConfig_readEnvironment(config);
     TEST_ASSERT("IoTPConfig_readEnvironment: Read env domain", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);

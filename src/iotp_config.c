@@ -697,10 +697,10 @@ IoTP_RC IoTPConfig_readEnvironment(IoTPConfig *config)
         if (prop) iotp_utils_trim(prop);
         if (value) iotp_utils_trim(value);
 
-        if ( prop && *prop != '\0' && !strncasecmp(prop, "IOTP_", 5) && value && *value != '\0' )
+        if ( prop && *prop != '\0' && !strncasecmp(prop, "WIOTP_", 6) && value && *value != '\0' )
         {
             IoTP_RC rc1 = IoTP_SUCCESS;
-            char *name = prop + 5;
+            char *name = prop + 6;
             /* replace _ with . */
             char *p = name;
             for (; *p; ++p) {
