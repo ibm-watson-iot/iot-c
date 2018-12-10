@@ -73,7 +73,7 @@ echo
 echo "===================================================================="
 echo "    Setup tests: delete device types and devices in WIoTP service"
 echo "===================================================================="
-./test/test.sh cleanup
+# ./test/test.sh cleanup
 echo
 echo
 

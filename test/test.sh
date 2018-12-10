@@ -37,7 +37,8 @@ ORG="${WIOTP_ORGANIZATION_ID}"
 # ORG="hldtxx"
 APIKEY="${WIOTP_APPLICATION_APIKEY}"
 APITOKEN="${WIOTP_APPLICATION_AUTHTOKEN}"
-DEVTOKEN="${WIOTP_DEVICE_AUTHTOKEN}"
+# DEVTOKEN="${WIOTP_DEVICE_AUTHTOKEN}"
+DEVTOKEN="iotTestPassw0rd"
 
 # 
 # To use the script in your own test environment, logon to Watson IoT platform 
