@@ -127,7 +127,7 @@ int testConfig_create(void)
     TEST_ASSERT("IoTPConfig_clear: Clear config object", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
     config = NULL;
-    rc = IoTPConfig_create(&config, "./iotpclient.cfg");
+    rc = IoTPConfig_create(&config, "./wiotpclient.yaml");
     TEST_ASSERT("IoTPConfig_create: With valid file", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
     return rc;
 
@@ -382,16 +382,16 @@ int testConfig_readConfigFile(void)
     rc = IoTPConfig_readConfigFile(config, "/usr/sbin/xxxxx");
     TEST_ASSERT("IoTPConfig_readConfigFile: Invalid config file", rc == IoTP_RC_FILE_OPEN, "rcE=%d rcA=%d", IoTP_RC_FILE_OPEN, rc);
 
-    rc = IoTPConfig_readConfigFile(config, "./iotpclient.cfg");
+    rc = IoTPConfig_readConfigFile(config, "./wiotpclient.yaml");
     TEST_ASSERT("IoTPConfig_readConfigFile: Valid config file", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
-    rc = IoTPConfig_readConfigFile(config, "./invalidconfig1.cfg");
+    rc = IoTPConfig_readConfigFile(config, "./invalidconfig1.yaml");
     TEST_ASSERT("IoTPConfig_readConfigFile: Invalid config - catagory", rc == IoTP_RC_INVALID_PARAM, "rcE=%d rcA=%d", IoTP_RC_INVALID_PARAM, rc);
 
-    rc = IoTPConfig_readConfigFile(config, "./invalidconfig2.cfg");
+    rc = IoTPConfig_readConfigFile(config, "./invalidconfig2.yaml");
     TEST_ASSERT("IoTPConfig_readConfigFile: Invalid config - prop", rc == IoTP_RC_INVALID_PARAM, "rcE=%d rcA=%d", IoTP_RC_INVALID_PARAM, rc);
 
-    rc = IoTPConfig_readConfigFile(config, "./invalidconfig3.cfg");
+    rc = IoTPConfig_readConfigFile(config, "./invalidconfig3.yaml");
     TEST_ASSERT("IoTPConfig_readConfigFile: Invalid config - category prop", rc == IoTP_RC_INVALID_PARAM, "rcE=%d rcA=%d", IoTP_RC_INVALID_PARAM, rc);
 
     return rc;
