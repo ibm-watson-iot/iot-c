@@ -82,8 +82,11 @@ int test_sendEvent(void)
     rc = IoTPDevice_connect(device);
     TEST_ASSERT("test_sendEvent: Connect client", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
-    rc = IoTPDevice_sendEvent(device,"status","json", data , QoS0, NULL);
-    TEST_ASSERT("test_sendEvent: Send event QoS0", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+    for (i=0; i<2; i++) {
+        rc = IoTPDevice_sendEvent(device,"status","json", data , QoS0, NULL);
+        TEST_ASSERT("test_sendEvent: Send event QoS0", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+        sleep(5);
+    }
 
     rc = IoTPDevice_disconnect(device);
     TEST_ASSERT("test_sendEvent: Disconnect client", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);

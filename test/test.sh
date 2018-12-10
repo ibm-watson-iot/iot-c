@@ -50,11 +50,11 @@ DEVTOKEN="${WIOTP_DEVICE_AUTHTOKEN}"
 
 # Specify number of device types.
 # Script will add device types: iot_test_devType1, iot_test_devType2, ...
-NODEVTYPE=2
+NODEVTYPE=1
 
 # Specify number of devices of each types
 # Script will add devices: iot_test_dev1, iot_test_dev2, ...
-NODEV=5
+NODEV=2
 
 echo
 echo "Run tests using WiOTP instance ${ORG}"
