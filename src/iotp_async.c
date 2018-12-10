@@ -310,7 +310,7 @@ void onSend(void *context, MQTTAsync_successData5 *response)
 {
     IoTPClient *client = (IoTPClient *)context;
     char *clientId = client->clientId;
-    LOG(TRACE, "Event is sent from client (id=%s).", clientId? clientId:"NULL");
+    LOG(DEBUG, "Event is sent from client (id=%s).", clientId? clientId:"NULL");
 }
 
 /* Callback function to process send failure */
@@ -403,9 +403,9 @@ IoTP_RC iotp_client_create(void **iotpClient, IoTPConfig *config, IoTPClientType
         snprintf(connectionURI, len, "ssl://%s.messaging.%s:%d", orgId, domain, port);
     }
 
-    LOG(INFO, "OrganizationID: %s", orgId);
-    LOG(INFO, "ConnectionURI: %s", connectionURI);
-    LOG(INFO, "Port: %d", port);
+    LOG(DEBUG, "OrganizationID: %s", orgId);
+    LOG(DEBUG, "ConnectionURI: %s", connectionURI);
+    LOG(DEBUG, "Port: %d", port);
 
     /* set client id */
     if ( type == IoTPClient_device || type == IoTPClient_managed_device ) {
@@ -426,7 +426,7 @@ IoTP_RC iotp_client_create(void **iotpClient, IoTPConfig *config, IoTPClientType
         snprintf(clientId, len, "A:%s:%s", orgId, config->application->appId);
     }
 
-    LOG(INFO, "ClientId: %s", clientId);
+    LOG(DEBUG, "ClientId: %s", clientId);
 
     IoTPClient *client = (IoTPClient *)calloc(1, sizeof(IoTPClient));
     client->type = type;
@@ -446,7 +446,8 @@ IoTP_RC iotp_client_create(void **iotpClient, IoTPConfig *config, IoTPClientType
 
     rc = MQTTAsync_createWithOptions(&mqttClient, client->connectionURI, client->clientId, MQTTCLIENT_PERSISTENCE_NONE, NULL, &create_opts);
     if ( rc != MQTTASYNC_SUCCESS ) {
-        LOG(ERROR, "MQTTAsync_createWithOptions failed: rc=%d",rc);
+        LOG(ERROR, "MQTTAsync_createWithOptions failed: ClientType=%d ClientId=%s ConnectionURI=%s rc=%d",
+            client->type, client->clientId, client->connectionURI, rc);
         iotp_client_destroy(client, 0);
         client = NULL;
         return rc;
@@ -851,8 +852,8 @@ static int iotp_client_messageArrived(void *context, char *topicName, int topicL
     /* Get callback */
     if ( client->handlers->count == 0 ) {
         /* no callback is configured */
-        LOG(TRACE, "Message Received on topic: %s", topicName? topicName:"");        
-        LOG(TRACE, "Message handler is not confogured. Client can not process received messages.");
+        LOG(DEBUG, "Message Received on topic: %s", topicName? topicName:"");        
+        LOG(DEBUG, "Message handler is not confogured. Client can not process received messages.");
         return rc;
     }
 
@@ -865,8 +866,8 @@ static int iotp_client_messageArrived(void *context, char *topicName, int topicL
         sub = iotp_client_getHandler(client->handlers, topicName);
         if ( sub == NULL ) {
             /* no callback is configured */
-            LOG(TRACE, "Message Received on topic: %s", topicName? topicName:"");        
-            LOG(TRACE, "Message handler is not configured. Client can not process received messages.");
+            LOG(DEBUG, "Message Received on topic: %s", topicName? topicName:"");        
+            LOG(DEBUG, "Message handler is not configured. Client can not process received messages.");
             return 0;
         }
 
@@ -911,14 +912,14 @@ static int iotp_client_messageArrived(void *context, char *topicName, int topicL
 
         }
 
-        LOG(TRACE, "Calling registered callabck to process the arrived message");
+        LOG(DEBUG, "Calling registered callabck to process the arrived message");
 
         (*cb)(type,id,commandName, format, payload,payloadlen);
 
         MQTTAsync_freeMessage(&message);
         MQTTAsync_free(topicName);
     } else {
-        LOG(TRACE, "No registered callback function to process the arrived message");
+        LOG(DEBUG, "No registered callback function to process the arrived message");
     }
 
     return 1;

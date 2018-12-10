@@ -70,7 +70,7 @@ IoTP_RC IoTPConfig_create(IoTPConfig **config, const char * configFileName)
     (*config)->domain = strdup("internetofthings.ibmcloud.com");
     (*config)->port = 8883;
     (*config)->serverCertificatePath = strdup("./IoTPlatform.pem");
-    (*config)->logLevel = LOGLEVEL_TRACE;
+    (*config)->logLevel = LOGLEVEL_DEBUG;
     (*config)->MQTTTraceLevel = 5;
     (*config)->device = (iotc *)calloc(1, sizeof(iotc));
     (*config)->gateway = (iotc *)calloc(1, sizeof(iotc));
@@ -538,7 +538,7 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
         /* Process Debug.logLevel */
         if ( !strcasecmp(name, IoTPConfig_Debug_logLevel)) {
             argint = atoi(argptr); 
-            if (argint < 1 || argint > 5) {
+            if (argint < 1 || argint > 4) {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
                 LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
             } else {
@@ -601,7 +601,7 @@ IoTP_RC IoTPConfig_readConfigFile(IoTPConfig *config, const char *configFileName
         return rc;
     }
 
-    LOG(TRACE, "Read configuration from config file: %s", configFileName?configFileName:"" );
+    LOG(DEBUG, "Read configuration from config file: %s", configFileName?configFileName:"" );
 
     /* Process configuration file entries */
     if (rc == IoTP_SUCCESS) {
@@ -640,7 +640,7 @@ IoTP_RC IoTPConfig_readConfigFile(IoTPConfig *config, const char *configFileName
                 len = strlen(category) + strlen(prop) + 2;
                 propname = (char *)malloc(len);
                 snprintf(propname, len, "%s.%s", category, prop);
-                LOG(TRACE, "Process config parameter: %s  value=%s", propname, value);
+                LOG(DEBUG, "Process config parameter: %s  value=%s", propname, value);
                 rc = IoTPConfig_setProperty(config, propname, value);
                 iotp_utils_freePtr((void *)propname);
                 if ( rc != IoTP_SUCCESS )
@@ -706,6 +706,7 @@ IoTP_RC IoTPConfig_readEnvironment(IoTPConfig *config)
             for (; *p; ++p) {
                 if (*p == '_') *p = '.';
             }
+            LOG(DEBUG, "Set parameter (%s) to (%s) from environment variable (%s)", name?name:"", value?value:"", prop?prop:"");
             rc1 = IoTPConfig_setProperty(config, name, value);
             /* Ignore invalid environment - just log errors */
             if ( rc1 != IoTP_SUCCESS ) {

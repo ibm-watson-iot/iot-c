@@ -50,6 +50,7 @@ char *configFilePath = NULL;
 volatile int interrupt = 0;
 char *progname = "deviceSample";
 int useEnv = 0;
+int testCycle = 0;
 
 /* Usage text */
 void usage(void) {
@@ -78,8 +79,14 @@ void getopts(int argc, char** argv)
             else
                 usage();
         }
-        if (strcmp(argv[count], "-e") == 0) {
+        if (strcmp(argv[count], "--useEnv") == 0) {
             useEnv = 1;
+        }
+        if (strcmp(argv[count], "--testCycle") == 0) {
+            if (++count < argc)
+                testCycle = atoi(argv[count]);
+            else
+                usage();
         }
         count++;
     }
@@ -123,6 +130,7 @@ void MQTTTraceCallback (int level, char * message)
 int main(int argc, char *argv[])
 {
     int rc = 0;
+    int cycle = 0;
 
     /* 
      * DEV_NOTES:
@@ -208,6 +216,13 @@ int main(int argc, char *argv[])
         fprintf(stdout, "Send status event\n");
         rc = IoTPDevice_sendEvent(device,"status","json", data , QoS0, NULL);
         fprintf(stdout, "RC from publishEvent(): %d\n", rc);
+
+        if ( testCycle > 0 ) {
+            cycle += 1;
+            if ( cycle >= testCycle ) {
+                break;
+            }
+        }
         sleep(10);
     }
 

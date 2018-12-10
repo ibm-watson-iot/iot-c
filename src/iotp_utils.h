@@ -71,7 +71,7 @@ extern FILE *logger;
 
 /**
  * IoTP Client log levels.
- * LOGLEVEL_TRACE will cause all trace entries  at all levels to be returned.
+ * LOGLEVEL_DEBUG will cause all trace entries  at all levels to be returned.
  * LOGLEVEL_INFO will cause INFO, WARN and ERROR trace entries to be returned.
  */
 typedef enum IoTPLogLevel {
@@ -82,9 +82,7 @@ typedef enum IoTPLogLevel {
     /** Informational message */
     LOGLEVEL_INFO    = 3,
     /** Debug message */
-    LOGLEVEL_DEBUG   = 4,
-    /** Low level trace message */
-    LOGLEVEL_TRACE   = 5
+    LOGLEVEL_DEBUG   = 4
 } IoTPLogLevel;
 
 /**

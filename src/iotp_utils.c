@@ -22,7 +22,7 @@
 #define MAX_LOG_BUFSIZE 8192
 
 static int versionWritten = 0;
-static int logLevel = LOGLEVEL_TRACE;   /* Default logging level */
+static int logLevel = LOGLEVEL_DEBUG;   /* Default logging level */
 FILE *logger = NULL;
 IoTPLogHandler *lgh = NULL;
 char *LogMsgFormat = "%s %s %s %d: %s: %s\n";
@@ -37,7 +37,6 @@ static char * iotp_utils_logLevelStr(int level)
         case LOGLEVEL_WARN: return "WARN";
         case LOGLEVEL_INFO: return "INFO";
         case LOGLEVEL_DEBUG: return "DEBUG";
-        case LOGLEVEL_TRACE: return "TRACE";
     }
 
     return "UNKNOWN";

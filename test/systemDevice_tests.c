@@ -69,7 +69,7 @@ int test_sendEvent(void)
     rc = IoTPConfig_setProperty(config, "Organization.id", "hldtxx");
     TEST_ASSERT("test_sendEvent: Set Org ID", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc); 
 
-    rc = IoTPConfig_setProperty(config, "Debug.MQTTTraceLevel", "3");
+    rc = IoTPConfig_setProperty(config, "Debug.MQTTTraceLevel", "5");
     TEST_ASSERT("test_sendEvent: Set MQTTTraceLevel", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc); 
 
 
