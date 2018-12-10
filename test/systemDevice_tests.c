@@ -63,9 +63,12 @@ int test_sendEvent(void)
     rc = IoTPConfig_readEnvironment(config);
     TEST_ASSERT("test_sendEvent: Read config from environment", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc); 
 
-    IoTPConfig_setProperty(config, "Device.authToken", "iotTestPassw0rd");
-    IoTPConfig_setProperty(config, "Organization.id", "hldtxx");
-    IoTPConfig_setProperty(config, "Debug.MQTTTraceLevel", "1");
+    rc = IoTPConfig_setProperty(config, "Device.authToken", "iotTestPassw0rd");
+    TEST_ASSERT("test_sendEvent: Set authToken", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc); 
+    rc = IoTPConfig_setProperty(config, "Organization.id", "hldtxx");
+    TEST_ASSERT("test_sendEvent: Set Org ID", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc); 
+    rc = IoTPConfig_setProperty(config, "Debug.MQTTTraceLevel", "1");
+    TEST_ASSERT("test_sendEvent: Set MQTTTraceLevel", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc); 
 
 
     rc = IoTPDevice_create(&device, config);
