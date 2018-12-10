@@ -33,7 +33,8 @@ ACTION=$1
 
 # Organization ID, API Key and Token are from encrypted environment variables in travis.
 #
-ORG="${IOTP_ORGANIZATION_ID}"
+# ORG="${IOTP_ORGANIZATION_ID}"
+ORG="hldtxx"
 APIKEY="${IOTP_APPLICATION_APIKEY}"
 APITOKEN="${IOTP_APPLICATION_AUTHTOKEN}"
 DEVTOKEN="${IOTP_DEVICE_AUTHTOKEN}"
