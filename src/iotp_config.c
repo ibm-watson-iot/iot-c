@@ -700,19 +700,27 @@ IoTP_RC IoTPConfig_readEnvironment(IoTPConfig *config)
         if ( prop && *prop != '\0' && !strncasecmp(prop, "WIOTP_", 6) && value && *value != '\0' )
         {
             IoTP_RC rc1 = IoTP_SUCCESS;
-            char *name = prop + 6;
+            char *name = NULL;
+            char *p = NULL;
+
             /* replace _ with . */
-            char *p = name;
+            p = prop;
             for (; *p; ++p) {
                 if (*p == '_') *p = '.';
             }
-            LOG(DEBUG, "Set parameter (%s) to (%s) from environment variable (%s)", name?name:"", value?value:"", prop?prop:"");
+
+            /* set name */
+            name = prop + 6;
+ 
+            LOG(DEBUG, "Set parameter (%s) to (%s) from environment variable", name?name:"", value?value:"");
             rc1 = IoTPConfig_setProperty(config, name, value);
             /* Ignore invalid environment - just log errors */
             if ( rc1 != IoTP_SUCCESS ) {
                 LOG(WARN, "Either environment variable (%s) could not be mapped to any configuration item or specified value is not valid", prop, value?value:"" );
             }
         }
+
+        iotp_utils_freePtr((void *)envval);
 
         env = *(environ + i);
     }
