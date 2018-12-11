@@ -2,15 +2,15 @@
 Platform:
   port: 8883
 Organization:
-  id: hldtxx
+  id: xxxxxx
 Device:
   typeId: iotc_test_devType1
   deviceId: iotc_test_dev1
-  authToken: iotTestPassw0rd
+  authToken: xxxxxxxx
 Gateway:
   typeId: iotc_test_gwType1 
   deviceId: iotc_test_gw
-  authToken: iotTestPassw0rd
+  authToken: xxxxxxxx
 Application:
   appId: iot_test_app
   APIKey: a-xxxxxx-f6omhifnnz

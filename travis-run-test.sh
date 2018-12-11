@@ -31,6 +31,11 @@ export OSTYPE
 
 echo "Running tests on ${OSTYPE}"
 
+if [ "${OSTYPE}" == "Darwin" ]
+then
+    echo "DEBUG MODE --- by pass tests on OSX ------- "
+else
+
 #
 # Test Setup - create device types and devices in the platform test organization
 #
@@ -49,12 +54,7 @@ rm -f test.log
 echo "===================================================================="
 echo "    Run test suites"
 echo "===================================================================="
-if [ "${OSTYPE}" == "Darwin" ]
-then
-    echo "By pass test"
-else
-    ( make run-tests ) | tee -a test.log
-fi
+( make run-tests ) | tee -a test.log
 echo
 
 echo "===================================================================="
@@ -81,6 +81,8 @@ echo "===================================================================="
 ./test/test.sh cleanup
 echo
 echo
+
+fi
 
 
 
