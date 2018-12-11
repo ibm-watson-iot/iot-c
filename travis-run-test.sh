@@ -29,9 +29,12 @@ export CURDIR
 OSTYPE=`uname -s`
 export OSTYPE
 
+DEBUG_RUN=NO
+export DEBUG_RUN
+
 echo "Running tests on ${OSTYPE}"
 
-if [ "${OSTYPE}" == "Darwin" ]
+if [ "${DEBUG_RUN}" == YES ] && [ "${OSTYPE}" == "Darwin" ]
 then
     echo "DEBUG MODE --- by pass tests on OSX ------- "
 else

@@ -680,7 +680,10 @@ IoTP_RC IoTPConfig_readEnvironment(IoTPConfig *config)
 {
     IoTP_RC rc = IoTP_SUCCESS;
     char *env = *environ;
-    int i = 1;
+    int index = 1;
+    int totalProcessed = 0;
+    int wiotpConfigFound = 0;
+    int wiotpConfigValid = 0;
 
     /* sanity check */
     if (!config) {
@@ -689,19 +692,22 @@ IoTP_RC IoTPConfig_readEnvironment(IoTPConfig *config)
         return rc;
     }
 
-    for ( ; env; i++ )
+    for ( ; env; index++ )
     {
         char *envval = strdup(env);
         char *prop = strtok(envval, "=");
         char *value = strtok(NULL, "=");
         if (prop) iotp_utils_trim(prop);
         if (value) iotp_utils_trim(value);
+        totalProcessed += 1;
 
         if ( prop && *prop != '\0' && !strncasecmp(prop, "WIOTP_", 6) && value && *value != '\0' )
         {
             IoTP_RC rc1 = IoTP_SUCCESS;
             char *name = NULL;
             char *p = NULL;
+
+            wiotpConfigFound += 1;
 
             /* replace _ with . */
             p = prop;
@@ -717,13 +723,17 @@ IoTP_RC IoTPConfig_readEnvironment(IoTPConfig *config)
             /* Ignore invalid environment - just log errors */
             if ( rc1 != IoTP_SUCCESS ) {
                 LOG(WARN, "Either environment variable (%s) could not be mapped to any configuration item or specified value is not valid", prop, value?value:"" );
+            } else {
+                wiotpConfigValid += 1;
             }
         }
 
         iotp_utils_freePtr((void *)envval);
 
-        env = *(environ + i);
+        env = *(environ + index);
     }
+
+    LOG(INFO, "Processed %d environment variables: WIOTP config items found=%d valid=%d", totalProcessed, wiotpConfigFound, wiotpConfigValid);
 
     return rc;
 }
