@@ -78,43 +78,53 @@ void iotp_utils_setLogLevel(IoTPLogLevel level)
     logLevel = level;
 }
 
-/* Trim characters */
+/* Trim leading white characters */
 char * iotp_utils_trim(char *str) 
 {
-    size_t len = 0;
-    char *frontp = str - 1;
-    char *endp = NULL;
+    int i;
+    int j = 0;
 
-    if (str == NULL)
-        return NULL;
+    if ( !str || *str == '\0' ) return NULL;
 
-    if (str[0] == '\0')
-        return str;
+    while (str[j] == ' ' || str[j] == '\r' || str[j] == '\n') j++;
 
-    len = strlen(str);
-    endp = str + len;
-
-    while (isspace(*(++frontp)))
-        ;
-
-    while (isspace(*(--endp)) && endp != frontp)
-        ;
-
-    if (str + len - 1 != endp)
-        *(endp + 1) = '\0';
-    else if (frontp != str && endp == frontp)
-        *str = '\0';
-
-    endp = str;
-    if (frontp != str) {
-        while (*frontp)
-            *endp++ = *frontp++;
-
-        *endp = '\0';
+    if (j != 0) {
+        i = 0;
+        while (str[i+j] != '\0') {
+            str[i] = str[i+j];
+            i++;
+        }
+        str[i] = '\0';
     }
-
     return str;
 }
+
+/* Tokenize string based on leading and trailing characters */
+char * iotp_utils_getToken(char * from, const char * leading, const char * trailing, char * * more) 
+{
+    char * ret; if (!from)
+        return NULL;
+    while (*from && strchr(leading, *from))
+        from++;
+    if (!*from) {
+        if (more)
+            *more = NULL;
+        return NULL;
+    }
+    ret = from;
+    while (*from && !strchr(trailing, *from))
+        from++;
+    if (*from) {
+        *from = 0;
+        if (more)
+            *more = from + 1;
+    } else {
+        if (more)
+            *more = NULL;
+    }
+    return ret;
+}
+
 
 /* Function to free the allocated memory for character string. */
 void iotp_utils_freePtr(void * p)

@@ -579,10 +579,15 @@ IoTP_RC IoTPConfig_readConfigFile(IoTPConfig *config, const char *configFileName
 {
     IoTP_RC rc = IoTP_SUCCESS;
 
-    char line[256];
+    char *line = NULL;
     char *propname = NULL;
-    int linenum = 0;
+    int proplen = 0;
+    char *levelName[MAX_YAML_SECTIONS];
     FILE *fd;
+    int i = 0;
+    int setLevel = 0;
+    int lastSpaces = 0;
+    int indent = 0;
 
     /* sanity check */
     if (!config) {
@@ -601,75 +606,88 @@ IoTP_RC IoTPConfig_readConfigFile(IoTPConfig *config, const char *configFileName
         return rc;
     }
 
-    LOG(DEBUG, "Read configuration from config file: %s", configFileName?configFileName:"" );
+    LOG(DEBUG, "Read configuration from config file: %s", configFileName );
+
+    /* init variables */
+    line = (char *)malloc(512);
+    for (i=0; i<MAX_YAML_SECTIONS; i++) levelName[i] = NULL;
 
     /* Process configuration file entries */
-    if (rc == IoTP_SUCCESS) {
+    while (fgets(line, 512, fd) != NULL) {
+        char *prop = NULL;
+        char *value = NULL;
+        char *more = NULL;
+        int nSpaces = 0;
 
-        char *category = NULL;
+        /* check number of leading white spaces */
+        while (line[nSpaces] == ' ') nSpaces += 1;
+        if ( nSpaces > lastSpaces ) {
+            indent += 1;
+            lastSpaces = nSpaces;
+        } else if ( nSpaces < lastSpaces ) {
+            indent -= 1;
+            lastSpaces = nSpaces;
+        }
 
-        while (fgets(line, 256, fd) != NULL) {
-            char *prop = NULL;
-            char *value = NULL;
-            int len = 0;
+        prop = iotp_utils_getToken(line, " \t\r\n", ":\r\n", &more);
+        if (prop && prop[0] != '#') {
+            char * cp = prop+strlen(prop); /* trim trailing white space */
+            while (cp>prop && (cp[-1]==' ' || cp[-1]=='\t' ))
+                cp--;
+            *cp = 0;
 
-            linenum++;
+            iotp_utils_trim(prop);
 
-            if (line[0] == '#' || line[0] == '\0')
-                 continue;
+            /* get value */
+            value = iotp_utils_getToken(more, " :\t\r\n", "\r\n", &more);
+            if (!value) {
+                value = "";
+                setLevel = 1;
+            }
 
-            if (line[0] == ' ') {
+            if (!prop || *prop == '\0') {
+                rc = IoTP_RC_INVALID_PARAM;
+                LOG(WARN, "Invalid entry in config file: %s", line);
+                break;
+            }
 
-                /* process category items */
-                prop = strtok(line, ":");
-                value = strtok(NULL, ":");
-                if (prop) iotp_utils_trim(prop);
-                if (value) iotp_utils_trim(value);
+            if ( setLevel ) {
+                if ( levelName[indent] != NULL ) iotp_utils_freePtr((void *)levelName[indent]);
+                levelName[indent] = strdup(prop);
+            }
+            if ( value && *value != '\0' ) {
+                proplen = 0;
+                for ( i=0; i<indent; i++) proplen += strlen(levelName[i]);
+                proplen += strlen(prop) + indent + 1;
+                propname = (char *)calloc(1, proplen);
 
-                /* ignore comment line */
-                if (prop && *prop == '#')
-                    continue;
-
-                if (!prop || *prop == '\0' || !value || !category) {
-                    rc = IoTP_RC_INVALID_PARAM;
-                    LOG(WARN, "Invalid entry in config file: %s", line);
-                    break;
+                for ( i=0; i<indent; i++) {
+                    strcat(propname, levelName[i]);
+                    strcat(propname, ".");
                 }
 
-                /* process config item of the category */
-                len = strlen(category) + strlen(prop) + 2;
-                propname = (char *)malloc(len);
-                snprintf(propname, len, "%s.%s", category, prop);
+                strcat(propname, prop);
+
                 LOG(DEBUG, "Process config parameter: %s  value=%s", propname, value);
                 rc = IoTPConfig_setProperty(config, propname, value);
                 iotp_utils_freePtr((void *)propname);
                 if ( rc != IoTP_SUCCESS )
                     return rc;
-
-            } else {
-
-                /* process category name */
-                prop = strtok(line, ":");
-                value = strtok(NULL, ":");
-                if (prop) iotp_utils_trim(prop);
-                if (value) iotp_utils_trim(value);
-
-                if (!prop || *prop == '\0' || (value && *value != '\0') ) {
-                    continue;
-                }
-
-                /* set category value */
-                if (category) iotp_utils_freePtr((void *)category);
-                category = strdup(prop);
-
             }
+            setLevel = 0;
+
         }
 
-        if (category) iotp_utils_freePtr((void *)category);
-
-        /* close configuration file */
-        fclose(fd);
+        memset(line, 0, 512);
     }
+
+    iotp_utils_freePtr((void *)line);
+    for (i=0; i<MAX_YAML_SECTIONS; i++) {
+        if ( levelName[i] != NULL ) iotp_utils_freePtr((void *)levelName[i]);
+    }
+
+    /* close configuration file */
+    fclose(fd);
 
     return rc;
 }
@@ -697,8 +715,6 @@ IoTP_RC IoTPConfig_readEnvironment(IoTPConfig *config)
         char *envval = strdup(env);
         char *prop = strtok(envval, "=");
         char *value = strtok(NULL, "=");
-        if (prop) iotp_utils_trim(prop);
-        if (value) iotp_utils_trim(value);
         totalProcessed += 1;
 
         if ( prop && *prop != '\0' && !strncasecmp(prop, "WIOTP_", 6) && value && *value != '\0' )
