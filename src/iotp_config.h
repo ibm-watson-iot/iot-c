@@ -57,22 +57,44 @@
    IoTP Config object can be created from configuration parameters defined in an YAML file, or 
    as environment variables. Users can also use API to set a specific configuration parameter.
   
-   The configuration parameters are grouped into the following catagories:
-     - Platform: Configuration items related to WIoTP.
-     - Organizarion: Configuration items related to WIoTP service subscribed by the user.
-     - Device: Configuration items to configure a device.
-     - Gateway: Configuration items to configure a gateway.
-     - Application: Configuration items to configure an application.
-     - Debug: Configuration items related to debug options.
-  
+   The configuration parameters are grouped into the following sections:
+     - Identity: Configuration items related to identity of the client.
+     - Auth: Configuration items related to authentication.
+     - Options: Optional configuration items.
+ 
    Sample YAML file to configure a device: <br>
    <pre>
-       Organization:
-         id: xxxxxx
-       Device:
-         typeId: SensorTypeA
-         deviceId: Sensor0001
-         authToken: xxxxxxxxxx
+       identity:
+         orgId: xxxxxx
+         deviceType: devTypeA
+         deviceId: devA
+       auth:
+         token: xxxxxxxx
+       options:
+         logLevel: debug
+         mqtt:
+           port: 443
+   </pre>
+
+   The configuration items may be groups into a high level section based on the type of client:
+     - Device: Configuration items to configure a device client.
+     - Gateway: Configuration items to configure a gateway client.
+     - Application: Configuration items to configure an application client.
+
+   This option can be used to define configuration of multiple clients in the same configuration
+   file. Example of a device configuration: <br>
+   <pre>
+       device:
+         identity:
+           orgId: xxxxxx
+           deviceType: devTypeA
+           deviceId: devA
+         auth:
+           token: xxxxxxxx
+         options:
+           logLevel: debug
+           mqtt:
+             port: 443
    </pre>
   
    To set IoTPConfig objects using environment variable, use the following format: <br>
@@ -80,10 +102,15 @@
   
        Example: <br>
        <pre>
-           iotp.organization.id=xxxxxx
-           iotp.device.typeId=SensorTypeA
-           iotp.device.deviceId=Sensor0001
-           iotp.device.authToken=xxxxxxxxxx
+           wiotp.identiry.orgid=xxxxxx
+           wiotp.auth.token=xxxxxxxx
+           wiotp.options.mqtt.port=443
+       </pre>
+       It can also be defined as:
+       <pre>
+           wiotp.device.identiry.orgid=xxxxxx
+           wiotp.device.auth.token=xxxxxxxx
+           wiotp.device.options.mqtt.port=443
        </pre>
    
  */
@@ -138,146 +165,73 @@ typedef enum {
 } IoTPClientType;
 
 
-/* List of configuration parameters to create IoTPConfig object */
-
-/** 
- *  Platform.domain is an optional configuration parameter in "Platform" configuration category. <br>
- *  The "domain" specifies the messaging endpoint URL. <br>
- *  The default value is "internetofthings.ibmcloud.com" 
- */
-#define IoTPConfig_Platform_domain    "Platform.domain"
-
-/** 
- *  Platform.port is an optional configuration parameter in "Platform" configuration category. <br>
- *  The "port" specifies the por number to connect to IBM Watson IoT Platform. <br>
- *  The valid values are 8883 and 443. The default value is 8883 
- */
-#define IoTPConfig_Platform_port    "Platform.port"
-
 /**
- *  Platform.serverCertificatePath is an optional configuration parameter in "Platform" configuration category. <br>
- *  The "serverCertificatePath" specifies platform server certificate to varify host. <br>
- *  The default certificate "IoTPlatform.pem" is bundled with the client code. <br>
- *  The default value is "./IoTPlatform.pem"
- */
-#define IoTPConfig_Platform_serverCertificatePath    "Platform.serverCertificatePath"
-
-/**
- *  Organizarion.id is a required configuration parameter in "Organization" configuration category. <br>
- *  The "id" is a unique six character identifier assigned to the users when they register with
- *  the Watson IoT Platform.
- */
-#define IoTPConfig_Organization_id    "Organization.id"
-
-/**
- *  Device.typeId is a required configuration parameter in "Device" configuration category. <br>
- *  
- */
-#define IoTPConfig_Device_typeId    "Device.typeId"
-
-/**
- *  Device.deviceId is a required configuration parameter in "Device" configuration category. <br>
+ * The Watson IoT Platform (WIoTP) client configuration items are grouped into three categories: <br>
+ *
+ * 1. Identity: Required items to establish unique identity of the client in WIoTP service. <br>
+ * 2. Auth:     Required items to get authenticated and authorizerd with WIoTP service. <bt>
+ * 3. Options:  Optional items required for interacting with WIoTP service. <br>
+ *
+ * Identity configuration item for a device or gateway client: <br>
+ * orgId     The "orgId" is a unique six character identifier assigned to the users <br>
+ *           when they register with WIoTP service. <br>
+ * typeId    The "typeId" attribute represents the model of the device or gateway. <br>
+ *           The "typeId" must be registered with WIoTP service. <br>
+ * deviceId  The "deviceId" attribute identifies the device or the gateway, e.g. serial number. <br>
+ *           The "deviceId" must be registered with WIoTP service. <br>
+ *
+ * Identity configuration item for an application client: <br>
+ * appId     The "appId" is a unique identifier of an application in WIoTP organization. <br>
+ *
+ *
+ * Authentication configuration item for a device or gateway client: <br>
+ *
+ * Authentication configuration item for an application client: <br>
+ *
+ * Optional configuration items: <br>
+ * domain    The "domain" specifies the messaging endpoint URL. <br>
+ *           The default value is "internetofthings.ibmcloud.com" <br>
+ * logLevel  The "logLevel" specifies the debug logging level used by the client. <br>
+ *           The valid values are "ERROR", "WARN", "INFO", and "DEBUG".
+ *           The default value is "ERROR". <br>
+ *
+ * Optional configuration items for MQTT protocol: <br>
+ * port      The "port" specifies the port number to connect to IBM Watson IoT Platform. <br>
+ *           The valid values are 8883 and 443. The default value is 8883. 
+ * caFile    The "caFile" specifies platform server certificate to varify host. <br>
+ *           The default certificate "IoTPlatform.pem" is bundled with the client code. <br>
+ *           The default value is "./IoTPlatform.pem"
+ *
+ * Optional configuration items for HTTP protocol: <br>
  *
  */
-#define IoTPConfig_Device_deviceId    "Device.deviceId"
+#define IoTPConfig_identity_orgId                       "identity.orgId"
+#define IoTPConfig_identity_typeId                      "identity.typeId"
+#define IoTPConfig_identity_deviceId                    "identity.deviceId"
+#define IoTPConfig_identity_appId                       "identity.appId"
+#define IoTPConfig_auth_APIKey                          "auth.APIKey"
+#define IoTPConfig_auth_token                           "auth.token"
+#define IoTPConfig_auth_keyStore                        "auth.keyStore"
+#define IoTPConfig_auth_privateKey                      "auth.privateKey"
+#define IoTPConfig_auth_privateKeyPassword              "auth.privateKeyPassword"
+#define IoTPConfig_options_domain                       "options.domain"
+#define IoTPConfig_options_logLevel                     "options.logLevel"
+#define IoTPConfig_options_mqtt_traceLevel              "options.mqtt.traceLevel"
+#define IoTPConfig_options_mqtt_transport               "options.mqtt.transport"
+#define IoTPConfig_options_mqtt_caFile                  "options.mqtt.caFile"
+#define IoTPConfig_options_mqtt_port                    "options.mqtt.port"
+#define IoTPConfig_options_mqtt_cleanSession            "options.mqtt.cleanSession"
+#define IoTPConfig_options_mqtt_cleanStart              "options.mqtt.cleanStart"
+#define IoTPConfig_options_mqtt_sessionExpiry           "options.mqtt.sessionExpiry"
+#define IoTPConfig_options_mqtt_keepalive               "options.mqtt.keepalive"
+#define IoTPConfig_options_mqtt_sharedSubscription      "options.mqtt.sharedSubscription"
+#define IoTPConfig_options_mqtt_validateServerCert      "options.mqtt.validateServerCert"
 
-/**
- *  Device.authMethod is an optional configuration parameter in "Device" configuration category. <br>
- *  The "authMethod" specifies the type of authentication method used for connecting to IBM Watson IoT Platform. <br>
- *  The valid values are token, cert. <br>
- *  By default, this parameter is not set. Client authentication will be based on the 
- *  settings of Device.authToken, Device.certificatePath, and Device.keyPath
- */
-#define IoTPConfig_Device_authMethod    "Device.authMethod"
+#ifdef HTTP_IMPLEMENTED
+#define IoTPConfig_options_http_caFile                  "options.http.caFile"
+#define IoTPConfig_options_http_validateServerCert      "options.http.validateServerCert"
+#endif
 
-/**
- *  Device.authToken is an optional configuration parameter in "Device" configuration category. <br>
- *  
- */
-#define IoTPConfig_Device_authToken    "Device.authToken"
-
-/**
- *  Device.certificatePath is an optional configuration parameter in "Device" configuration category. <br>
- * 
- */
-#define IoTPConfig_Device_certificatePath    "Device.certificatePath"
-
-/**
- *  Device.keyPath is an optional configuration parameter in "Device" configuration category. <br>
- *
- */
-#define IoTPConfig_Device_keyPath    "Device.keyPath"
-
-
-/**
- *  Gateway.typeId is a required configuration parameter in "Gateway" configuration category. <br>
- *  
- */
-#define IoTPConfig_Gateway_typeId    "Gateway.typeId"
-
-/**
- *  Gateway.deviceId is a required configuration parameter in "Gateway" configuration category. <br>
- *
- */
-#define IoTPConfig_Gateway_deviceId    "Gateway.deviceId"
-
-/**
- *  Gateway.authMethod is an optional configuration parameter in "Gateway" configuration category. <br>
- *  The "authMethod" specifies the type of authentication method used for connecting to IBM Watson IoT Platform. <br>
- *  The valid values are token, cert. <br>
- *  By default, this parameter is not set. Client authentication will be based on the 
- *  settings of Gateway.authToken, Gateway.certificatePath, and Gateway.keyPath
- */
-#define IoTPConfig_Gateway_authMethod    "Gateway.authMethod"
-
-/**
- *  Gateway.authToken is an optional configuration parameter in "Gateway" configuration category. <br>
- *  
- */
-#define IoTPConfig_Gateway_authToken    "Gateway.authToken"
-
-/**
- *  Gateway.certificatePath is an optional configuration parameter in "Gateway" configuration category. <br>
- * 
- */
-#define IoTPConfig_Gateway_certificatePath    "Gateway.certificatePath"
-
-/**
- *  Gateway.keyPath is an optional configuration parameter in "Gateway" configuration category. <br>
- *
- */
-#define IoTPConfig_Gateway_keyPath    "Gateway.keyPath"
-
-
-/**
- *  Application.appId is a required configuration parameter in "Application" configuration category. <br>
- *
- */
-#define IoTPConfig_Application_appId    "Application.appId"
-
-/**
- *  Application.authToken is a required configuration parameter in "Application" configuration category. <br>
- *
- */
-#define IoTPConfig_Application_authToken    "Application.authToken"
-
-/**
- *  Application.APIKey is a required configuration parameter in "Application" configuration category. <br>
- *
- */
-#define IoTPConfig_Application_APIKey    "Application.APIKey"
-
-/**
- *  Debug.logLevel is an optional configuration parameter in "Debug" configuration category. <br>
- *
- */
-#define IoTPConfig_Debug_logLevel    "Debug.logLevel"
-
-/**
- *  Debug.MQTTTraceLevel is an optional configuration parameter in "Debug" configuration category. <br>
- *
- */
-#define IoTPConfig_Debug_MQTTTraceLevel    "Debug.MQTTTraceLevel"
 
 /*
  * IoTPConfig_setLogHandler: Sets a Log Handler
@@ -286,7 +240,7 @@ typedef enum {
  *
  * @param handler        - Pointer to Log handler
  *
- * @return IoTP_RC  - IoTP_SUCCESS for success or IoTP_RC_*
+ * @return IoTP_RC       - IoTP_SUCCESS for success or IoTP_RC_*
  *
  */
 DLLExport IoTP_RC IoTPConfig_setLogHandler(IoTPLogTypes type, void * handler);

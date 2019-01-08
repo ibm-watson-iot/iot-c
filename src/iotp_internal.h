@@ -58,36 +58,94 @@
 #include "iotp_config.h"
 #include "iotp_utils.h"
 
-/* IoTP client */
-typedef struct iotc {
-        char * typeId;
-        char * deviceId;
-        int    authMethod;
-        char * authToken;
-        char * certificatePath;
-        char * keyPath;
-} iotc;
-/* IoTP application */
-typedef struct iota {
-        char * appId;
-        char * authToken;
-        char * APIKey;
-} iota;
-/* IoTP config object */
-typedef struct IoTPConfig {
+/*
+ * Optional configuration items for internal testing only.
+ *
+ * authMethod  The "authMethod" specifies the type of authentication method used
+ *             for connecting to WIoTP service. The valid values are token, cert.
+ *             By default, this parameter is not set. Client authentication will be
+ *             based on the settings of token, certificatePath, and Device.keyPath.
+ *             This parameter can be used to force a client to authenticate using
+ *             token or certificate. This parameter is mainly used for testing.
+ */
+#define IoTPConfig_options_authMethod                   "options.authMethod"
+
+
+/* IoTP identity configuration items */
+typedef struct identity_t {
     char * orgId;
-    char * domain;
-    char * serverCertificatePath;
+    char * typeId;
+    char * deviceId;
+    char * appId;
+} identity_t;
+
+/* IoTP auth configuration items */
+typedef struct auth_t {
+    char * apiKey;
+    char * token;
+    char * keyStore;
+    char * privateKey;
+    char * privateKeyPassword;
+} auth_t;
+
+/* Optional MQTT configuration items */
+typedef struct mqttopts_t {
+    char * transport;
+    char * caFile;
+    int    validateServerCert;
     int    port;
-    int    logLevel;
-    int    MQTTTraceLevel;
-    iotc * device;
-    iotc * gateway;
-    iota * application;
-    int    automaticReconnect;
-    int    keepAliveInterval;
+    int    traceLevel;
+    int    cleanSession;
     int    cleanStart;
+    int    keepalive;
+    int    sessionExpiry;
+    int    sharedSubscription;
+} mqttopts_t;
+
+
+
+#ifdef HTTP_IMPLEMENTED
+
+/* Optional HTTP configuration items */
+typedef struct httpopts_t {
+    int    validateServerCert;
+    char * caFile;
+} httpopts_t;
+
+#endif
+
+
+
+/* IoTP client config object - includes optional items */
+typedef struct IoTPConfig {
+    char           * domain;
+    IoTPLogLevel     logLevel;
+    IoTPClientType   type;
+    identity_t     * identity;
+    auth_t         * auth;
+    mqttopts_t     * mqttopts;
+#ifdef HTTP_IMPLEMENTED
+    httpopts_t     * httpopts;
+#endif
+    int              authMethod;            /* for internal used only */
+    int              automaticReconnect;    /* for internal use only */
 } IoTPConfig;
+
+/*
+ * NOTE:
+ * The following optional configuration items are added for internal testing only.
+ *
+ * authMethod  The "authMethod" specifies the type of authentication method used
+ *             for connecting to WIoTP service. The valid values are token, cert.
+ *             By default, this parameter is not set. Client authentication will be
+ *             based on the settings of token, certificatePath, and Device.keyPath.
+ *             This parameter can be used to force a client to authenticate using
+ *             token or certificate. This parameter is mainly used for testing.
+ * automaticReconnect   Setting "automaticReconnect" to 1 will make the client
+ *                      to reconnect if connection to the server is broken.
+ */
+#define IoTPInternal_options_authMethod                   "options.authMethod"
+#define IoTPInternal_options_automaticReconnect           "options.automaticReconnect"
 
 
 /* IoTP Handler - used for commands, events, notification, monitoring messages */

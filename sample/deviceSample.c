@@ -214,7 +214,7 @@ int main(int argc, char *argv[])
     while(!interrupt)
     {
         fprintf(stdout, "Send status event\n");
-        rc = IoTPDevice_sendEvent(device,"status","json", data , QoS0, NULL);
+        rc = IoTPDevice_sendEvent(device,"status", data, "json", QoS0, NULL);
         fprintf(stdout, "RC from publishEvent(): %d\n", rc);
 
         if ( testCycle > 0 ) {

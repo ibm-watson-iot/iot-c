@@ -112,7 +112,7 @@ int testDevice_setMQTTLogHandler(void)
 }
 
 
-/* Tests: Device connect */
+/* Tests: Device connect/disconnect/send */
 int testDevice_connect(void)
 {
     int rc = IoTP_SUCCESS;
@@ -120,12 +120,15 @@ int testDevice_connect(void)
     IoTPDevice *device = NULL;
     rc = IoTPConfig_create(&config, "./wiotpclient.yaml");
     TEST_ASSERT("IoTPDevice_connect: Create config object", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+    IoTPConfig_readEnvironment(config);
     rc = IoTPDevice_create(&device, config);
     TEST_ASSERT("IoTPDevice_connect: Create device with valid config", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
     rc = IoTPDevice_connect(NULL);
     TEST_ASSERT("IoTPDevice_connect: NULL", rc == IoTP_RC_INVALID_HANDLE, "rcE=%d rcA=%d", IoTP_RC_INVALID_HANDLE, rc);
     rc = IoTPDevice_connect(device);
     TEST_ASSERT("IoTPDevice_connect: Connect client", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+    rc = IoTPDevice_disconnect(device);
+    TEST_ASSERT("IoTPDevice_connect: Disconnect client", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
     rc = IoTPDevice_destroy(device);
     TEST_ASSERT("IoTPDevice_connect: Destroy a valid device handle", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
     rc = IoTPConfig_clear(config);
@@ -133,29 +136,7 @@ int testDevice_connect(void)
     return rc;
 }
 
-/* Tests: Device disconnect */
-int testDevice_disconnect(void)
-{
-    int rc = IoTP_SUCCESS;
-    IoTPConfig *config = NULL;
-    IoTPDevice *device = NULL;
-    rc = IoTPConfig_create(&config, "./wiotpclient.yaml");
-    TEST_ASSERT("IoTPDevice_disconnect: Create config object", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
-    rc = IoTPDevice_create(&device, config);
-    TEST_ASSERT("IoTPDevice_disconnect: Create device with valid config", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
-    rc = IoTPDevice_connect(device);
-    TEST_ASSERT("IoTPDevice_disconnect: Connect client", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
-    rc = IoTPDevice_disconnect(device);
-    TEST_ASSERT("IoTPDevice_disconnect: Disconnect client", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
-    rc = IoTPDevice_destroy(device);
-    TEST_ASSERT("IoTPDevice_disconnect: Destroy a valid device handle", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
-    rc = IoTPConfig_clear(config);
-    TEST_ASSERT("IoTPDevice_disconnect: Clear Config", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
-    return rc;
-}
-
-
-/* Tests: Send event */
+/* Tests: Send event - error cases */
 int testDevice_sendEvent(void)
 {
     int rc = IoTP_SUCCESS;
@@ -176,10 +157,6 @@ int testDevice_sendEvent(void)
     TEST_ASSERT("IoTPDevice_sendEvent: Invalid QoS -1", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_NULL_VALUE, rc);
     rc = IoTPDevice_sendEvent(device, "status", NULL, "json", 3, NULL);
     TEST_ASSERT("IoTPDevice_sendEvent: Invalid QoS 3", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_NULL_VALUE, rc);
-    rc = IoTPDevice_connect(device);
-    TEST_ASSERT("IoTPDevice_sendEvnt: Connect client", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
-    rc = IoTPDevice_disconnect(device);
-    TEST_ASSERT("IoTPDevice_sendEvent: Disconnect client", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
     rc = IoTPDevice_destroy(device);
     TEST_ASSERT("IoTPDevice_sendEvent: Destroy a valid device handle", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
     rc = IoTPConfig_clear(config);
@@ -190,7 +167,7 @@ int testDevice_sendEvent(void)
 int main(int argc, char** argv)
 {
     int rc = 0;
-    int (*tests[])() = {testDevice_create, testDevice_setMQTTLogHandler, testDevice_connect, testDevice_disconnect, testDevice_sendEvent};
+    int (*tests[])() = {testDevice_create, testDevice_setMQTTLogHandler, testDevice_sendEvent, testDevice_connect};
     int i;
     int count = (int)TEST_COUNT(tests);
 
@@ -200,7 +177,6 @@ int main(int argc, char** argv)
         printf("Run TestSuite:%d\n", i+1);
         tests[i]();
         printf("\n");
-        sleep(2);
     }
 
     testEnd("IBM IoT Platform Client: Device API Tests", count);

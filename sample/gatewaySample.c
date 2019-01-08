@@ -196,7 +196,7 @@ int main(int argc, char *argv[])
     while(!interrupt)
     {
         fprintf(stdout, "Send status event\n");
-        rc = IoTPGateway_sendEvent(gateway,"status","json", data , QoS0, NULL);
+        rc = IoTPGateway_sendEvent(gateway,"status",data, "json", QoS0, NULL);
         fprintf(stdout, "RC from publishEvent(): %d\n", rc);
         sleep(10);
     }

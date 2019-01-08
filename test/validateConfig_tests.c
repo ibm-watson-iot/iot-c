@@ -168,197 +168,140 @@ int testConfig_setProperty(void)
     rc = IoTPConfig_setProperty(config, NULL, "xxxx.com");
     TEST_ASSERT("IoTPConfig_setProperty: NULL config param", rc == IoTP_RC_INVALID_PARAM, "rcE=%d rcA=%d", IoTP_RC_INVALID_PARAM, rc);
 
-    rc = IoTPConfig_setProperty(config, "platform.domain", NULL);
-    TEST_ASSERT("IoTPConfig_setProperty: platform.domain is NULL", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+    rc = IoTPConfig_setProperty(config, "options.domain", NULL);
+    TEST_ASSERT("IoTPConfig_setProperty: options.domain is NULL", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
-    rc = IoTPConfig_setProperty(config, "platform.domain", "20");
-    TEST_ASSERT("IoTPConfig_setProperty: platform.domain is numeric", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
+    rc = IoTPConfig_setProperty(config, "options.domain", "20");
+    TEST_ASSERT("IoTPConfig_setProperty: options.domain is numeric", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
 
-    rc = IoTPConfig_setProperty(config, "platform.domain", "internetofthings.ibmcloud.com");
-    TEST_ASSERT("IoTPConfig_setProperty: platform.domain is valid", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+    rc = IoTPConfig_setProperty(config, "options.domain", "internetofthings.ibmcloud.com");
+    TEST_ASSERT("IoTPConfig_setProperty: options.domain is valid", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
-    rc = IoTPConfig_setProperty(config, "platform.port", NULL);
-    TEST_ASSERT("IoTPConfig_setProperty: platform.port is NULL", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+    rc = IoTPConfig_setProperty(config, "options.mqtt.port", NULL);
+    TEST_ASSERT("IoTPConfig_setProperty: options.mqtt.port is NULL", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
-    rc = IoTPConfig_setProperty(config, "platform.port", "xxxx");
-    TEST_ASSERT("IoTPConfig_setProperty: platform.port is string", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_NULL_VALUE, rc);
+    rc = IoTPConfig_setProperty(config, "options.mqtt.port", "xxxx");
+    TEST_ASSERT("IoTPConfig_setProperty: options.mqtt.port is string", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_NULL_VALUE, rc);
 
-    rc = IoTPConfig_setProperty(config, "platform.port", "23");
-    TEST_ASSERT("IoTPConfig_setProperty: platform.port is 23", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_NULL_VALUE, rc);
+    rc = IoTPConfig_setProperty(config, "options.mqtt.port", "23");
+    TEST_ASSERT("IoTPConfig_setProperty: options.mqtt.port is 23", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_NULL_VALUE, rc);
 
-    rc = IoTPConfig_setProperty(config, "platform.port", "-23");
-    TEST_ASSERT("IoTPConfig_setProperty: platform.port is -23", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_NULL_VALUE, rc);
+    rc = IoTPConfig_setProperty(config, "options.mqtt.port", "-23");
+    TEST_ASSERT("IoTPConfig_setProperty: options.mqtt.port is -23", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_NULL_VALUE, rc);
 
-    rc = IoTPConfig_setProperty(config, "platform.port", "1883");
-    TEST_ASSERT("IoTPConfig_setProperty: platform.port is valid - 8883", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+    rc = IoTPConfig_setProperty(config, "options.mqtt.port", "1883");
+    TEST_ASSERT("IoTPConfig_setProperty: options.mqtt.port is valid - 8883", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
-    rc = IoTPConfig_setProperty(config, "platform.port", "8883");
-    TEST_ASSERT("IoTPConfig_setProperty: platform.port is valid - 8883", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+    rc = IoTPConfig_setProperty(config, "options.mqtt.port", "8883");
+    TEST_ASSERT("IoTPConfig_setProperty: options.mqtt.port is valid - 8883", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
-    rc = IoTPConfig_setProperty(config, "platform.port", "443");
-    TEST_ASSERT("IoTPConfig_setProperty: platform.port is valid - 8883", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+    rc = IoTPConfig_setProperty(config, "options.mqtt.port", "443");
+    TEST_ASSERT("IoTPConfig_setProperty: options.mqtt.port is valid - 8883", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
-    rc = IoTPConfig_setProperty(config, "platform.serverCertificatePath", NULL);
-    TEST_ASSERT("IoTPConfig_setProperty: platform.serverCertificatePath is NULL", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+    rc = IoTPConfig_setProperty(config, "options.mqtt.caFile", NULL);
+    TEST_ASSERT("IoTPConfig_setProperty: options.mqtt.caFile is NULL", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
-    rc = IoTPConfig_setProperty(config, "platform.serverCertificatePath", "20");
-    TEST_ASSERT("IoTPConfig_setProperty: platform.serverCertificatePath is numeric", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
+    rc = IoTPConfig_setProperty(config, "options.mqtt.caFile", "20");
+    TEST_ASSERT("IoTPConfig_setProperty: options.mqtt.caFile is numeric", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
 
-    rc = IoTPConfig_setProperty(config, "platform.serverCertificatePath", "serverCertificate.pem");
-    TEST_ASSERT("IoTPConfig_setProperty: platform.serverCertificatePath is valid", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+    rc = IoTPConfig_setProperty(config, "options.mqtt.caFile", "serverCertificate.pem");
+    TEST_ASSERT("IoTPConfig_setProperty: options.mqtt.caFile is valid", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
-    rc = IoTPConfig_setProperty(config, "organization.id", NULL);
-    TEST_ASSERT("IoTPConfig_setProperty: organization.id is NULL", rc == IoTP_RC_PARAM_NULL_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_NULL_VALUE, rc);
+    rc = IoTPConfig_setProperty(config, "identity.orgId", NULL);
+    TEST_ASSERT("IoTPConfig_setProperty: identity.orgId is NULL", rc == IoTP_RC_PARAM_NULL_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_NULL_VALUE, rc);
 
-    rc = IoTPConfig_setProperty(config, "organization.id", "20");
-    TEST_ASSERT("IoTPConfig_setProperty: organization.id is numeric", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
+    rc = IoTPConfig_setProperty(config, "identity.orgId", "20");
+    TEST_ASSERT("IoTPConfig_setProperty: identity.orgId is numeric", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
 
-    rc = IoTPConfig_setProperty(config, "organization.id", "xaa");
-    TEST_ASSERT("IoTPConfig_setProperty: organization.id is valid", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
+    rc = IoTPConfig_setProperty(config, "identity.orgId", "xaa");
+    TEST_ASSERT("IoTPConfig_setProperty: identity.orgId is valid", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
 
-    rc = IoTPConfig_setProperty(config, "organization.id", "xaaxxxx");
-    TEST_ASSERT("IoTPConfig_setProperty: organization.id is valid length", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
+    rc = IoTPConfig_setProperty(config, "identity.orgId", "xaaxxxx");
+    TEST_ASSERT("IoTPConfig_setProperty: identity.orgId is valid length", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
 
-    rc = IoTPConfig_setProperty(config, "organization.id", "xxxxxx");
-    TEST_ASSERT("IoTPConfig_setProperty: organization.id is valid", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+    rc = IoTPConfig_setProperty(config, "identity.orgId", "xxxxxx");
+    TEST_ASSERT("IoTPConfig_setProperty: identity.orgId is valid", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
-    rc = IoTPConfig_setProperty(config, "device.typeId", NULL);
-    TEST_ASSERT("IoTPConfig_setProperty: device.typeId is NULL", rc == IoTP_RC_PARAM_NULL_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_NULL_VALUE, rc);
+    rc = IoTPConfig_setProperty(config, "identity.typeId", NULL);
+    TEST_ASSERT("IoTPConfig_setProperty: identity.typeId is NULL", rc == IoTP_RC_PARAM_NULL_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_NULL_VALUE, rc);
 
-    rc = IoTPConfig_setProperty(config, "device.typeId", "devType1");
-    TEST_ASSERT("IoTPConfig_setProperty: device.typeId is valid", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+    rc = IoTPConfig_setProperty(config, "identity.typeId", "devType1");
+    TEST_ASSERT("IoTPConfig_setProperty: identity.typeId is valid", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
-    rc = IoTPConfig_setProperty(config, "device.deviceId", NULL);
-    TEST_ASSERT("IoTPConfig_setProperty: device.deviceId is NULL", rc == IoTP_RC_PARAM_NULL_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_NULL_VALUE, rc);
+    rc = IoTPConfig_setProperty(config, "identity.deviceId", NULL);
+    TEST_ASSERT("IoTPConfig_setProperty: identity.deviceId is NULL", rc == IoTP_RC_PARAM_NULL_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_NULL_VALUE, rc);
 
-    rc = IoTPConfig_setProperty(config, "device.deviceId", "dev1");
-    TEST_ASSERT("IoTPConfig_setProperty: device.deviceId is valid", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+    rc = IoTPConfig_setProperty(config, "identity.deviceId", "dev1");
+    TEST_ASSERT("IoTPConfig_setProperty: identity.deviceId is valid", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
-    rc = IoTPConfig_setProperty(config, "device.authMethod", "10");
-    TEST_ASSERT("IoTPConfig_setProperty: device.authMethod is numeric", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
+    rc = IoTPConfig_setProperty(config, "options.authMethod", "10");
+    TEST_ASSERT("IoTPConfig_setProperty: options.authMethod is numeric", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
 
-    rc = IoTPConfig_setProperty(config, "device.authMethod", "xxxx");
-    TEST_ASSERT("IoTPConfig_setProperty: device.authMethod is invalid", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
+    rc = IoTPConfig_setProperty(config, "options.authMethod", "xxxx");
+    TEST_ASSERT("IoTPConfig_setProperty: options.authMethod is invalid", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
 
-    rc = IoTPConfig_setProperty(config, "device.authMethod", "token");
-    TEST_ASSERT("IoTPConfig_setProperty: device.authMethod is valid - token", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+    rc = IoTPConfig_setProperty(config, "options.authMethod", "token");
+    TEST_ASSERT("IoTPConfig_setProperty: options.authMethod is valid - token", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
-    rc = IoTPConfig_setProperty(config, "device.authMethod", "cert");
-    TEST_ASSERT("IoTPConfig_setProperty: device.authMethod is valid - cert", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+    rc = IoTPConfig_setProperty(config, "options.authMethod", "cert");
+    TEST_ASSERT("IoTPConfig_setProperty: options.authMethod is valid - cert", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
-    rc = IoTPConfig_setProperty(config, "device.authMethod", NULL);
-    TEST_ASSERT("IoTPConfig_setProperty: device.authMethod is valid - NULL", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+    rc = IoTPConfig_setProperty(config, "options.authMethod", NULL);
+    TEST_ASSERT("IoTPConfig_setProperty: options.authMethod is valid - NULL", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
-    rc = IoTPConfig_setProperty(config, "device.authToken", "30");
-    TEST_ASSERT("IoTPConfig_setProperty: device.authToken is numeric", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
+    rc = IoTPConfig_setProperty(config, "auth.token", "30");
+    TEST_ASSERT("IoTPConfig_setProperty: auth.token is numeric", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
 
-    rc = IoTPConfig_setProperty(config, "device.authToken", NULL);
-    TEST_ASSERT("IoTPConfig_setProperty: device.authToken is NULL", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+    rc = IoTPConfig_setProperty(config, "auth.token", NULL);
+    TEST_ASSERT("IoTPConfig_setProperty: auth.token is NULL", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
-    rc = IoTPConfig_setProperty(config, "device.authToken", "dev1");
-    TEST_ASSERT("IoTPConfig_setProperty: device.authToken is valid", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+    rc = IoTPConfig_setProperty(config, "auth.token", "dev1");
+    TEST_ASSERT("IoTPConfig_setProperty: auth.token is valid", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
-    rc = IoTPConfig_setProperty(config, "device.certificatePath", "30");
-    TEST_ASSERT("IoTPConfig_setProperty: device.certificatePath is numeric", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
+    rc = IoTPConfig_setProperty(config, "auth.keyStore", "30");
+    TEST_ASSERT("IoTPConfig_setProperty: auth.keyStore is numeric", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
 
-    rc = IoTPConfig_setProperty(config, "device.certificatePath", NULL);
-    TEST_ASSERT("IoTPConfig_setProperty: device.certificatePath is NULL", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+    rc = IoTPConfig_setProperty(config, "auth.keyStore", NULL);
+    TEST_ASSERT("IoTPConfig_setProperty: auth.keyStore is NULL", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
-    rc = IoTPConfig_setProperty(config, "device.certificatePath", "dev1");
-    TEST_ASSERT("IoTPConfig_setProperty: device.certificatePath is valid", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+    rc = IoTPConfig_setProperty(config, "auth.keyStore", "dev1");
+    TEST_ASSERT("IoTPConfig_setProperty: auth.keyStore is valid", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
-    rc = IoTPConfig_setProperty(config, "device.keyPath", "30");
-    TEST_ASSERT("IoTPConfig_setProperty: device.keyPath is numeric", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
+    rc = IoTPConfig_setProperty(config, "auth.privateKey", "30");
+    TEST_ASSERT("IoTPConfig_setProperty: auth.privateKey is numeric", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
 
-    rc = IoTPConfig_setProperty(config, "device.keyPath", NULL);
-    TEST_ASSERT("IoTPConfig_setProperty: device.keyPath is NULL", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+    rc = IoTPConfig_setProperty(config, "auth.privateKey", NULL);
+    TEST_ASSERT("IoTPConfig_setProperty: auth.privateKey is NULL", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
-    rc = IoTPConfig_setProperty(config, "device.keyPath", "dev1");
-    TEST_ASSERT("IoTPConfig_setProperty: device.keyPath is valid", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+    rc = IoTPConfig_setProperty(config, "auth.privateKey", "dev1");
+    TEST_ASSERT("IoTPConfig_setProperty: auth.privateKey is valid", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
+    rc = IoTPConfig_setProperty(config, "identity.appId", "30");
+    TEST_ASSERT("IoTPConfig_setProperty: identity.appId is numeric", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
 
+    rc = IoTPConfig_setProperty(config, "identity.appId", NULL);
+    TEST_ASSERT("IoTPConfig_setProperty: identity.appId is NULL", rc == IoTP_RC_PARAM_NULL_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_NULL_VALUE, rc);
 
+    rc = IoTPConfig_setProperty(config, "identity.appId", "dev1");
+    TEST_ASSERT("IoTPConfig_setProperty: identity.appId is valid", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
-    rc = IoTPConfig_setProperty(config, "gateway.typeId", NULL);
-    TEST_ASSERT("IoTPConfig_setProperty: gateway.typeId is NULL", rc == IoTP_RC_PARAM_NULL_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_NULL_VALUE, rc);
+    rc = IoTPConfig_setProperty(config, "auth.APIKey", "30");
+    TEST_ASSERT("IoTPConfig_setProperty: auth.APIKey is numeric", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
 
-    rc = IoTPConfig_setProperty(config, "gateway.typeId", "devType1");
-    TEST_ASSERT("IoTPConfig_setProperty: gateway.typeId is valid", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+    rc = IoTPConfig_setProperty(config, "auth.APIKey", NULL);
+    TEST_ASSERT("IoTPConfig_setProperty: auth.APIKey is NULL", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
-    rc = IoTPConfig_setProperty(config, "gateway.deviceId", NULL);
-    TEST_ASSERT("IoTPConfig_setProperty: gateway.deviceId is NULL", rc == IoTP_RC_PARAM_NULL_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_NULL_VALUE, rc);
+    rc = IoTPConfig_setProperty(config, "auth.APIKey", "dev1");
+    TEST_ASSERT("IoTPConfig_setProperty: auth.APIKey is valid", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
-    rc = IoTPConfig_setProperty(config, "gateway.deviceId", "dev1");
-    TEST_ASSERT("IoTPConfig_setProperty: gateway.deviceId is valid", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+    rc = IoTPConfig_setProperty(config, "auth.token", "30");
+    TEST_ASSERT("IoTPConfig_setProperty: auth.token is numeric", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
 
-    rc = IoTPConfig_setProperty(config, "gateway.authMethod", "10");
-    TEST_ASSERT("IoTPConfig_setProperty: gateway.deviceId is numeric", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
+    rc = IoTPConfig_setProperty(config, "auth.token", NULL);
+    TEST_ASSERT("IoTPConfig_setProperty: auth.token is NULL", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
-    rc = IoTPConfig_setProperty(config, "gateway.authMethod", "xxxx");
-    TEST_ASSERT("IoTPConfig_setProperty: gateway.deviceId is invalid", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
-
-    rc = IoTPConfig_setProperty(config, "gateway.authMethod", "token");
-    TEST_ASSERT("IoTPConfig_setProperty: gateway.deviceId is valid - token", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
-
-    rc = IoTPConfig_setProperty(config, "gateway.authMethod", "cert");
-    TEST_ASSERT("IoTPConfig_setProperty: gateway.deviceId is valid - cert", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
-
-    rc = IoTPConfig_setProperty(config, "gateway.authMethod", NULL);
-    TEST_ASSERT("IoTPConfig_setProperty: gateway.deviceId is valid - NULL", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
-
-    rc = IoTPConfig_setProperty(config, "gateway.authToken", "30");
-    TEST_ASSERT("IoTPConfig_setProperty: gateway.authToken is numeric", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
-
-    rc = IoTPConfig_setProperty(config, "gateway.authToken", NULL);
-    TEST_ASSERT("IoTPConfig_setProperty: gateway.authToken is NULL", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
-
-    rc = IoTPConfig_setProperty(config, "gateway.authToken", "dev1");
-    TEST_ASSERT("IoTPConfig_setProperty: gateway.authToken is valid", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
-
-    rc = IoTPConfig_setProperty(config, "gateway.certificatePath", "30");
-    TEST_ASSERT("IoTPConfig_setProperty: gateway.certificatePath is numeric", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
-
-    rc = IoTPConfig_setProperty(config, "gateway.certificatePath", NULL);
-    TEST_ASSERT("IoTPConfig_setProperty: gateway.certificatePath is NULL", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
-
-    rc = IoTPConfig_setProperty(config, "gateway.certificatePath", "dev1");
-    TEST_ASSERT("IoTPConfig_setProperty: gateway.certificatePath is valid", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
-
-    rc = IoTPConfig_setProperty(config, "gateway.keyPath", "30");
-    TEST_ASSERT("IoTPConfig_setProperty: gateway.keyPath is numeric", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
-
-    rc = IoTPConfig_setProperty(config, "gateway.keyPath", NULL);
-    TEST_ASSERT("IoTPConfig_setProperty: gateway.keyPath is NULL", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
-
-    rc = IoTPConfig_setProperty(config, "gateway.keyPath", "dev1");
-    TEST_ASSERT("IoTPConfig_setProperty: gateway.keyPath is valid", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
-
-    rc = IoTPConfig_setProperty(config, "application.appId", "30");
-    TEST_ASSERT("IoTPConfig_setProperty: application.appId is numeric", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
-
-    rc = IoTPConfig_setProperty(config, "application.appId", NULL);
-    TEST_ASSERT("IoTPConfig_setProperty: application.appId is NULL", rc == IoTP_RC_PARAM_NULL_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_NULL_VALUE, rc);
-
-    rc = IoTPConfig_setProperty(config, "application.appId", "dev1");
-    TEST_ASSERT("IoTPConfig_setProperty: application.appId is valid", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
-
-    rc = IoTPConfig_setProperty(config, "application.APIKey", "30");
-    TEST_ASSERT("IoTPConfig_setProperty: application.APIKey is numeric", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
-
-    rc = IoTPConfig_setProperty(config, "application.APIKey", NULL);
-    TEST_ASSERT("IoTPConfig_setProperty: application.APIKey is NULL", rc == IoTP_RC_PARAM_NULL_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_NULL_VALUE, rc);
-
-    rc = IoTPConfig_setProperty(config, "application.APIKey", "dev1");
-    TEST_ASSERT("IoTPConfig_setProperty: application.APIKey is valid", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
-
-    rc = IoTPConfig_setProperty(config, "application.authToken", "30");
-    TEST_ASSERT("IoTPConfig_setProperty: application.authToken is numeric", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
-
-    rc = IoTPConfig_setProperty(config, "application.authToken", NULL);
-    TEST_ASSERT("IoTPConfig_setProperty: application.authToken is NULL", rc == IoTP_RC_PARAM_NULL_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_NULL_VALUE, rc);
-
-    rc = IoTPConfig_setProperty(config, "application.authToken", "dev1");
-    TEST_ASSERT("IoTPConfig_setProperty: application.authToken is valid", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
+    rc = IoTPConfig_setProperty(config, "auth.token", "dev1");
+    TEST_ASSERT("IoTPConfig_setProperty: auth.token is valid", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
     return rc;
 }
@@ -392,7 +335,7 @@ int testConfig_readConfigFile(void)
     TEST_ASSERT("IoTPConfig_readConfigFile: Invalid config - prop", rc == IoTP_RC_INVALID_PARAM, "rcE=%d rcA=%d", IoTP_RC_INVALID_PARAM, rc);
 
     rc = IoTPConfig_readConfigFile(config, "./invalidconfig3.yaml");
-    TEST_ASSERT("IoTPConfig_readConfigFile: Invalid config - category prop", rc == IoTP_RC_INVALID_PARAM, "rcE=%d rcA=%d", IoTP_RC_INVALID_PARAM, rc);
+    TEST_ASSERT("IoTPConfig_readConfigFile: Invalid config - category prop", rc == IoTP_RC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IoTP_RC_PARAM_INVALID_VALUE, rc);
 
     return rc;
 }
@@ -413,18 +356,18 @@ int testConfig_readEnvironment(void)
     rc = IoTPConfig_readEnvironment(NULL);
     TEST_ASSERT("IoTPConfig_readEnvironment: Invalid config object", rc == IoTP_RC_INVALID_HANDLE, "rcE=%d rcA=%d", IoTP_RC_INVALID_HANDLE, rc);
 
-    setenv ("WIOTP_PLATFORM_DOMAIN", "test.com", 0);
+    setenv ("WIOTP_OPTIONS_DOMAIN", "test.com", 0);
 
     rc = IoTPConfig_readEnvironment(config);
     TEST_ASSERT("IoTPConfig_readEnvironment: Read env domain", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
-    rc = IoTPConfig_getProperty(config, IoTPConfig_Platform_domain, &retval, 1024);
+    rc = IoTPConfig_getProperty(config, IoTPConfig_options_domain, &retval, 1024);
     TEST_ASSERT("IoTPConfig_readEnvironment: Read property - domain", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
     rc = strcmp(pval, "test.com");
     TEST_ASSERT("IoTPConfig_readEnvironment: verify property - domain", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
-    rc = IoTPConfig_getProperty(config, IoTPConfig_Platform_port, &retval, 1024);
+    rc = IoTPConfig_getProperty(config, IoTPConfig_options_mqtt_port, &retval, 1024);
     TEST_ASSERT("IoTPConfig_readEnvironment: Read property - port", rc == IoTP_SUCCESS, "rcE=%d rcA=%d", IoTP_SUCCESS, rc);
 
     rc = strcmp(pval, "8883");

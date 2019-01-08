@@ -169,6 +169,7 @@ DLLExport void iotp_utils_writeClientVersion(void);
 DLLExport IoTP_RC iotp_utils_setLogHandler(IoTPLogTypes type, void * handler);
 DLLExport IoTP_RC iotp_utils_fileExist(const char * filePath);
 DLLExport char * iotp_utils_getToken(char * from, const char * leading, const char * trailing, char * * more);
+DLLExport const char * IoTP_rc_description(IoTP_RC rc);
 
 #define LOG(sev, fmts...) \
         iotp_utils_logInvoke((LOGLEVEL_##sev), __FUNCTION__, __FILE__, __LINE__, fmts);

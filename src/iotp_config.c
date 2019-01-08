@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 IBM Corp.
+ * Copyright (c) 2018-2019 IBM Corp.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -66,18 +66,62 @@ IoTP_RC IoTPConfig_create(IoTPConfig **config, const char * configFileName)
         return rc;
     }
 
-    /* Set defaults */
+    /* Set identity parameters */
+    identity_t *identity = (identity_t *)calloc(1, sizeof(identity_t));
+    if ( identity == NULL ) {
+        rc = IoTP_RC_NOMEM;
+        return rc;
+    }
+
+    /* Set auth parameters */
+    auth_t *auth = (auth_t *)calloc(1, sizeof(auth_t));
+    if ( auth == NULL ) {
+        rc = IoTP_RC_NOMEM;
+        return rc;
+    }
+
+    /* Set mqttopts */
+    mqttopts_t *mqttopts = (mqttopts_t *)calloc(1, sizeof(mqttopts_t));
+    if ( mqttopts == NULL ) {
+        rc = IoTP_RC_NOMEM;
+        return rc;
+    }
+    mqttopts->transport = strdup("tcp");
+    mqttopts->port = 8883;
+    mqttopts->caFile = strdup("./IoTPlatform.pem");
+    mqttopts->cleanSession = 1;
+    mqttopts->cleanStart = 0;
+    mqttopts->keepalive = 60;
+    mqttopts->sessionExpiry = 3600;
+    mqttopts->sharedSubscription = 0;
+    mqttopts->validateServerCert = 1;
+
+
+#ifdef HTTP_IMPLEMENTED
+    /* Set httpopts */
+    httpopts_t *httpopts = (httpopts_t *)calloc(1, sizeof(httpopts_t));
+    if ( httpopts == NULL ) {
+        rc = IoTP_RC_NOMEM;
+        return rc;
+    }
+    httpopts->validateServerCert = 1;
+#endif
+
+    /* Set config */
     (*config)->domain = strdup("internetofthings.ibmcloud.com");
-    (*config)->port = 8883;
-    (*config)->serverCertificatePath = strdup("./IoTPlatform.pem");
-    (*config)->logLevel = LOGLEVEL_DEBUG;
-    (*config)->MQTTTraceLevel = 5;
-    (*config)->device = (iotc *)calloc(1, sizeof(iotc));
-    (*config)->gateway = (iotc *)calloc(1, sizeof(iotc));
-    (*config)->application = (iota *)calloc(1, sizeof(iota));
-    (*config)->keepAliveInterval = 60;
-    (*config)->automaticReconnect = 0;
-    (*config)->cleanStart = 0;
+    (*config)->logLevel = LOGLEVEL_INFO;
+    (*config)->type = IoTPClient_device;
+    (*config)->identity = identity;
+    (*config)->auth = auth;
+    (*config)->mqttopts = mqttopts;
+
+    (*config)->automaticReconnect = 1;    /* internal option */
+    (*config)->authMethod = 0;            /* internal option */
+
+
+#ifdef HTTP_IMPLEMENTED
+    (*config)->httpopts = httpopts;
+#endif
 
     /* If configuration file is specified - process it */
     if ( configFileName && *configFileName != '\0' ) {
@@ -99,34 +143,37 @@ IoTP_RC IoTPConfig_clear(IoTPConfig *config)
         LOG(ERROR, "NULL configuration object is specified: rc=%d", rc);
     } else {
         /* free config object */
-        iotp_utils_freePtr((void *)config->orgId);
         iotp_utils_freePtr((void *)config->domain);
-        iotp_utils_freePtr((void *)config->serverCertificatePath);
-        if ( config->device != NULL ) {
-            iotc *device = config->device;
-            iotp_utils_freePtr((void *)device->typeId);
-            iotp_utils_freePtr((void *)device->deviceId);
-            iotp_utils_freePtr((void *)device->authToken);
-            iotp_utils_freePtr((void *)device->certificatePath);
-            iotp_utils_freePtr((void *)device->keyPath);
-            iotp_utils_freePtr((void *)config->device);
+        if ( config->identity != NULL ) {
+            identity_t *identity = config->identity;
+            iotp_utils_freePtr((void *)identity->orgId);
+            iotp_utils_freePtr((void *)identity->typeId);
+            iotp_utils_freePtr((void *)identity->deviceId);
+            iotp_utils_freePtr((void *)identity->appId);
+            iotp_utils_freePtr((void *)config->identity);
         }
-        if ( config->gateway != NULL ) {
-            iotc *gateway = config->gateway;
-            iotp_utils_freePtr((void *)gateway->typeId);
-            iotp_utils_freePtr((void *)gateway->deviceId);
-            iotp_utils_freePtr((void *)gateway->authToken);
-            iotp_utils_freePtr((void *)gateway->certificatePath);
-            iotp_utils_freePtr((void *)gateway->keyPath);
-            iotp_utils_freePtr((void *)config->gateway);
+        if ( config->auth != NULL ) {
+            auth_t *auth = config->auth;
+            iotp_utils_freePtr((void *)auth->keyStore);
+            iotp_utils_freePtr((void *)auth->privateKey);
+            iotp_utils_freePtr((void *)auth->privateKeyPassword);
+            iotp_utils_freePtr((void *)auth->token);
+            iotp_utils_freePtr((void *)auth->apiKey);
+            iotp_utils_freePtr((void *)config->auth);
         }
-        if ( config->application != NULL ) {
-            iota *application = config->application;
-            iotp_utils_freePtr((void *)application->appId);
-            iotp_utils_freePtr((void *)application->APIKey);
-            iotp_utils_freePtr((void *)application->authToken);
-            iotp_utils_freePtr((void *)config->application);
+        if ( config->mqttopts != NULL ) {
+            mqttopts_t *mqttopts = config->mqttopts;
+            iotp_utils_freePtr((void *)mqttopts->transport);
+            iotp_utils_freePtr((void *)mqttopts->caFile);
+            iotp_utils_freePtr((void *)config->mqttopts);
         }
+
+#ifdef HTTP_IMPLEMENTED
+        if ( config->httpopts != NULL ) {
+            iotp_utils_freePtr((void *)config->httpopts);
+        }
+#endif
+
         iotp_utils_freePtr(config);
     }
     return rc;
@@ -158,10 +205,155 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
         argint = atoi(argptr);
     }
 
-    /* Process Platform configuration items */
-    if ( !strncasecmp(name, "Platform.", 9)) {
-        /* Process Platform.domain */
-        if ( !strcasecmp(name, IoTPConfig_Platform_domain)) {
+    /* Process Identity configuration items */
+    if ( !strncasecmp(name, "identity.", 9)) {
+        /* Process identity.orgid */
+        if ( !strcasecmp(name, IoTPConfig_identity_orgId)) {
+            if (argptr == NULL || *argptr == '\0') {
+                rc = IoTP_RC_PARAM_NULL_VALUE;
+            } else if (argint != 0 ) {
+                rc = IoTP_RC_PARAM_INVALID_VALUE;
+            } else {
+                int len = strlen(argptr);
+                if ( len != 6 ) {
+                    rc = IoTP_RC_PARAM_INVALID_VALUE;
+                } else {
+                    if ( config->identity->orgId ) 
+                        iotp_utils_freePtr((void *)config->identity->orgId);
+                    config->identity->orgId = strdup(argptr);
+                }
+            }
+            goto setPropDone;
+        }
+    
+        /* Process identity.typeId */
+        if ( !strcasecmp(name, IoTPConfig_identity_typeId)) {
+            if (argptr == NULL || (argptr && *argptr == '\0')) {
+                rc = IoTP_RC_PARAM_NULL_VALUE;
+            } else {
+                if ( config->identity->typeId ) 
+                    iotp_utils_freePtr((void *)config->identity->typeId);
+                config->identity->typeId =  strdup(argptr);
+            }
+            goto setPropDone;
+        }
+
+        /* Process identity.deviceId */
+        if ( !strcasecmp(name, IoTPConfig_identity_deviceId)) {
+            if (argptr == NULL || (argptr && *argptr == '\0')) {
+                rc = IoTP_RC_PARAM_NULL_VALUE;
+            } else {
+                if ( config->identity->deviceId ) 
+                    iotp_utils_freePtr((void *)config->identity->deviceId);
+                config->identity->deviceId =  strdup(argptr);
+            }
+            goto setPropDone;
+        }
+    
+        /* Process identity.appId */
+        if ( !strcasecmp(name, IoTPConfig_identity_appId)) {
+            if (argint != 0) {
+                rc = IoTP_RC_PARAM_INVALID_VALUE;
+            } else if (argptr == NULL || *argptr == '\0') {
+                rc = IoTP_RC_PARAM_NULL_VALUE;
+            } else {
+                if ( config->identity->appId ) 
+                    iotp_utils_freePtr((void *)config->identity->appId);
+                config->identity->appId = strdup(argptr);
+            }
+            goto setPropDone;
+        }
+    }
+    
+    /* Process Auth configuration items */
+    if ( !strncasecmp(name, "auth.", 5)) {
+        /* Process auth.keyStore */
+        if ( !strcasecmp(name, IoTPConfig_auth_keyStore)) {
+            if (argint != 0) {
+                rc = IoTP_RC_PARAM_INVALID_VALUE;
+            } else if (argptr == NULL || *argptr == '\0') {
+                if ( config->auth->keyStore ) 
+                    iotp_utils_freePtr((void *)config->auth->keyStore);
+                config->auth->keyStore = strdup("./IoTFoundation.pem");
+            } else {
+                if ( config->auth->keyStore ) 
+                    iotp_utils_freePtr((void *)config->auth->keyStore);
+                config->auth->keyStore = strdup(argptr);
+            }
+            goto setPropDone;
+        }
+
+        /* Process auth.privateKey */
+        if ( !strcasecmp(name, IoTPConfig_auth_privateKey)) {
+            if (argint != 0) {
+                rc = IoTP_RC_PARAM_INVALID_VALUE;
+            } else if (argptr == NULL || *argptr == '\0') {
+                if ( config->auth->privateKey ) 
+                    iotp_utils_freePtr((void *)config->auth->privateKey);
+                config->auth->privateKey = NULL;
+            } else {
+                if ( config->auth->privateKey ) 
+                    iotp_utils_freePtr((void *)config->auth->privateKey);
+                config->auth->privateKey = strdup(argptr);
+            }
+            goto setPropDone;
+        }
+
+        /* Process auth.privateKeyPassword */
+        if ( !strcasecmp(name, IoTPConfig_auth_privateKeyPassword)) {
+            if (argint != 0) {
+                rc = IoTP_RC_PARAM_INVALID_VALUE;
+            } else if (argptr == NULL || *argptr == '\0') {
+                if ( config->auth->privateKeyPassword ) 
+                    iotp_utils_freePtr((void *)config->auth->privateKeyPassword);
+                config->auth->privateKeyPassword = NULL;
+            } else {
+                if ( config->auth->privateKeyPassword ) 
+                    iotp_utils_freePtr((void *)config->auth->privateKeyPassword);
+                config->auth->privateKeyPassword = strdup(argptr);
+            }
+            goto setPropDone;
+        }
+
+        /* Process auth.token */
+        if ( !strcasecmp(name, IoTPConfig_auth_token)) {
+            if (argint != 0) {
+                rc = IoTP_RC_PARAM_INVALID_VALUE;
+            } else if (argptr == NULL || *argptr == '\0') {
+                if ( config->auth->token ) 
+                    iotp_utils_freePtr((void *)config->auth->token);
+                config->auth->token = NULL;
+            } else {
+                if ( config->auth->token ) 
+                    iotp_utils_freePtr((void *)config->auth->token);
+                config->auth->token = strdup(argptr);
+            }
+            goto setPropDone;
+        }
+
+        /* Process auth.APIKey */
+        if ( !strcasecmp(name, IoTPConfig_auth_APIKey)) {
+            if (argint != 0) {
+                rc = IoTP_RC_PARAM_INVALID_VALUE;
+            } else if (argptr == NULL || *argptr == '\0') {
+                if ( config->auth->apiKey ) 
+                    iotp_utils_freePtr((void *)config->auth->apiKey);
+                config->auth->apiKey = NULL;
+            } else {
+                if ( config->auth->apiKey ) 
+                    iotp_utils_freePtr((void *)config->auth->apiKey);
+                config->auth->apiKey = strdup(argptr);
+            }
+            goto setPropDone;
+        }
+
+    }
+
+
+    /* Process Optional configuration items */
+    if ( !strncasecmp(name, "Options.", 8)) {
+        /* Process options.domain */
+        if ( !strcasecmp(name, IoTPConfig_options_domain)) {
             if (argint != 0) {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
                 LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
@@ -174,400 +366,239 @@ IoTP_RC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char
                     iotp_utils_freePtr((void *)config->domain);
                 config->domain = strdup(argptr);
             }
-            if (rc == IoTP_SUCCESS) {
-                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Platform_domain, config->domain);
-            }
             goto setPropDone;
         }
-    
-        /* Process Platform.port */
-        if ( !strcasecmp(name, IoTPConfig_Platform_port)) {
-            if (argint == 1883 || argint == 443 || argint == 8883) {
-                config->port =  argint;
-            } else if ((argptr != NULL && *argptr == '0') || (!argptr && argint == 0)) {
-                config->port = 8883;
+
+        /* Process options.logLevel */
+        if ( !strcasecmp(name, IoTPConfig_options_logLevel)) {
+            if (argptr == NULL || *argptr == '\0') {
+                rc = IoTP_RC_PARAM_NULL_VALUE;
             } else {
-                rc = IoTP_RC_PARAM_INVALID_VALUE;
-                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
-            }
-            if (rc == IoTP_SUCCESS) {
-                LOG(DEBUG, "Set config parameter: %s To: %d", IoTPConfig_Platform_port, config->port);
+                if ( argptr && !strcasecmp(argptr, "error")) {
+                    config->logLevel = LOGLEVEL_ERROR;
+                } else if ( argptr && !strcasecmp(argptr, "warning")) {
+                    config->logLevel = LOGLEVEL_WARN;
+                } else if ( argptr && !strcasecmp(argptr, "warn")) {
+                    config->logLevel = LOGLEVEL_WARN;
+                } else if ( argptr && !strcasecmp(argptr, "info")) {
+                    config->logLevel = LOGLEVEL_INFO;
+                } else if ( argptr && !strcasecmp(argptr, "information")) {
+                    config->logLevel = LOGLEVEL_INFO;
+                } else if ( argptr && !strcasecmp(argptr, "debug")) {
+                    config->logLevel = LOGLEVEL_DEBUG;
+                } else {
+                    rc = IoTP_RC_PARAM_INVALID_VALUE;
+                }
             }
             goto setPropDone;
         }
 
-        /* Process Platform.serverCertificatePath */
-        if ( !strcasecmp(name, IoTPConfig_Platform_serverCertificatePath)) {
+        /* Process options.mqtt.port */
+        if ( !strcasecmp(name, IoTPConfig_options_mqtt_port)) {
+            if (argint == 1883 || argint == 443 || argint == 8883) {
+                config->mqttopts->port =  argint;
+            } else if ((argptr != NULL && *argptr == '0') || (!argptr && argint == 0)) {
+                config->mqttopts->port = 8883;
+            } else {
+                rc = IoTP_RC_PARAM_INVALID_VALUE;
+            }
+            goto setPropDone;
+        }
+
+        /* Process options.mqtt.traceLevel */
+        if ( !strcasecmp(name, IoTPConfig_options_mqtt_traceLevel)) {
+            if (argint >= 1 && argint <= 7) {
+                config->mqttopts->traceLevel =  argint;
+            } else {
+                rc = IoTP_RC_PARAM_INVALID_VALUE;
+            }
+            goto setPropDone;
+        }
+
+        /* Process options.mqtt.transport */
+        if ( !strcasecmp(name, IoTPConfig_options_mqtt_transport)) {
+            if (argptr == NULL || *argptr == '\0') {
+                rc = IoTP_RC_PARAM_NULL_VALUE;
+            } else {
+                if ( argptr && ( !strcmp(argptr, "tcp") || !strcmp(argptr, "wss"))) {
+                    if (config->mqttopts->transport)
+                        iotp_utils_freePtr((void *)config->mqttopts->transport);
+                    config->mqttopts->transport = strdup(argptr);
+                } else {
+                    rc = IoTP_RC_PARAM_INVALID_VALUE;
+                }
+            }
+            goto setPropDone;
+        }
+
+        /* Process options.mqtt.caFile */
+        if ( !strcasecmp(name, IoTPConfig_options_mqtt_caFile)) {
             if (argint != 0) {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
                 LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
             } else if (argptr == NULL || *argptr == '\0') {
-                if ( config->serverCertificatePath ) 
-                    iotp_utils_freePtr((void *)config->serverCertificatePath);
-                config->serverCertificatePath = strdup("./IoTFoundation.pem");
+                if ( config->mqttopts->caFile ) 
+                    iotp_utils_freePtr((void *)config->mqttopts->caFile);
+                config->mqttopts->caFile = strdup("./IoTPlatform.pem");
             } else {
-                if ( config->serverCertificatePath ) 
-                    iotp_utils_freePtr((void *)config->serverCertificatePath);
-                config->serverCertificatePath = strdup(argptr);
-            }
-            if (rc == IoTP_SUCCESS) {
-                LOG(INFO, "Set config parameter: %s To: %d", IoTPConfig_Platform_serverCertificatePath, config->serverCertificatePath);
+                if ( config->mqttopts->caFile ) 
+                    iotp_utils_freePtr((void *)config->mqttopts->caFile);
+                config->mqttopts->caFile = strdup(argptr);
             }
             goto setPropDone;
         }
-    }
 
-
-    /* Process Organization configuration items */
-    if ( !strncasecmp(name, "Organization.", 13)) {
-        /* Process Organization.id */
-        if ( !strcasecmp(name, IoTPConfig_Organization_id)) {
-            if (argptr == NULL || *argptr == '\0') {
-                rc = IoTP_RC_PARAM_NULL_VALUE;
-                LOG(ERROR, "NULL configuration value is specified: rc=%d", rc);
-            } else if (argint != 0 ) {
+        /* Process options.mqtt.cleanSession */
+        if ( !strcasecmp(name, IoTPConfig_options_mqtt_cleanSession)) {
+            if (argptr && (*argptr == '0' || *argptr == '1')) {
+                config->mqttopts->cleanSession = argint;
+            } else if (argptr && !strcmp(argptr,"true")) {
+                config->mqttopts->cleanSession = 1; 
+            } else if (argptr && !strcmp(argptr,"false")) {
+                config->mqttopts->cleanSession = 0; 
+            } else {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
-                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
-            } else {
-                int len = strlen(argptr);
-                if ( len != 6 ) {
-                    rc = IoTP_RC_PARAM_INVALID_VALUE;
-                    LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
-                } else {
-                    if ( config->orgId ) 
-                        iotp_utils_freePtr((void *)config->orgId);
-                    config->orgId = strdup(argptr);
-                }
-            }
-            if (rc == IoTP_SUCCESS) {
-                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Organization_id, config->orgId);
-            }
-            goto setPropDone;
-        }
-    }
-
-
-    /* Process Device configuration items */
-    if ( !strncasecmp(name, "Device.", 7)) {
-        /* Process Device.typeId */
-        if ( !strcasecmp(name, IoTPConfig_Device_typeId)) {
-            if (argptr == NULL || (argptr && *argptr == '\0')) {
-                rc = IoTP_RC_PARAM_NULL_VALUE;
-                LOG(ERROR, "NULL configuration value is specified: rc=%d", rc);
-            } else {
-                if ( config->device->typeId ) 
-                    iotp_utils_freePtr((void *)config->device->typeId);
-                config->device->typeId =  strdup(argptr);
-            }
-            if (rc == IoTP_SUCCESS) {
-                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Device_typeId, config->device->typeId);
             }
             goto setPropDone;
         }
 
-        /* Process Device.deviceId */
-        if ( !strcasecmp(name, IoTPConfig_Device_deviceId)) {
-            if (argptr == NULL || (argptr && *argptr == '\0')) {
-                LOG(ERROR, "NULL configuration value is specified: rc=%d", rc);
-                rc = IoTP_RC_PARAM_NULL_VALUE;
+        /* Process options.mqtt.cleanStart */
+        if ( !strcasecmp(name, IoTPConfig_options_mqtt_cleanStart)) {
+            if (argptr && (*argptr == '0' || *argptr == '1')) {
+                config->mqttopts->cleanStart = argint;
+            } else if (argptr && !strcmp(argptr,"true")) {
+                config->mqttopts->cleanStart = 1;
+            } else if (argptr && !strcmp(argptr,"false")) {
+                config->mqttopts->cleanStart = 0;
             } else {
-                if ( config->device->deviceId ) 
-                    iotp_utils_freePtr((void *)config->device->deviceId);
-                config->device->deviceId =  strdup(argptr);
-            }
-            if (rc == IoTP_SUCCESS) {
-                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Device_deviceId, config->device->deviceId);
+                rc = IoTP_RC_PARAM_INVALID_VALUE;
             }
             goto setPropDone;
         }
-    
-        /* Process Device.authMethod */
-        if ( !strcasecmp(name, IoTPConfig_Device_authMethod)) {
-            if (argint != 0 ) {
+
+        /* Process options.mqtt.sessionExpiry */
+        if ( !strcasecmp(name, IoTPConfig_options_mqtt_sessionExpiry)) {
+            if (argint >= 0 && argint <= 3600) {
+                config->mqttopts->sessionExpiry = argint;
+            } else {
+                rc = IoTP_RC_PARAM_INVALID_VALUE;
+            }
+            goto setPropDone;
+        }
+
+        /* Process options.mqtt.keepalive */
+        if ( !strcasecmp(name, IoTPConfig_options_mqtt_keepalive)) {
+            if (argint >= 0 || argint <= 720000) {
+                config->mqttopts->keepalive =  argint;
+            } else {
+                rc = IoTP_RC_PARAM_INVALID_VALUE;
+            }
+            goto setPropDone;
+        }
+
+        /* Process options.mqtt.sharedSubscription */
+        if ( !strcasecmp(name, IoTPConfig_options_mqtt_sharedSubscription)) {
+            if (argptr && (*argptr == '0' || *argptr == '1')) {
+                config->mqttopts->sharedSubscription = argint;
+            } else if (argptr && !strcmp(argptr,"true")) {
+                config->mqttopts->sharedSubscription = 1;
+            } else if (argptr && !strcmp(argptr,"false")) {
+                config->mqttopts->sharedSubscription = 0;
+            } else {
+                rc = IoTP_RC_PARAM_INVALID_VALUE;
+            }
+            goto setPropDone;
+        }
+
+        /* Process options.mqtt.validateServerCert */
+        if ( !strcasecmp(name, IoTPConfig_options_mqtt_validateServerCert)) {
+            if (argptr && (*argptr == '0' || *argptr == '1')) {
+                config->mqttopts->validateServerCert = argint;
+            } else if (argptr && !strcmp(argptr,"true")) {
+                config->mqttopts->validateServerCert = 1;
+            } else if (argptr && !strcmp(argptr,"false")) {
+                config->mqttopts->validateServerCert = 0;
+            } else {
+                rc = IoTP_RC_PARAM_INVALID_VALUE;
+            }
+            goto setPropDone;
+        }
+
+#ifdef HTTP_IMPLEMENTED
+        /* Process options.http.validateServerCert */
+        if ( !strcasecmp(name, IoTPConfig_options_http_validateServerCert)) {
+            if (argptr && (*argptr == '0' || *argptr == '1')) {
+                config->httpopts->validateServerCert = argint;
+            } else if (argptr && !strcmp(argptr,"true")) {
+                config->httpopts->validateServerCert = 1;
+            } else if (argptr && !strcmp(argptr,"false")) {
+                config->httpopts->validateServerCert = 0;
+            } else {
+                rc = IoTP_RC_PARAM_INVALID_VALUE;
+            }
+            goto setPropDone;
+        }
+
+        /* Process options.http.caFile */
+        if ( !strcasecmp(name, IoTPConfig_options_http_caFile)) {
+            if (argint != 0) {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
                 LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
             } else if (argptr == NULL || *argptr == '\0') {
-                config->device->authMethod =  0;
+                if ( config->httpopts->caFile ) 
+                    iotp_utils_freePtr((void *)config->httpopts->caFile);
+                config->httpopts->caFile = strdup("./IoTPlatform.pem");
+            } else {
+                if ( config->httpopts->caFile ) 
+                    iotp_utils_freePtr((void *)config->httpopts->caFile);
+                config->httpopts->caFile = strdup(argptr);
+            }
+            goto setPropDone;
+        }
+#endif
+
+        /* Process internal optional config item options.authMethod */
+        if ( !strcasecmp(name, IoTPInternal_options_authMethod)) {
+            if (argint != 0 ) {
+                rc = IoTP_RC_PARAM_INVALID_VALUE;
+            } else if (argptr == NULL || *argptr == '\0') {
+                config->authMethod =  0;
             } else if ( argptr && !strcasecmp(argptr, "token")) {
-                config->device->authMethod =  1;
+                config->authMethod =  1;
             } else if ( argptr && !strcmp(argptr, "cert")) {
-                config->device->authMethod =  2;
+                config->authMethod =  2;
             } else {
                 rc = IoTP_RC_PARAM_INVALID_VALUE;
-                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
-            }
-            if (rc == IoTP_SUCCESS) {
-                LOG(INFO, "Set config parameter: %s To: %d", IoTPConfig_Device_authMethod, config->device->authMethod);
             }
             goto setPropDone;
         }
     
-        /* Process Device.authToken */
-        if ( !strcasecmp(name, IoTPConfig_Device_authToken)) {
-            if (argint != 0 ) {
-                rc = IoTP_RC_PARAM_INVALID_VALUE;
-                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
-            } else if ( !argptr || *argptr == '\0' ) {
-                if ( config->device->authToken ) 
-                    iotp_utils_freePtr((void *)config->device->authToken);
-                config->device->authToken =  NULL;
+        /* Process internal optional config item options.automaticReconnect */
+        if ( !strcasecmp(name, IoTPInternal_options_automaticReconnect)) {
+            if (argptr && (*argptr == '0' || *argptr == '1')) {
+                config->automaticReconnect = argint;
+            } else if (argptr && !strcmp(argptr,"true")) {
+                config->automaticReconnect = 1;
+            } else if (argptr && !strcmp(argptr,"false")) {
+                config->automaticReconnect = 0;
             } else {
-                if ( config->device->authToken ) 
-                    iotp_utils_freePtr((void *)config->device->authToken);
-                config->device->authToken =  strdup(argptr);
-            }
-            if (rc == IoTP_SUCCESS) {
-                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Device_authToken, config->device->authToken? config->device->authToken : "NULL");
+                rc = IoTP_RC_PARAM_INVALID_VALUE;
             }
             goto setPropDone;
         }
     
-        /* Process Device.certificatePath */
-        if ( !strcasecmp(name, IoTPConfig_Device_certificatePath)) {
-            if (argint != 0 ) {
-                rc = IoTP_RC_PARAM_INVALID_VALUE;
-                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
-            } else if ( !argptr || *argptr == '\0' ) {
-                if ( config->device->certificatePath ) 
-                    iotp_utils_freePtr((void *)config->device->certificatePath);
-                config->device->certificatePath =  NULL;
-            } else {
-                if ( config->device->certificatePath ) 
-                    iotp_utils_freePtr((void *)config->device->certificatePath);
-                config->device->certificatePath =  strdup(argptr);
-            }
-            if (rc == IoTP_SUCCESS) {
-                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Device_certificatePath, config->device->certificatePath? config->device->certificatePath : "NULL");
-            }
-            goto setPropDone;
-        }
-    
-        /* Process Device.keyPath */
-        if ( !strcasecmp(name, IoTPConfig_Device_keyPath)) {
-            if (argint != 0 ) {
-                rc = IoTP_RC_PARAM_INVALID_VALUE;
-                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
-            } else if ( !argptr || *argptr == '\0' ) {
-                if ( config->device->keyPath ) 
-                    iotp_utils_freePtr((void *)config->device->keyPath);
-                config->device->keyPath =  NULL;
-            } else {
-                if ( config->device->keyPath ) 
-                    iotp_utils_freePtr((void *)config->device->keyPath);
-                config->device->keyPath =  strdup(argptr);
-            }
-            if (rc == IoTP_SUCCESS) {
-                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Device_keyPath, config->device->keyPath? config->device->keyPath : "NULL" );
-            }
-            goto setPropDone;
-        }
-    }
-
-
-    /* Process Gateway configuration items */
-    if ( !strncasecmp(name, "Gateway.", 8)) {
-        /* Process Gateway.typeId */
-        if ( !strcasecmp(name, IoTPConfig_Gateway_typeId)) {
-            if (argptr == NULL || (argptr && *argptr == '\0')) {
-                rc = IoTP_RC_PARAM_NULL_VALUE;
-                LOG(ERROR, "NULL configuration value is specified: rc=%d", rc);
-            } else {
-                if ( config->gateway->typeId ) 
-                    iotp_utils_freePtr((void *)config->gateway->typeId);
-                config->gateway->typeId =  strdup(argptr);
-            }
-            if (rc == IoTP_SUCCESS) {
-                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Gateway_typeId, config->gateway->typeId);
-            }
-            goto setPropDone;
-        }
-
-        /* Process Gateway.deviceId */
-        if ( !strcasecmp(name, IoTPConfig_Gateway_deviceId)) {
-            if (argptr == NULL || (argptr && *argptr == '\0')) {
-                rc = IoTP_RC_PARAM_NULL_VALUE;
-                LOG(ERROR, "NULL configuration value is specified: rc=%d", rc);
-            } else {
-                if ( config->gateway->deviceId ) 
-                    iotp_utils_freePtr((void *)config->gateway->deviceId);
-                config->gateway->deviceId =  strdup(argptr);
-            }
-            if (rc == IoTP_SUCCESS) {
-                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Gateway_deviceId, config->gateway->deviceId);
-            }
-            goto setPropDone;
-        }
-    
-        /* Process Gateway.authMethod */
-        if ( !strcasecmp(name, IoTPConfig_Gateway_authMethod)) {
-            if (argint != 0 ) {
-                rc = IoTP_RC_PARAM_INVALID_VALUE;
-                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
-            } else if (argptr == NULL || (argptr && *argptr == '\0')) {
-                config->gateway->authMethod =  0;
-            } else if ( argptr && !strcasecmp(argptr, "token")) {
-                config->gateway->authMethod =  1;
-            } else if ( argptr && !strcmp(argptr, "cert")) {
-                config->gateway->authMethod =  2;
-            } else {
-                rc = IoTP_RC_PARAM_INVALID_VALUE;
-                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
-            }
-            if (rc == IoTP_SUCCESS) {
-                LOG(INFO, "Set config parameter: %s To: %d", IoTPConfig_Gateway_authMethod, config->gateway->authMethod);
-            }
-            goto setPropDone;
-        }
-    
-        /* Process Gateway.authToken */
-        if ( !strcasecmp(name, IoTPConfig_Gateway_authToken)) {
-            if (argint != 0 ) {
-                rc = IoTP_RC_PARAM_INVALID_VALUE;
-                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
-            } else if ( !argptr || (argptr && *argptr == '\0')) {
-                if ( config->gateway->authToken ) 
-                    iotp_utils_freePtr((void *)config->gateway->authToken);
-                config->gateway->authToken =  NULL;
-            } else {
-                if ( config->gateway->authToken ) 
-                    iotp_utils_freePtr((void *)config->gateway->authToken);
-                config->gateway->authToken =  strdup(argptr);
-            }
-            if (rc == IoTP_SUCCESS) {
-                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Gateway_authToken, config->gateway->authToken? config->gateway->authToken : "NULL");
-            }
-            goto setPropDone;
-        }
-    
-        /* Process Gateway.certificatePath */
-        if ( !strcasecmp(name, IoTPConfig_Gateway_certificatePath)) {
-            if (argint != 0 ) {
-                rc = IoTP_RC_PARAM_INVALID_VALUE;
-                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
-            } else if ( !argptr || (argptr && *argptr == '\0')) {
-                if ( config->gateway->certificatePath ) 
-                    iotp_utils_freePtr((void *)config->gateway->certificatePath);
-                config->gateway->certificatePath =  NULL;
-            } else {
-                if ( config->gateway->certificatePath ) 
-                    iotp_utils_freePtr((void *)config->gateway->certificatePath);
-                config->gateway->certificatePath =  strdup(argptr);
-            }
-            if (rc == IoTP_SUCCESS) {
-                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Gateway_certificatePath, config->gateway->certificatePath? config->gateway->certificatePath : "NULL");
-            }
-            goto setPropDone;
-        }
-    
-        /* Process Gateway.keyPath */
-        if ( !strcasecmp(name, IoTPConfig_Gateway_keyPath)) {
-            if (argint != 0 ) {
-                rc = IoTP_RC_PARAM_INVALID_VALUE;
-                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
-            } else if ( !argptr || (argptr && *argptr == '\0')) {
-                if ( config->gateway->keyPath ) 
-                    iotp_utils_freePtr((void *)config->gateway->keyPath);
-                config->gateway->keyPath =  NULL;
-            } else {
-                if ( config->gateway->keyPath ) 
-                    iotp_utils_freePtr((void *)config->gateway->keyPath);
-                config->gateway->keyPath =  strdup(argptr);
-            }
-            if (rc == IoTP_SUCCESS) {
-                LOG(INFO, "Set config parameter: %s To: %s", IoTPConfig_Gateway_keyPath, config->gateway->keyPath? config->gateway->keyPath : "NULL" );
-            }
-            goto setPropDone;
-        }
-    }
-
-
-    /* Process Application configuration items */
-    if ( !strncasecmp(name, "Application.", 12)) {
-        /* Process Application.appId */
-        if ( !strcasecmp(name, IoTPConfig_Application_appId)) {
-            if (argint != 0 ) {
-                rc = IoTP_RC_PARAM_INVALID_VALUE;
-                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
-            } else if (argptr == NULL || (argptr && *argptr == '\0')) {
-                rc = IoTP_RC_PARAM_NULL_VALUE;
-                LOG(ERROR, "NULL configuration value is specified: rc=%d", rc);
-            } else {
-                if ( config->application->appId ) 
-                    iotp_utils_freePtr((void *)config->application->appId);
-                config->application->appId = strdup(argptr);
-            }
-            goto setPropDone;
-        }
-
-        /* Process Application.APIKey */
-        if ( !strcasecmp(name, IoTPConfig_Application_APIKey)) {
-            if (argint != 0 ) {
-                rc = IoTP_RC_PARAM_INVALID_VALUE;
-                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
-            } else if (argptr == NULL || (argptr && *argptr == '\0')) {
-                rc = IoTP_RC_PARAM_NULL_VALUE;
-                LOG(ERROR, "NULL configuration value is specified: rc=%d", rc);
-            } else {
-                if ( config->application->APIKey ) 
-                    iotp_utils_freePtr((void *)config->application->APIKey);
-                config->application->APIKey = strdup(argptr);
-            }
-            goto setPropDone;
-        }
-
-        /* Process Application.authToken */
-        if ( !strcasecmp(name, IoTPConfig_Application_authToken)) {
-            if (argint != 0 ) {
-                rc = IoTP_RC_PARAM_INVALID_VALUE;
-                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
-            } else if (argptr == NULL || (argptr && *argptr == '\0')) {
-                rc = IoTP_RC_PARAM_NULL_VALUE;
-                LOG(ERROR, "NULL configuration value is specified: rc=%d", rc);
-            } else {
-                if ( config->application->authToken ) 
-                    iotp_utils_freePtr((void *)config->application->authToken);
-                config->application->authToken = strdup(argptr);
-            }
-            goto setPropDone;
-        }
-    }
-
-
-    /* Process Debug configuration items */
-    if ( !strncasecmp(name, "Debug.", 6)) {
-        /* Process Debug.logLevel */
-        if ( !strcasecmp(name, IoTPConfig_Debug_logLevel)) {
-            argint = atoi(argptr); 
-            if (argint < 1 || argint > 4) {
-                rc = IoTP_RC_PARAM_INVALID_VALUE;
-                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
-            } else {
-                config->logLevel = argint;
-                iotp_utils_setLogLevel(config->logLevel);
-            }
-            goto setPropDone;
-        }
-
-        /* Process Debug.MQTTTraceLevel */
-        if ( !strcasecmp(name, IoTPConfig_Debug_MQTTTraceLevel)) {
-            if (argint < 1 || argint > 6) {
-                rc = IoTP_RC_PARAM_INVALID_VALUE;
-                LOG(ERROR, "Invalid configuration value is specified: rc=%d", rc);
-            } else {
-                config->MQTTTraceLevel = argint;
-            }
-            goto setPropDone;
-        }
     }
 
     /* Could not find any valid configuration */
     rc = IoTP_RC_INVALID_PARAM;
-    LOG(ERROR, "Invalid configuration parameter is specified: rc=%d", rc);
 
 setPropDone:
 
     if (rc != IoTP_SUCCESS) {
-        LOG(ERROR, "Could not set configuration parameter %s. rc=%d", name, rc);
+        LOG(ERROR, "Invalid configuration item (%s) or value (%s) is specified. rc=%d", 
+            name?name:"", value?value:"",  rc);
+    } else {
+        LOG(INFO, "Set config item (%s) to (%s).", name?name:"", value?value:"");
     }
 
     return rc;
@@ -761,45 +792,229 @@ IoTP_RC IoTPConfig_getProperty(IoTPConfig *config, const char * name, char ** va
     IoTP_RC rc = IoTP_SUCCESS;
 
     if (!config) {
-        rc = IoTP_RC_INVALID_HANDLE;
-        LOG(ERROR, "Invalid config handle: rc=%d", rc);
+        rc = IoTP_RC_PARAM_NULL_VALUE;
+        LOG(ERROR, "NULL configuration object is specified: rc=%d", rc);
         return rc;
     }
     if (!name || *name == '\0') {
         rc = IoTP_RC_INVALID_PARAM;
+        LOG(ERROR, "Invalid configuration parameter is specified: rc=%d", rc);
         return rc;
     }
 
-    /* Process Platform configuration items */
-    if ( !strncasecmp(name, "Platform.", 9)) {
-        if ( !strcasecmp(name, IoTPConfig_Platform_domain)) {
-            snprintf(*value, len, "%s", config->domain);
+    /* Process Identity configuration items */
+    if ( !strncasecmp(name, "identity.", 9)) {
+        /* Process identity.orgid */
+        if ( !strcasecmp(name, IoTPConfig_identity_orgId)) {
+            snprintf(*value, len, "%s", config->identity->orgId? config->identity->orgId : "");
             goto getPropDone;
         }
-        if ( !strcasecmp(name, IoTPConfig_Platform_port)) {
-            snprintf(*value, len, "%d", config->port);
+    
+        /* Process identity.typeId */
+        if ( !strcasecmp(name, IoTPConfig_identity_typeId)) {
+            snprintf(*value, len, "%s", config->identity->typeId? config->identity->typeId : "");
             goto getPropDone;
         }
-        if ( !strcasecmp(name, IoTPConfig_Platform_serverCertificatePath)) {
-            snprintf(*value, len, "%s", config->serverCertificatePath);
+
+        /* Process identity.deviceId */
+        if ( !strcasecmp(name, IoTPConfig_identity_deviceId)) {
+            snprintf(*value, len, "%s", config->identity->deviceId? config->identity->deviceId : "");
+            goto getPropDone;
+        }
+    
+        /* Process identity.appId */
+        if ( !strcasecmp(name, IoTPConfig_identity_appId)) {
+            snprintf(*value, len, "%s", config->identity->appId? config->identity->appId : "");
+            goto getPropDone;
+        }
+    }
+    
+    /* Process Auth configuration items */
+    if ( !strncasecmp(name, "auth.", 5)) {
+        /* Process auth.keyStore */
+        if ( !strcasecmp(name, IoTPConfig_auth_keyStore)) {
+            snprintf(*value, len, "%s", config->auth->keyStore? config->auth->keyStore : "");
+            goto getPropDone;
+        }
+
+        /* Process auth.privateKey */
+        if ( !strcasecmp(name, IoTPConfig_auth_privateKey)) {
+            snprintf(*value, len, "%s", config->auth->privateKey? config->auth->privateKey : "");
+            goto getPropDone;
+        }
+
+        /* Process auth.privateKeyPassword */
+        if ( !strcasecmp(name, IoTPConfig_auth_privateKeyPassword)) {
+            snprintf(*value, len, "%s", config->auth->privateKeyPassword? config->auth->privateKeyPassword : "");
+            goto getPropDone;
+        }
+
+        /* Process auth.token */
+        if ( !strcasecmp(name, IoTPConfig_auth_token)) {
+            snprintf(*value, len, "%s", config->auth->token? config->auth->token : "");
+            goto getPropDone;
+        }
+
+        /* Process auth.APIKey */
+        if ( !strcasecmp(name, IoTPConfig_auth_APIKey)) {
+            snprintf(*value, len, "%s", config->auth->apiKey? config->auth->apiKey : "");
             goto getPropDone;
         }
     }
 
 
-    /* Process Organization configuration items */
-    if ( !strncasecmp(name, "Organization.", 13)) {
-        if ( !strcasecmp(name, IoTPConfig_Organization_id)) {
-            snprintf(*value, len, "%s", config->orgId);
+    /* Process Optional configuration items */
+    if ( !strncasecmp(name, "Options.", 8)) {
+        /* Process options.domain */
+        if ( !strcasecmp(name, IoTPConfig_options_domain)) {
+            snprintf(*value, len, "%s", config->domain? config->domain : "");
             goto getPropDone;
         }
+
+        /* Process options.logLevel */
+        if ( !strcasecmp(name, IoTPConfig_options_logLevel)) {
+            if ( config->logLevel == LOGLEVEL_ERROR ) {
+                snprintf(*value, len, "error");
+            } else if ( config->logLevel == LOGLEVEL_WARN ) {
+                snprintf(*value, len, "warning");
+            } else if ( config->logLevel == LOGLEVEL_INFO ) {
+                snprintf(*value, len, "info");
+            } else if ( config->logLevel == LOGLEVEL_DEBUG ) {
+                snprintf(*value, len, "debug");
+            }
+            goto getPropDone;
+        }
+
+        /* Process options.mqtt.port */
+        if ( !strcasecmp(name, IoTPConfig_options_mqtt_port)) {
+            snprintf(*value, len, "%d", config->mqttopts->port);
+            goto getPropDone;
+        }
+
+        /* Process options.mqtt.traceLevel */
+        if ( !strcasecmp(name, IoTPConfig_options_mqtt_traceLevel)) {
+            snprintf(*value, len, "%d", config->mqttopts->traceLevel);
+            goto getPropDone;
+        }
+
+        /* Process options.mqtt.transport */
+        if ( !strcasecmp(name, IoTPConfig_options_mqtt_transport)) {
+            snprintf(*value, len, "%s", config->mqttopts->transport);
+            goto getPropDone;
+        }
+
+        /* Process options.mqtt.caFile */
+        if ( !strcasecmp(name, IoTPConfig_options_mqtt_caFile)) {
+            snprintf(*value, len, "%s", config->mqttopts->caFile);
+            goto getPropDone;
+        }
+
+        /* Process options.mqtt.cleanSession */
+        if ( !strcasecmp(name, IoTPConfig_options_mqtt_cleanSession)) {
+            if (config->mqttopts->cleanSession == 0) {
+                snprintf(*value, len, "false");
+            } else if (config->mqttopts->cleanSession == 1) {
+                snprintf(*value, len, "true");
+            }
+            goto getPropDone;
+        }
+
+        /* Process options.mqtt.cleanStart */
+        if ( !strcasecmp(name, IoTPConfig_options_mqtt_cleanStart)) {
+            if (config->mqttopts->cleanStart == 0) {
+                snprintf(*value, len, "false");
+            } else if (config->mqttopts->cleanStart == 1) {
+                snprintf(*value, len, "true");
+            }
+            goto getPropDone;
+        }
+
+        /* Process options.mqtt.sessionExpiry */
+        if ( !strcasecmp(name, IoTPConfig_options_mqtt_sessionExpiry)) {
+            snprintf(*value, len, "%d", config->mqttopts->sessionExpiry);
+            goto getPropDone;
+        }
+
+        /* Process options.mqtt.keepalive */
+        if ( !strcasecmp(name, IoTPConfig_options_mqtt_keepalive)) {
+            snprintf(*value, len, "%d", config->mqttopts->keepalive);
+            goto getPropDone;
+        }
+
+        /* Process options.mqtt.sharedSubscription */
+        if ( !strcasecmp(name, IoTPConfig_options_mqtt_sharedSubscription)) {
+            if (config->mqttopts->sharedSubscription == 0) {
+                snprintf(*value, len, "false");
+            } else if (config->mqttopts->sharedSubscription == 1) {
+                snprintf(*value, len, "true");
+            }
+            goto getPropDone;
+        }
+
+        /* Process options.mqtt.validateServerCert */
+        if ( !strcasecmp(name, IoTPConfig_options_mqtt_validateServerCert)) {
+            if (config->mqttopts->validateServerCert == 0) {
+                snprintf(*value, len, "false");
+            } else if (config->mqttopts->validateServerCert == 1) {
+                snprintf(*value, len, "true");
+            }
+            goto getPropDone;
+        }
+
+#ifdef HTTP_IMPLEMENTED
+        /* Process options.http.validateServerCert */
+        if ( !strcasecmp(name, IoTPConfig_options_http_validateServerCert)) {
+            if (config->httpopts->validateServerCert == 0) {
+                snprintf(*value, len, "false");
+            } else if (config->httpopts->validateServerCert == 1) {
+                snprintf(*value, len, "true");
+            }
+            goto getPropDone;
+        }
+
+        /* Process options.http.caFile */
+        if ( !strcasecmp(name, IoTPConfig_options_http_caFile)) {
+            snprintf(*value, len, "%s", config->httpopts->caFile);
+            goto getPropDone;
+        }
+#endif
+
+        /* Process internal options.authMethod */
+        if ( !strcasecmp(name, IoTPInternal_options_authMethod)) {
+            if (config->authMethod == 0) {
+                snprintf(*value, len, "");
+            } else if (config->authMethod == 1) {
+                snprintf(*value, len, "token");
+            } else if (config->authMethod == 2) {
+                snprintf(*value, len, "cert");
+            }
+            goto getPropDone;
+        }
+    
+        /* Process internal options.automaticReconnect */
+        if ( !strcasecmp(name, IoTPInternal_options_automaticReconnect)) {
+            if (config->automaticReconnect == 0) {
+                snprintf(*value, len, "false");
+            } else if (config->automaticReconnect == 1) {
+                snprintf(*value, len, "true");
+            }
+            goto getPropDone;
+        }
+    
     }
 
-
+    /* Could not find any valid configuration */
     rc = IoTP_RC_INVALID_PARAM;
 
 getPropDone:
 
+    if (rc != IoTP_SUCCESS) {
+        LOG(ERROR, "Invalid configuration item (%s) is specified. rc=%d", name?name:"",  rc);
+    } else {
+        LOG(DEBUG, "Get config item (%s) to (%s).", name?name:"", *value? *value:"");
+    }
+
     return rc;
 }
+
 

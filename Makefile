@@ -109,7 +109,7 @@ SED_COMMAND = sed \
 # IBM Watson IoT platform utility library
 # Includes configuration APIs, Logging APIs, Error codes and utility functions
 #
-UTILS_C = iotp_utils.c iotp_config.c
+UTILS_C = iotp_utils.c iotp_config.c iotp_rc_description.c
 UTILS_H = iotp_utils.h iotp_config.h iotp_rc.h
 #
 # IBM Watson IoT platform MQTT Async client library

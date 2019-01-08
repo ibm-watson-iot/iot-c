@@ -1,24 +1,12 @@
 # Device sample config file
-Platform:
-  port: 8883
-Organization:
-  id: xxxxxx
-Device:
+identity:
+  orgId: xxxxxx
   typeId: iotc_test_devType1
   deviceId: iotc_test_dev1
-  authToken: xxxxxxxx
-Gateway:
-  typeId: iotc_test_gwType1 
-  deviceId: iotc_test_gw
-  authToken: xxxxxxxx
-Application:
-  appId: iot_test_app
-  APIKey: a-xxxxxx-f6omhifnnz
-  authToken: _7bTtvjkyeunYpOL_b
-Debug:
-  logLevel: 4
-  MQTTTraceLevel: 5
-
-
-
+auth:
+  token: xxxxxxxx
+options:
+  logLevel: ERROR
+  mqtt:
+    port: 8883
 

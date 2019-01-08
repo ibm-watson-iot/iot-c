@@ -108,140 +108,94 @@ static IoTP_RC iotp_validate_config(int type, IoTPConfig *config)
         rc = IoTP_RC_PARAM_INVALID_VALUE;
         LOG(ERROR, "Configuration item domain is NULL or empty: rc=%d", rc);
         return rc;
-    } else if ( config->orgId == NULL || *config->orgId == '\0' ) {
-        rc = IoTP_RC_PARAM_INVALID_VALUE;
-        LOG(ERROR, "Configuration item orgID is NULL or empty: rc=%d", rc);
-        return rc;
+    } else if ( config->identity->orgId == NULL || *config->identity->orgId == '\0' ) {
+        if ( config->auth->apiKey == NULL || *config->auth->apiKey == '\0' ) {
+            rc = IoTP_RC_PARAM_INVALID_VALUE;
+            LOG(ERROR, "Configuration item orgId or API Key is NULL or empty: rc=%d", rc);
+            return rc;
+        } else {
+            /* get orgid from API Key and update config */
+            char *tmpstr = config->auth->apiKey;
+            char *tok = strtok(tmpstr, "-");
+            if ( tok != NULL ) {
+                char *orgId = strtok(NULL, "-");
+                config->identity->orgId = strdup(orgId);
+            } else {
+                LOG(ERROR, "Configuration item orgId or APIKey is NULL or empty or invalid: rc=%d", rc);
+            }
+        }
     }
 
     /* Check serverCertificatePath */
     /* Could be NULL for quickstart sandbox */
     if ( strcmp(config->domain, "quickstart") != 0 ) {
-        if ( config->serverCertificatePath == NULL || *config->serverCertificatePath == '\0' ) {
+        if ( config->mqttopts->caFile == NULL || *config->mqttopts->caFile == '\0' ) {
             rc = IoTP_RC_PARAM_INVALID_VALUE;
-            LOG(ERROR, "Configuration item serverCertificatePath is NULL or empty: rc=%d", rc);
+            LOG(ERROR, "Configuration item certificatePath is NULL or empty: rc=%d", rc);
             return rc;
         }
-        /* check if serverCertificatePath is valid */
-        if ( (rc = iotp_utils_fileExist(config->serverCertificatePath)) != IoTP_SUCCESS ) {
-            LOG(ERROR, "Invalid serverCertificatePath (%s) is specified: rc=%d", config->serverCertificatePath, rc);
+        /* check if caFile is valid */
+        if ( (rc = iotp_utils_fileExist(config->mqttopts->caFile)) != IoTP_SUCCESS ) {
+            LOG(ERROR, "Invalid caFile (%s) is specified: rc=%d", config->mqttopts->caFile, rc);
             return rc;
         }
         /* check port - should be 8883 or 443 */
-        if ( config->port != 8883 && config->port != 443 ) {
+        if ( config->mqttopts->port != 8883 && config->mqttopts->port != 443 ) {
             rc = IoTP_RC_PARAM_INVALID_VALUE;
-            LOG(ERROR, "Configuration item port (%d) is not valid: rc=%d", rc);
+            LOG(ERROR, "Configuration item port (%d) is not valid: rc=%d", config->mqttopts->port, rc);
             return rc;
         }
     } else {
         /* check port for quickstart - should be 1883 */
-        if ( config->port != 1883 ) {
+        if ( config->mqttopts->port != 1883 ) {
             rc = IoTP_RC_PARAM_INVALID_VALUE;
-            LOG(ERROR, "Configuration item port (%d) for quickstart domain is not valid: rc=%d", rc);
+            LOG(ERROR, "Configuration item port (%d) for quickstart domain is not valid: rc=%d", config->mqttopts->port, rc);
             return rc;
         }
     }
 
-    /* Validate device related config items */
+    /* Validate device or gateway related config items */
     if ( type == IoTPClient_device ) {
-        if ( config->device == NULL ) {
-            rc = IoTP_RC_INVALID_HANDLE;
-            LOG(ERROR, "NULL device configuration in config handle: rc=%d", rc);
-            return rc;
-        }
         /* device id and type can not be empty */
-        if (config->device->typeId == NULL || ( config->device->typeId && *config->device->typeId == '\0')) {
+        if (config->identity->typeId == NULL || ( config->identity->typeId && *config->identity->typeId == '\0')) {
             rc = IoTP_RC_PARAM_NULL_VALUE;
             LOG(ERROR, "Device configuration typeId is NULL or empty: rc=%d", rc);
             return rc;
         }
-        if (config->device->deviceId == NULL || ( config->device->deviceId && *config->device->deviceId == '\0')) {
+        if (config->identity->deviceId == NULL || ( config->identity->deviceId && *config->identity->deviceId == '\0')) {
             rc = IoTP_RC_PARAM_NULL_VALUE;
             LOG(ERROR, "Device configuration deviceId is NULL or empty: rc=%d", rc);
             return rc;
         }
         /* validate device authMethod related config items */
-        if ( config->device->authMethod == 0 ) {
+        if ( config->authMethod == 0 ) {
             /* Should have valid authToken */
-            if (config->device->authToken == NULL || (config->device->authToken && *config->device->authToken == '\0')) {
+            if (config->auth->token == NULL || (config->auth->token && *config->auth->token == '\0')) {
                 rc = IoTP_RC_PARAM_NULL_VALUE;
                 LOG(ERROR, "Device configuration authToken is NULL or empty: rc=%d", rc);
                 return rc;
             }
         } else {
             /* should have valid client cert and key */
-            if (config->device->certificatePath == NULL || ( config->device->certificatePath && *config->device->certificatePath == '\0')) {
+            if (config->auth->keyStore == NULL || ( config->auth->keyStore && *config->auth->keyStore == '\0')) {
                 rc = IoTP_RC_PARAM_NULL_VALUE;
-                LOG(ERROR, "Device configuration certificatePath is NULL or empty: rc=%d", rc);
+                LOG(ERROR, "Device configuration keyStore is NULL or empty: rc=%d", rc);
                 return rc;
             } else {
                 /* check if file exist */
-                if ( (rc = iotp_utils_fileExist(config->device->certificatePath)) != IoTP_SUCCESS ) {
-                    LOG(ERROR, "Invalid device certificatePath (%s) is specified: rc=%d", config->device->certificatePath, rc);
+                if ( (rc = iotp_utils_fileExist(config->auth->keyStore)) != IoTP_SUCCESS ) {
+                    LOG(ERROR, "Invalid device keyStore (%s) is specified: rc=%d", config->auth->keyStore, rc);
                     return rc;
                 }
             }
-            if (config->device->keyPath == NULL || ( config->device->keyPath && *config->device->keyPath == '\0')) {
+            if (config->auth->privateKey == NULL || ( config->auth->privateKey && *config->auth->privateKey == '\0')) {
                 rc = IoTP_RC_PARAM_NULL_VALUE;
-                LOG(ERROR, "Device configuration keyPath is NULL or empty: rc=%d", rc);
+                LOG(ERROR, "Device configuration privateKey is NULL or empty: rc=%d", rc);
                 return rc;
             } else {
                 /* check if file exist */
-                if ( (rc = iotp_utils_fileExist(config->device->keyPath)) != IoTP_SUCCESS ) {
-                    LOG(ERROR, "Invalid device keyPath (%s) is specified: rc=%d", config->device->keyPath, rc);
-                    return rc;
-                }
-            }
-        }
-    }
-        
-    /* Validate gateway related config items */
-    if ( type == IoTPClient_gateway ) {
-        if ( config->gateway == NULL ) {
-            rc = IoTP_RC_INVALID_HANDLE;
-            LOG(ERROR, "NULL gateway configuration in config handle: rc=%d", rc);
-            return rc;
-        }
-        /* gateway id and type can not be empty */
-        if (config->gateway->typeId == NULL || ( config->gateway->typeId && *config->gateway->typeId == '\0')) {
-            rc = IoTP_RC_PARAM_NULL_VALUE;
-            LOG(ERROR, "Gateway configuration typeId is NULL or empty: rc=%d", rc);
-            return rc;
-        }
-        if (config->gateway->deviceId == NULL || ( config->gateway->deviceId && *config->gateway->deviceId == '\0')) {
-            rc = IoTP_RC_PARAM_NULL_VALUE;
-            LOG(ERROR, "Gateway configuration deviceId is NULL or empty: rc=%d", rc);
-            return rc;
-        }
-        /* validate gateway authMethod related config items */
-        if ( config->gateway->authMethod == 0 ) {
-            /* Should have valid authToken */
-            if (config->gateway->authToken == NULL || (config->gateway->authToken && *config->gateway->authToken == '\0')) {
-                rc = IoTP_RC_PARAM_NULL_VALUE;
-                LOG(ERROR, "Gateway configuration authToken is NULL or empty: rc=%d", rc);
-                return rc;
-            }
-        } else {
-            /* should have valid client cert and key */
-            if (config->gateway->certificatePath == NULL || ( config->gateway->certificatePath && *config->gateway->certificatePath == '\0')) {
-                rc = IoTP_RC_PARAM_NULL_VALUE;
-                LOG(ERROR, "Gateway configuration certificatePath is NULL or empty: rc=%d", rc);
-                return rc;
-            } else {
-                /* check if file exist */
-                if ( (rc = iotp_utils_fileExist(config->gateway->certificatePath)) != IoTP_SUCCESS ) {
-                    LOG(ERROR, "Invalid gateway certificatePath (%s) is specified: rc=%d", config->gateway->certificatePath, rc);
-                    return rc;
-                }
-            }
-            if (config->gateway->keyPath == NULL || ( config->gateway->keyPath && *config->gateway->keyPath == '\0')) {
-                rc = IoTP_RC_PARAM_NULL_VALUE;
-                LOG(ERROR, "Gateway configuration keyPath is NULL or empty: rc=%d", rc);
-                return rc;
-            } else {
-                /* check if file exist */
-                if ( (rc = iotp_utils_fileExist(config->gateway->keyPath)) != IoTP_SUCCESS ) {
-                    LOG(ERROR, "Invalid gateway keyPath (%s) is specified: rc=%d", config->gateway->keyPath, rc);
+                if ( (rc = iotp_utils_fileExist(config->auth->privateKey)) != IoTP_SUCCESS ) {
+                    LOG(ERROR, "Invalid device privateKey (%s) is specified: rc=%d", config->auth->privateKey, rc);
                     return rc;
                 }
             }
@@ -250,23 +204,18 @@ static IoTP_RC iotp_validate_config(int type, IoTPConfig *config)
         
     /* Validate application related config items */
     if ( type == IoTPClient_application ) {
-        if ( config->application == NULL ) {
-            rc = IoTP_RC_INVALID_HANDLE;
-            LOG(ERROR, "NULL application configuration in config handle: rc=%d", rc);
-            return rc;
-        }
         /* appiId, authToken and APIKey can not be empty */
-        if (config->application->appId == NULL || ( config->application->appId && *config->application->appId == '\0')) {
+        if (config->identity->appId == NULL || ( config->identity->appId && *config->identity->appId == '\0')) {
             rc = IoTP_RC_PARAM_NULL_VALUE;
             LOG(ERROR, "Application configuration appId is NULL or empty: rc=%d", rc);
             return rc;
         }
-        if (config->application->authToken == NULL || ( config->application->authToken && *config->application->authToken == '\0')) {
+        if (config->auth->token == NULL || ( config->auth->token && *config->auth->token == '\0')) {
             rc = IoTP_RC_PARAM_NULL_VALUE;
-            LOG(ERROR, "Application configuration authToken is NULL or empty: rc=%d", rc);
+            LOG(ERROR, "Application configuration token is NULL or empty: rc=%d", rc);
             return rc;
         }
-        if (config->application->APIKey == NULL || ( config->application->APIKey && *config->application->APIKey == '\0')) {
+        if (config->auth->apiKey == NULL || ( config->auth->apiKey && *config->auth->apiKey == '\0')) {
             rc = IoTP_RC_PARAM_NULL_VALUE;
             LOG(ERROR, "Application configuration APIKey is NULL or empty: rc=%d", rc);
             return rc;
@@ -391,8 +340,8 @@ IoTP_RC iotp_client_create(void **iotpClient, IoTPConfig *config, IoTPClientType
     }
 
     char *domain = config->domain;
-    int port = config->port;
-    char *orgId = config->orgId;
+    int port = config->mqttopts->port;
+    char *orgId = config->identity->orgId;
     int orgIdLen = strlen(orgId);
 
     len = orgIdLen + strlen(domain) + 23;   /* 23 = 6 for ssl:// + 11 for .messaging. + 5 for :port + 1 */
@@ -409,21 +358,21 @@ IoTP_RC iotp_client_create(void **iotpClient, IoTPConfig *config, IoTPClientType
 
     /* set client id */
     if ( type == IoTPClient_device || type == IoTPClient_managed_device ) {
-        len = orgIdLen + strlen(config->device->typeId) + strlen(config->device->deviceId) + 5;
+        len = orgIdLen + strlen(config->identity->typeId) + strlen(config->identity->deviceId) + 5;
         clientId = malloc(len);
-        snprintf(clientId, len, "d:%s:%s:%s", orgId, config->device->typeId, config->device->deviceId);
+        snprintf(clientId, len, "d:%s:%s:%s", orgId, config->identity->typeId, config->identity->deviceId);
     } else if ( type == IoTPClient_gateway || type == IoTPClient_managed_gateway ) {
-        len = orgIdLen + strlen(config->gateway->typeId) + strlen(config->gateway->deviceId) + 5;
+        len = orgIdLen + strlen(config->identity->typeId) + strlen(config->identity->deviceId) + 5;
         clientId = malloc(len);
-        snprintf(clientId, len, "g:%s:%s:%s", orgId, config->gateway->typeId, config->gateway->deviceId);
+        snprintf(clientId, len, "g:%s:%s:%s", orgId, config->identity->typeId, config->identity->deviceId);
     } else if ( type == IoTPClient_application ) {
-        len = orgIdLen + strlen(config->application->appId) + 4;
+        len = orgIdLen + strlen(config->identity->appId) + 4;
         clientId = malloc(len);
-        snprintf(clientId, len, "a:%s:%s", orgId, config->application->appId);
+        snprintf(clientId, len, "a:%s:%s", orgId, config->identity->appId);
     } else if ( type == IoTPClient_Application ) {
-        len = orgIdLen + strlen(config->application->appId) + 4;
+        len = orgIdLen + strlen(config->identity->appId) + 4;
         clientId = malloc(len);
-        snprintf(clientId, len, "A:%s:%s", orgId, config->application->appId);
+        snprintf(clientId, len, "A:%s:%s", orgId, config->identity->appId);
     }
 
     LOG(DEBUG, "ClientId: %s", clientId);
@@ -480,9 +429,25 @@ IoTP_RC iotp_client_setMQTTLogHandler(void *iotpClient, IoTPLogHandler *cb)
     IoTPConfig *config = (IoTPConfig *)client->config;
 
     /* set MQTTAsync trace callback */
-    if ( config->MQTTTraceLevel > 0 ) {
-        MQTTAsync_setTraceLevel(config->MQTTTraceLevel);
-        MQTTAsync_setTraceCallback((MQTTAsync_traceCallback *)cb);
+    if ( config->logLevel > 0 ) {
+        if ( config->mqttopts->traceLevel == 0 ) {
+            if ( config->logLevel == LOGLEVEL_ERROR ) {
+                MQTTAsync_setTraceLevel(MQTTASYNC_TRACE_FATAL);
+                MQTTAsync_setTraceCallback((MQTTAsync_traceCallback *)cb);
+            } else if ( config->logLevel == LOGLEVEL_WARN ) {
+                MQTTAsync_setTraceLevel(MQTTASYNC_TRACE_SEVERE);
+                MQTTAsync_setTraceCallback((MQTTAsync_traceCallback *)cb);
+            } else if ( config->logLevel == LOGLEVEL_INFO ) {
+                MQTTAsync_setTraceLevel(MQTTASYNC_TRACE_ERROR);
+                MQTTAsync_setTraceCallback((MQTTAsync_traceCallback *)cb);
+            } else if ( config->logLevel == LOGLEVEL_DEBUG ) {
+                MQTTAsync_setTraceLevel(MQTTASYNC_TRACE_MAXIMUM);
+                MQTTAsync_setTraceCallback((MQTTAsync_traceCallback *)cb);
+            }
+        } else {
+            MQTTAsync_setTraceLevel(config->mqttopts->traceLevel);
+            MQTTAsync_setTraceCallback((MQTTAsync_traceCallback *)cb);
+        }
     }
 
     return rc;
@@ -556,20 +521,29 @@ IoTP_RC iotp_client_connect(void *iotpClient)
 
     MQTTAsync_connectOptions    conn_opts = MQTTAsync_connectOptions_initializer;
     MQTTAsync_SSLOptions        ssl_opts = MQTTAsync_SSLOptions_initializer;
+    MQTTProperty                property;
+    MQTTProperties              props = MQTTProperties_initializer;
+
     /* MQTTAsync_disconnectOptions disc_opts = MQTTAsync_disconnectOptions_initializer; */
     /* MQTTAsync_willOptions       will_opts = MQTTAsync_willOptions_initializer; */
 
-    int port = config->port;
+    int port = config->mqttopts->port;
 
     /* set connection options */
-    conn_opts.keepAliveInterval = config->keepAliveInterval;
-    conn_opts.cleanstart = config->cleanStart;
+    conn_opts.keepAliveInterval = config->mqttopts->keepalive;
+    conn_opts.cleanstart = config->mqttopts->cleanStart;
     conn_opts.cleansession = 0;
     conn_opts.onSuccess5 = onConnect;
     conn_opts.onFailure5 = onConnectFailure;
     conn_opts.MQTTVersion = MQTTVERSION_5;
     conn_opts.context = client;
     conn_opts.automaticReconnect = config->automaticReconnect;
+    if ( config->mqttopts->sessionExpiry > 0 ) {
+        property.identifier = MQTTPROPERTY_CODE_SESSION_EXPIRY_INTERVAL;
+        property.value.integer4 = config->mqttopts->sessionExpiry;
+        MQTTProperties_add(&props, &property);
+        conn_opts.connectProperties = &props;
+    }
 
     /* set authentication credentials */
     ssl_opts.enableServerCertAuth = 0;
@@ -579,29 +553,20 @@ IoTP_RC iotp_client_connect(void *iotpClient)
         conn_opts.ssl = &ssl_opts;
 
         if ( client->type == IoTPClient_application || client->type == IoTPClient_Application ) {
-            conn_opts.username = config->application->APIKey;
-            conn_opts.password = config->application->authToken;
-        } else if ( client->type == IoTPClient_device || client->type == IoTPClient_managed_device ) {
-            if ( config->device->authToken ) {
+            conn_opts.username = config->auth->apiKey;
+            conn_opts.password = config->auth->token;
+        } else if ( client->type == IoTPClient_device || client->type == IoTPClient_managed_device ||
+            client->type == IoTPClient_gateway || client->type == IoTPClient_managed_gateway ) {
+            if ( config->auth->token ) {
                 conn_opts.username = "use-token-auth";
-                conn_opts.password = config->device->authToken;
+                conn_opts.password = config->auth->token;
             }
-            if ( config->device->certificatePath ) {
+            if ( config->auth->keyStore ) {
                 conn_opts.ssl->enableServerCertAuth = 1;
-                conn_opts.ssl->trustStore = config->serverCertificatePath;
-                conn_opts.ssl->keyStore = config->device->certificatePath;
-                conn_opts.ssl->privateKey = config->device->keyPath;
-            }
-        } else if ( client->type == IoTPClient_gateway || client->type == IoTPClient_managed_gateway ) {
-            if ( config->gateway->authToken ) {
-                conn_opts.username = "use-token-auth";
-                conn_opts.password = config->gateway->authToken;
-            }
-            if ( config->gateway->certificatePath ) {
-                conn_opts.ssl->enableServerCertAuth = 1;
-                conn_opts.ssl->trustStore = config->serverCertificatePath;
-                conn_opts.ssl->keyStore = config->gateway->certificatePath;
-                conn_opts.ssl->privateKey = config->gateway->keyPath;
+                conn_opts.ssl->trustStore = config->mqttopts->caFile;
+                conn_opts.ssl->keyStore = config->auth->keyStore;
+                conn_opts.ssl->privateKey = config->auth->privateKey;
+                conn_opts.ssl->privateKeyPassword = config->auth->privateKeyPassword;
             }
         }
     }

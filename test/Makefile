@@ -63,7 +63,7 @@ RM = rm -f
 
 INCDIRS = -I $(srcdir) -I $(pahomqttdir)/src
 LIBDIRS = -L $(parent_dir)/build -L $(pahomqttdir)/build/output
-CFLAGS = $(INCDIRS) -fPIC -Wall -Wextra -O2 -g
+CFLAGS = $(INCDIRS) -fPIC -Wall -Wextra -g
 LDFLAGS_DEV = ${START_GROUP} -lpthread -lssl -lcrypto ${END_GROUP} $(LIBDIRS) -lpaho-mqtt3as -liotp-as-device
 LDFLAGS_GWY = ${START_GROUP} -lpthread -lssl -lcrypto ${END_GROUP} $(LIBDIRS) -lpaho-mqtt3as -liotp-as-gateway
 LDFLAGS_APP = ${START_GROUP} -lpthread -lssl -lcrypto ${END_GROUP} $(LIBDIRS) -lpaho-mqtt3as -liotp-as-application
