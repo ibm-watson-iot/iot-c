@@ -72,15 +72,15 @@ typedef void * IoTPApplication;
  * 
  * @param config         - A pointer to IoTPConfig handle.
  *
- * @return IoTP_RC  - Returns one of the following codes:
- *                       - IoTP_SUCCESS for success
- *                       - IoTP_RC_INVALID_HANDLE if handle is not valid
- *                       - IoTP_RC_INVALID_NOMEM if system runs out of memory
+ * @return IOTPRC  - Returns one of the following codes:
+ *                       - IOTPRC_SUCCESS for success
+ *                       - IOTPRC_INVALID_HANDLE if handle is not valid
+ *                       - IOTPRC_INVALID_NOMEM if system runs out of memory
  *
  * Use IoTPApplication_destroy() API, to destroy a client initialized using this API.
  *
  */
-DLLExport IoTP_RC IoTPApplication_create(IoTPApplication **application, IoTPConfig *config);
+DLLExport IOTPRC IoTPApplication_create(IoTPApplication **application, IoTPConfig *config);
 
 
 /**
@@ -90,11 +90,11 @@ DLLExport IoTP_RC IoTPApplication_create(IoTPApplication **application, IoTPConf
  *
  * @param cb             - Pointer to log handler
  *
- * @return IoTP_RC  - Returns one of the following codes:
- *                       - IoTP_SUCCESS for success
- *                       - IoTP_RC_INVALID_HANDLE if handle is not valid
+ * @return IOTPRC  - Returns one of the following codes:
+ *                       - IOTPRC_SUCCESS for success
+ *                       - IOTPRC_INVALID_HANDLE if handle is not valid
  */
-DLLExport IoTP_RC IoTPApplication_setMQTTLogHandler(IoTPApplication *application, IoTPLogHandler *cb);
+DLLExport IOTPRC IoTPApplication_setMQTTLogHandler(IoTPApplication *application, IoTPLogHandler *cb);
 
 
 /**
@@ -104,11 +104,11 @@ DLLExport IoTP_RC IoTPApplication_setMQTTLogHandler(IoTPApplication *application
  *
  * @param cb             - Pointer to log handler
  *
- * @return IoTP_RC  - Returns one of the following codes:
- *                       - IoTP_SUCCESS for success
- *                       - IoTP_RC_INVALID_HANDLE if handle is not valid
+ * @return IOTPRC  - Returns one of the following codes:
+ *                       - IOTPRC_SUCCESS for success
+ *                       - IOTPRC_INVALID_HANDLE if handle is not valid
  */
-DLLExport IoTP_RC IoTPApplication_setLogHandler(IoTPApplication *application, IoTPLogHandler cb);
+DLLExport IOTPRC IoTPApplication_setLogHandler(IoTPApplication *application, IoTPLogHandler cb);
 
 
 /**
@@ -119,12 +119,12 @@ DLLExport IoTP_RC IoTPApplication_setLogHandler(IoTPApplication *application, Io
  * 
  * @param application    - A pointer to IoTPApplication handle.
  *
- * @return IoTP_RC  - Returns one of the following codes:
- *                       - IoTP_SUCCESS for success
- *                       - IoTP_RC_INVALID_HANDLE if handle is not valid
+ * @return IOTPRC  - Returns one of the following codes:
+ *                       - IOTPRC_SUCCESS for success
+ *                       - IOTPRC_INVALID_HANDLE if handle is not valid
  *
  */
-DLLExport IoTP_RC IoTPApplication_destroy(IoTPApplication *application);
+DLLExport IOTPRC IoTPApplication_destroy(IoTPApplication *application);
 
 
 /**
@@ -132,14 +132,14 @@ DLLExport IoTP_RC IoTPApplication_destroy(IoTPApplication *application);
  *
  * @param application    - A pointer to IoTPApplication handle.
  *
- * @return IoTP_RC  - Returns one of the following codes:
- *                       - IoTP_SUCCESS for success
- *                       - IoTP_RC_INVALID_HANDLE if handle is not valid
+ * @return IOTPRC  - Returns one of the following codes:
+ *                       - IOTPRC_SUCCESS for success
+ *                       - IOTPRC_INVALID_HANDLE if handle is not valid
  *                         MQTTCLIENT_* - if IBM IoT Client is linked with Paho MQTT Synchronus client library
  *                         MQTTASYNC_*  - if IBM IoT Client is linked with Paho MQTT Asynchronus client library
  *
  */
-DLLExport IoTP_RC IoTPApplication_connect(IoTPApplication *application);
+DLLExport IOTPRC IoTPApplication_connect(IoTPApplication *application);
 
 
 /**
@@ -147,14 +147,14 @@ DLLExport IoTP_RC IoTPApplication_connect(IoTPApplication *application);
  *
  * @param application    - A pointer to IoTPApplication handle.
  *
- * @return IoTP_RC  - Returns one of the following codes:
- *                       - IoTP_SUCCESS for success
- *                       - IoTP_RC_INVALID_HANDLE if handle is not valid
+ * @return IOTPRC  - Returns one of the following codes:
+ *                       - IOTPRC_SUCCESS for success
+ *                       - IOTPRC_INVALID_HANDLE if handle is not valid
  *                         MQTTCLIENT_* - if IBM IoT Client is linked with Paho MQTT Synchronus client library
  *                         MQTTASYNC_*  - if IBM IoT Client is linked with Paho MQTT Asynchronus client library
  *
  */
-DLLExport IoTP_RC IoTPApplication_disconnect(IoTPApplication *application);
+DLLExport IOTPRC IoTPApplication_disconnect(IoTPApplication *application);
 
 
 /**
@@ -177,12 +177,12 @@ DLLExport IoTP_RC IoTPApplication_disconnect(IoTPApplication *application);
  *
  * @param props          - MQTT V5 properties
  *
- * @return IoTP_RC  - Returns one of the following codes:
- *                       - IoTP_SUCCESS for success
- *                       - IoTP_RC_INVALID_HANDLE - if handle in invalid
+ * @return IOTPRC  - Returns one of the following codes:
+ *                       - IOTPRC_SUCCESS for success
+ *                       - IOTPRC_INVALID_HANDLE - if handle in invalid
  *
  */
-DLLExport IoTP_RC IoTPApplication_sendEvent(IoTPApplication *application, char *typeId, char *deviceId, char *eventId, char *data, char *formatString, QoS qos, MQTTProperties *props);
+DLLExport IOTPRC IoTPApplication_sendEvent(IoTPApplication *application, char *typeId, char *deviceId, char *eventId, char *data, char *formatString, QoS qos, MQTTProperties *props);
 
 
 /**
@@ -204,12 +204,12 @@ DLLExport IoTP_RC IoTPApplication_sendEvent(IoTPApplication *application, char *
  *
  * @param props          - MQTT V5 properties
  *
- * @return IoTP_RC  - Returns one of the following codes:
- *                       - IoTP_SUCCESS for success
- *                       - IoTP_RC_INVALID_HANDLE - if handle in invalid
+ * @return IOTPRC  - Returns one of the following codes:
+ *                       - IOTPRC_SUCCESS for success
+ *                       - IOTPRC_INVALID_HANDLE - if handle in invalid
  *
  */
-DLLExport IoTP_RC IoTPApplication_sendCommand(IoTPApplication *application, char *typeId, char *deviceId, char *commandId, char *data, char *formatString, QoS qos, MQTTProperties *props);
+DLLExport IOTPRC IoTPApplication_sendCommand(IoTPApplication *application, char *typeId, char *deviceId, char *commandId, char *data, char *formatString, QoS qos, MQTTProperties *props);
 
 
 /**
@@ -227,12 +227,12 @@ DLLExport IoTP_RC IoTPApplication_sendCommand(IoTPApplication *application, char
  *
  * @param formatString   - Format of the event e.g json
  *
- * @return IoTP_RC  - Returns one of the following codes:
- *                       - IoTP_SUCCESS for success
- *                       - IoTP_RC_INVALID_HANDLE if handle is not valid
+ * @return IOTPRC  - Returns one of the following codes:
+ *                       - IOTPRC_SUCCESS for success
+ *                       - IOTPRC_INVALID_HANDLE if handle is not valid
  *             
  */
-DLLExport IoTP_RC IoTPApplication_setEventHandler(IoTPApplication *application, IoTPCallbackHandler cb, char *typeId, char *deviceId, char *eventId, char *formatString);
+DLLExport IOTPRC IoTPApplication_setEventHandler(IoTPApplication *application, IoTPCallbackHandler cb, char *typeId, char *deviceId, char *eventId, char *formatString);
 
 
 /**
@@ -248,15 +248,15 @@ DLLExport IoTP_RC IoTPApplication_setEventHandler(IoTPApplication *application, 
  *
  * @param formatString   - Reponse format. e.g. json, xml, txt, csv. Also accepts MQTT wild card character "+"
  *
- * @return IoTP_RC  - Returns one of the following codes:
- *                       - IoTP_SUCCESS for success
- *                       - IoTP_RC_INVALID_HANDLE - if handle in invalid
- *                       - IoTP_RC_PARAM_NULL_VALUE - if parameter value is NULL or empty string.
+ * @return IOTPRC  - Returns one of the following codes:
+ *                       - IOTPRC_SUCCESS for success
+ *                       - IOTPRC_INVALID_HANDLE - if handle in invalid
+ *                       - IOTPRC_PARAM_NULL_VALUE - if parameter value is NULL or empty string.
  *                       - MQTTASYNC_*  - if IBM IoT Client is linked with Paho MQTT Asynchronus client library
  *                       - MQTTCLIENT_* - if IBM IoT Client is linked with Paho MQTT Synchronus client library
  *
  */
-DLLExport IoTP_RC IoTPApplication_subscribeToEvents(IoTPApplication *application, char *typeId, char *deviceId, char *eventId, char *formatString);
+DLLExport IOTPRC IoTPApplication_subscribeToEvents(IoTPApplication *application, char *typeId, char *deviceId, char *eventId, char *formatString);
 
 
 /**
@@ -272,15 +272,15 @@ DLLExport IoTP_RC IoTPApplication_subscribeToEvents(IoTPApplication *application
  *
  * @param formatString   - Reponse format. e.g. json, xml, txt, csv. Also accepts MQTT wild card character "+"
  *
- * @return IoTP_RC  - Returns one of the following codes:
- *                       - IoTP_SUCCESS for success
- *                       - IoTP_RC_INVALID_HANDLE - if handle in invalid
- *                       - IoTP_RC_PARAM_NULL_VALUE - if parameter value is NULL or empty string.
+ * @return IOTPRC  - Returns one of the following codes:
+ *                       - IOTPRC_SUCCESS for success
+ *                       - IOTPRC_INVALID_HANDLE - if handle in invalid
+ *                       - IOTPRC_PARAM_NULL_VALUE - if parameter value is NULL or empty string.
  *                       - MQTTASYNC_*  - if IBM IoT Client is linked with Paho MQTT Asynchronus client library
  *                       - MQTTCLIENT_* - if IBM IoT Client is linked with Paho MQTT Synchronus client library
  *
  */
-DLLExport IoTP_RC IoTPApplication_unsubscribeFromEvents(IoTPApplication *application, char *typeId, char *deviceId, char *eventId, char *formatString);
+DLLExport IOTPRC IoTPApplication_unsubscribeFromEvents(IoTPApplication *application, char *typeId, char *deviceId, char *eventId, char *formatString);
 
 
 /**
@@ -298,12 +298,12 @@ DLLExport IoTP_RC IoTPApplication_unsubscribeFromEvents(IoTPApplication *applica
  *
  * @param formatString   - Format of the event e.g json
  *
- * @return IoTP_RC  - Returns one of the following codes:
- *                       - IoTP_SUCCESS for success
- *                       - IoTP_RC_INVALID_HANDLE if handle is not valid
+ * @return IOTPRC  - Returns one of the following codes:
+ *                       - IOTPRC_SUCCESS for success
+ *                       - IOTPRC_INVALID_HANDLE if handle is not valid
  *             
  */
-DLLExport IoTP_RC IoTPApplication_setCommandHandler(IoTPApplication *application, IoTPCallbackHandler cb, char *typeId, char *deviceId, char *commandId, char *formatString);
+DLLExport IOTPRC IoTPApplication_setCommandHandler(IoTPApplication *application, IoTPCallbackHandler cb, char *typeId, char *deviceId, char *commandId, char *formatString);
 
 
 /**
@@ -319,15 +319,15 @@ DLLExport IoTP_RC IoTPApplication_setCommandHandler(IoTPApplication *application
  *
  * @param formatString   - Reponse format. e.g. json, xml, txt, csv. Also accepts MQTT wild card character "+"
  *
- * @return IoTP_RC  - Returns one of the following codes:
- *                       - IoTP_SUCCESS for success
- *                       - IoTP_RC_INVALID_HANDLE - if handle in invalid
- *                       - IoTP_RC_PARAM_NULL_VALUE - if parameter value is NULL or empty string.
+ * @return IOTPRC  - Returns one of the following codes:
+ *                       - IOTPRC_SUCCESS for success
+ *                       - IOTPRC_INVALID_HANDLE - if handle in invalid
+ *                       - IOTPRC_PARAM_NULL_VALUE - if parameter value is NULL or empty string.
  *                       - MQTTASYNC_*  - if IBM IoT Client is linked with Paho MQTT Asynchronus client library
  *                       - MQTTCLIENT_* - if IBM IoT Client is linked with Paho MQTT Synchronus client library
  *
  */
-DLLExport IoTP_RC IoTPApplication_subscribeToCommands(IoTPApplication *application, char *typeId, char *deviceId, char *commandId, char *formatString);
+DLLExport IOTPRC IoTPApplication_subscribeToCommands(IoTPApplication *application, char *typeId, char *deviceId, char *commandId, char *formatString);
 
 
 /**
@@ -343,15 +343,15 @@ DLLExport IoTP_RC IoTPApplication_subscribeToCommands(IoTPApplication *applicati
  *
  * @param formatString   - Reponse format. e.g. json, xml, txt, csv. Also accepts MQTT wild card character "+"
  *
- * @return IoTP_RC  - Returns one of the following codes:
- *                       - IoTP_SUCCESS for success
- *                       - IoTP_RC_INVALID_HANDLE - if handle in invalid
- *                       - IoTP_RC_PARAM_NULL_VALUE - if parameter value is NULL or empty string.
+ * @return IOTPRC  - Returns one of the following codes:
+ *                       - IOTPRC_SUCCESS for success
+ *                       - IOTPRC_INVALID_HANDLE - if handle in invalid
+ *                       - IOTPRC_PARAM_NULL_VALUE - if parameter value is NULL or empty string.
  *                       - MQTTASYNC_*  - if IBM IoT Client is linked with Paho MQTT Asynchronus client library
  *                       - MQTTCLIENT_* - if IBM IoT Client is linked with Paho MQTT Synchronus client library
  *
  */
-DLLExport IoTP_RC IoTPApplication_unsubscribeFromCommands(IoTPApplication *application, char *typeId, char *deviceId, char *commandId, char *formatString);
+DLLExport IOTPRC IoTPApplication_unsubscribeFromCommands(IoTPApplication *application, char *typeId, char *deviceId, char *commandId, char *formatString);
 
 
 /**
@@ -365,12 +365,12 @@ DLLExport IoTP_RC IoTPApplication_unsubscribeFromCommands(IoTPApplication *appli
  *
  * @param deviceId       - Device ID
  *
- * @return IoTP_RC  - Returns one of the following codes:
- *                       - IoTP_SUCCESS for success
- *                       - IoTP_RC_INVALID_HANDLE if handle is not valid
+ * @return IOTPRC  - Returns one of the following codes:
+ *                       - IOTPRC_SUCCESS for success
+ *                       - IOTPRC_INVALID_HANDLE if handle is not valid
  *             
  */
-DLLExport IoTP_RC IoTPApplication_setDeviceMonitoringHandler(IoTPApplication *application, IoTPCallbackHandler cb, char *typeId, char *deviceId);
+DLLExport IOTPRC IoTPApplication_setDeviceMonitoringHandler(IoTPApplication *application, IoTPCallbackHandler cb, char *typeId, char *deviceId);
 
 
 /**
@@ -382,15 +382,15 @@ DLLExport IoTP_RC IoTPApplication_setDeviceMonitoringHandler(IoTPApplication *ap
  *
  * @param deviceId       - Device ID
  *
- * @return IoTP_RC  - Returns one of the following codes:
- *                       - IoTP_SUCCESS for success
- *                       - IoTP_RC_INVALID_HANDLE - if handle in invalid
- *                       - IoTP_RC_PARAM_NULL_VALUE - if parameter value is NULL or empty string.
+ * @return IOTPRC  - Returns one of the following codes:
+ *                       - IOTPRC_SUCCESS for success
+ *                       - IOTPRC_INVALID_HANDLE - if handle in invalid
+ *                       - IOTPRC_PARAM_NULL_VALUE - if parameter value is NULL or empty string.
  *                       - MQTTASYNC_*  - if IBM IoT Client is linked with Paho MQTT Asynchronus client library
  *                       - MQTTCLIENT_* - if IBM IoT Client is linked with Paho MQTT Synchronus client library
  *
  */
-DLLExport IoTP_RC IoTPApplication_subscribeToDeviceMonitoringMessages(IoTPApplication *application, char *typeId, char *deviceId);
+DLLExport IOTPRC IoTPApplication_subscribeToDeviceMonitoringMessages(IoTPApplication *application, char *typeId, char *deviceId);
 
 
 /**
@@ -402,15 +402,15 @@ DLLExport IoTP_RC IoTPApplication_subscribeToDeviceMonitoringMessages(IoTPApplic
  *
  * @param deviceId       - Device ID
  *
- * @return IoTP_RC  - Returns one of the following codes:
- *                       - IoTP_SUCCESS for success
- *                       - IoTP_RC_INVALID_HANDLE - if handle in invalid
- *                       - IoTP_RC_PARAM_NULL_VALUE - if parameter value is NULL or empty string.
+ * @return IOTPRC  - Returns one of the following codes:
+ *                       - IOTPRC_SUCCESS for success
+ *                       - IOTPRC_INVALID_HANDLE - if handle in invalid
+ *                       - IOTPRC_PARAM_NULL_VALUE - if parameter value is NULL or empty string.
  *                       - MQTTASYNC_*  - if IBM IoT Client is linked with Paho MQTT Asynchronus client library
  *                       - MQTTCLIENT_* - if IBM IoT Client is linked with Paho MQTT Synchronus client library
  *
  */
-DLLExport IoTP_RC IoTPApplication_unsubscribeFromDeviceMonitoringMessages(IoTPApplication *application, char *typeId, char *deviceId);
+DLLExport IOTPRC IoTPApplication_unsubscribeFromDeviceMonitoringMessages(IoTPApplication *application, char *typeId, char *deviceId);
 
 
 
@@ -423,12 +423,12 @@ DLLExport IoTP_RC IoTPApplication_unsubscribeFromDeviceMonitoringMessages(IoTPAp
  *
  * @param appId          - Application ID
  *
- * @return IoTP_RC  - Returns one of the following codes:
- *                       - IoTP_SUCCESS for success
- *                       - IoTP_RC_INVALID_HANDLE if handle is not valid
+ * @return IOTPRC  - Returns one of the following codes:
+ *                       - IOTPRC_SUCCESS for success
+ *                       - IOTPRC_INVALID_HANDLE if handle is not valid
  *             
  */
-DLLExport IoTP_RC IoTPApplication_setAppMonitoringHandler(IoTPApplication *application, IoTPCallbackHandler cb, char *appId);
+DLLExport IOTPRC IoTPApplication_setAppMonitoringHandler(IoTPApplication *application, IoTPCallbackHandler cb, char *appId);
 
 
 /**
@@ -438,15 +438,15 @@ DLLExport IoTP_RC IoTPApplication_setAppMonitoringHandler(IoTPApplication *appli
  *
  * @param appId          - Application ID
  *
- * @return IoTP_RC  - Returns one of the following codes:
- *                       - IoTP_SUCCESS for success
- *                       - IoTP_RC_INVALID_HANDLE - if handle in invalid
- *                       - IoTP_RC_PARAM_NULL_VALUE - if parameter value is NULL or empty string.
+ * @return IOTPRC  - Returns one of the following codes:
+ *                       - IOTPRC_SUCCESS for success
+ *                       - IOTPRC_INVALID_HANDLE - if handle in invalid
+ *                       - IOTPRC_PARAM_NULL_VALUE - if parameter value is NULL or empty string.
  *                       - MQTTASYNC_*  - if IBM IoT Client is linked with Paho MQTT Asynchronus client library
  *                       - MQTTCLIENT_* - if IBM IoT Client is linked with Paho MQTT Synchronus client library
  *
  */
-DLLExport IoTP_RC IoTPApplication_subscribeToAppMonitoringMessages(IoTPApplication *application, char *appId);
+DLLExport IOTPRC IoTPApplication_subscribeToAppMonitoringMessages(IoTPApplication *application, char *appId);
 
 
 /**
@@ -456,15 +456,15 @@ DLLExport IoTP_RC IoTPApplication_subscribeToAppMonitoringMessages(IoTPApplicati
  *
  * @param appId          - Application ID
  *
- * @return IoTP_RC  - Returns one of the following codes:
- *                       - IoTP_SUCCESS for success
- *                       - IoTP_RC_INVALID_HANDLE - if handle in invalid
- *                       - IoTP_RC_PARAM_NULL_VALUE - if parameter value is NULL or empty string.
+ * @return IOTPRC  - Returns one of the following codes:
+ *                       - IOTPRC_SUCCESS for success
+ *                       - IOTPRC_INVALID_HANDLE - if handle in invalid
+ *                       - IOTPRC_PARAM_NULL_VALUE - if parameter value is NULL or empty string.
  *                       - MQTTASYNC_*  - if IBM IoT Client is linked with Paho MQTT Asynchronus client library
  *                       - MQTTCLIENT_* - if IBM IoT Client is linked with Paho MQTT Synchronus client library
  *
  */
-DLLExport IoTP_RC IoTPApplication_unsubscribeFromAppMonitoringMessages(IoTPApplication *application, char *appId);
+DLLExport IOTPRC IoTPApplication_unsubscribeFromAppMonitoringMessages(IoTPApplication *application, char *appId);
 
 
 #if defined(__cplusplus)

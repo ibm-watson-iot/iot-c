@@ -1,5 +1,5 @@
 #*******************************************************************************
-#  Copyright (c) 2018 IBM Corp.
+#  Copyright (c) 2018-2019 IBM Corp.
 #
 #  All rights reserved. This program and the accompanying materials
 #  are made available under the terms of the Eclipse Public License v1.0
@@ -109,7 +109,7 @@ SED_COMMAND = sed \
 # IBM Watson IoT platform utility library
 # Includes configuration APIs, Logging APIs, Error codes and utility functions
 #
-UTILS_C = iotp_utils.c iotp_config.c iotp_rc_description.c
+UTILS_C = iotp_utils.c iotp_config.c
 UTILS_H = iotp_utils.h iotp_config.h iotp_rc.h
 #
 # IBM Watson IoT platform MQTT Async client library
@@ -123,7 +123,8 @@ CLIENT_AS_H = iotp_internal.h
 # - Device
 # - Gateway
 # - Application
-# - Managed (for device and gateway)
+# - Managed Device
+# - Managed Gateway
 # These librarirs depends on iotp-utils and iotp-mqttas libraries
 #
 # Device Library
@@ -157,10 +158,20 @@ APPLICATION_AS_OBJS = $(addprefix $(blddir)/,$(APPLICATION_AS_O))
 APPLICATION_AS_LIB_NAME = iotp-as-application
 APPLICATION_AS_LIB_TARGET = $(blddir)/lib$(APPLICATION_AS_LIB_NAME).so.$(VERSION)
 
+# Managed Device Library
+MANAGED_DEVICE_AS_C = $(UTILS_C) $(CLIENT_AS_C) iotp_managedDevice.c
+MANAGED_DEVICE_AS_H = $(UTILS_H) $(CLIENT_AS_H) iotp_managedDevice.h
+MANAGED_DEVICE_AS_O = $(MANAGED_DEVICE_AS_C:.c=.o)
+MANAGED_DEVICE_AS_SRCS = $(addprefix $(srcdir)/,$(MANAGED_DEVICE_AS_C))
+MANAGED_DEVICE_AS_HEADERS = $(addprefix $(srcdir)/,$(MANAGED_DEVICE_AS_H))
+MANAGED_DEVICE_AS_OBJS = $(addprefix $(blddir)/,$(MANAGED_DEVICE_AS_O))
+MANAGED_DEVICE_AS_LIB_NAME = iotp-as-managedDevice
+MANAGED_DEVICE_AS_LIB_TARGET = $(blddir)/lib$(MANAGED_DEVICE_AS_LIB_NAME).so.$(VERSION)
+
 # IoTP Library (optional)
-# For device applications that may include APIs exposed by device or gateway library
-IOTP_AS_C = $(UTILS_C) $(CLIENT_AS_C) iotp_device.c iotp_gateway.c iotp_application.c
-IOTP_AS_H = $(UTILS_H) $(CLIENT_AS_H) iotp_device.h iotp_gateway.h iotp_application.h
+# For device applications that may include APIs exposed by application, device, gateway or managed library 
+IOTP_AS_C = $(UTILS_C) $(CLIENT_AS_C) iotp_device.c iotp_gateway.c iotp_application.c iotp_managed_device.c
+IOTP_AS_H = $(UTILS_H) $(CLIENT_AS_H) iotp_device.h iotp_gateway.h iotp_application.h iotp_managed_device.h
 IOTP_AS_O = $(IOTP_AS_C:.c=.o)
 IOTP_AS_SRCS = $(addprefix $(srcdir)/,$(IOTP_AS_C))
 IOTP_AS_HEADERS = $(addprefix $(srcdir)/,$(IOTP_AS_H))
@@ -231,7 +242,8 @@ iotp-version: $(blddir)/iotp_version.h
 iotp-device-as-lib: paho-mqtt iotp-version $(DEVICE_AS_LIB_TARGET)
 iotp-gateway-as-lib: paho-mqtt iotp-version $(GATEWAY_AS_LIB_TARGET)
 iotp-application-as-lib: paho-mqtt iotp-version $(APPLICATION_AS_LIB_TARGET)
-iotp-as-libs: iotp-device-as-lib iotp-gateway-as-lib iotp-application-as-lib
+iotp-managedDevice-as-lib: paho-mqtt iotp-version $(MANAGED_DEVICE_AS_LIB_TARGET)
+iotp-as-libs: iotp-device-as-lib iotp-gateway-as-lib iotp-application-as-lib iotp-managedDevice-as-lib
 
 # IoTP asynchrous client library with device, gateway, and application APIs
 iotp-as-lib: paho-mqtt iotp-version $(IOTP_AS_LIB_TARGET)
@@ -283,6 +295,11 @@ $(APPLICATION_AS_LIB_TARGET): $(APPLICATION_AS_SRCS) $(APPLICATION_AS_HEADERS) $
 	$(CC) $(CCFLAGS_SO) -o $@ $(APPLICATION_AS_SRCS) $(LDFLAGS_AS)
 	-ln -s lib$(APPLICATION_AS_LIB_NAME).so.$(VERSION) $(blddir)/lib$(APPLICATION_AS_LIB_NAME).so.$(MAJOR_VERSION)
 	-ln -s lib$(APPLICATION_AS_LIB_NAME).so.$(MAJOR_VERSION) $(blddir)/lib$(APPLICATION_AS_LIB_NAME).so
+
+$(MANAGED_DEVICE_AS_LIB_TARGET): $(MANAGED_DEVICE_AS_SRCS) $(MANAGED_DEVICE_AS_HEADERS) $(blddir)/iotp_version.h
+	$(CC) $(CCFLAGS_SO) -o $@ $(MANAGED_DEVICE_AS_SRCS) $(LDFLAGS_AS)
+	-ln -s lib$(MANAGED_DEVICE_AS_LIB_NAME).so.$(VERSION) $(blddir)/lib$(MANAGED_DEVICE_AS_LIB_NAME).so.$(MAJOR_VERSION)
+	-ln -s lib$(MANAGED_DEVICE_AS_LIB_NAME).so.$(MAJOR_VERSION) $(blddir)/lib$(MANAGED_DEVICE_AS_LIB_NAME).so
 
 $(IOTP_AS_LIB_TARGET): $(IOTP_AS_SRCS) $(IOTP_AS_HEADERS) $(blddir)/iotp_version.h
 	$(CC) $(CCFLAGS_SO) -o $@ $(IOTP_AS_SRCS) $(LDFLAGS_AS)

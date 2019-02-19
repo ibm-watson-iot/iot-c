@@ -233,135 +233,85 @@ typedef enum {
 #endif
 
 
-/*
+/**
  * IoTPConfig_setLogHandler: Sets a Log Handler
  *
  * @param type           - Type of handler (IoTPLogHanlderType)
  *
  * @param handler        - Pointer to Log handler
  *
- * @return IoTP_RC       - IoTP_SUCCESS for success or IoTP_RC_*
+ * @return IOTPRC       - IOTPRC_SUCCESS for success or IOTPRC_*
  *
  */
-DLLExport IoTP_RC IoTPConfig_setLogHandler(IoTPLogTypes type, void * handler);
+DLLExport IOTPRC IoTPConfig_setLogHandler(IoTPLogTypes type, void * handler);
 
 /**
- * IoTPConfig_create: Creates IoTPConfig object.
+ * IoTPConfig_create() API creates IoTP client configuration object using 
+ * the configuration items defined in configuration file (in YAML format)
+ * specified by configFileName parameter.
  *
- * This function creates IBM Watson IoTP client configuration object.
- * 
  * @param config         - A pointer to an IoTPConfig handle.
- *
  * @param configFileName - Configuration file path.
  *                         If NULL, the API will return an empty config object.
- *
- * @return IoTP_RC  - Returns one of the following codes: 
- *                       - IoTP_SUCCESS for success
- *                       - IoTP_RC_INVALID_HANDLE if handle is not valid
- *                       - IoTP_RC_INVALID_NOMEM  if system runs out of memory
- *                       - IoTP_RC_FILE_OPEN if unable to open log file
- *                       - IoTP_RC_INVALID_PARAM if a specified parameter is not valid
- *                       - IoTP_RC_MISSING_INPUT_PARAM if a required parameter is not specified
- *                       - IoTP_RC_QUICKSTART_NOT_SUPPORTED if a specified parameter is not valid for quitckstart
- *
- * Use IoTPConfig_clear() API, to clear all properties.
- *
+ * @return IOTPRC       - Returns IOTPRC_SUCCESS onsuccess or IOTPRC_* on error
+ * @remark Use IoTPConfig_clear() API, to clear all properties.
  */
-DLLExport IoTP_RC IoTPConfig_create(IoTPConfig **config, const char *configFileName);
-
-
-/*
- * IoTPConfig_readConfigFile: Updates the property settings in the config object from a YAML file
- *
- * @param config         - A pointer to an IoTPConfig handle.
- *
- * @param configFileName - Configuration file path
- *
- * @return IoTP_RC  - Returns one of the following codes: 
- *                       - IoTP_SUCCESS for success
- *                       - IoTP_RC_INVALID_HANDLE if handle is not valid
- *                       - IoTP_RC_INVALID_NOMEM if system runs out of memory
- *                       - IoTP_RC_FILE_OPEN if unable to open log file
- *                       - IoTP_RC_INVALID_PARAM if a specified parameter is not valid
- *                       - IoTP_RC_MISSING_INPUT_PARAM if a required parameter is not specified
- *                       - IoTP_RC_QUICKSTART_NOT_SUPPORTED if a specified parameter is not valid for quitckstart
- *
- */
-DLLExport IoTP_RC IoTPConfig_readConfigFile(IoTPConfig * config, const char * configFileName);
-
-
-/*
- * IoTPConfig_readEnvironment: Updates the property settings from environment variables.
- *
- * @param config         - A pointer to an IoTPConfig handle.
- *
- * @return IoTP_RC  - Returns one of the following codes: 
- *                       - IoTP_SUCCESS for success
- *                       - IoTP_RC_INVALID_HANDLE if handle is not valid
- *                       - IoTP_RC_INVALID_NOMEM if system runs out of memory
- *                       - IoTP_RC_INVALID_PARAM if a specified parameter is not valid
- *                       - IoTP_RC_PARAM_INVALID_VALUE - Property value is not valid
- *                       - IoTP_RC_QUICKSTART_NOT_SUPPORTED if a specified parameter is not valid for quitckstart
- *
- */
-DLLExport IoTP_RC IoTPConfig_readEnvironment(IoTPConfig *config);
-
-
-/*
- * IoTPConfig_setProperty: Updates the settings of an individual property
- *
- * @param config         - A pointer to an IoTPConfig handle.
- *
- * @param name           - Name of the property
- *
- * @param value          - Value of the property
- *
- * @return IoTP_RC  - Returns one of the following codes: 
- *                       - IoTP_SUCCESS for success
- *                       - IoTP_RC_INVALID_HANDLE if handle is not valid
- *                       - IoTP_RC_INVALID_NOMEM if system runs out of memory
- *                       - IoTP_RC_INVALID_PARAM if a specified parameter is not valid
- *                       - IoTP_RC_PARAM_INVALID_VALUE - Property value is not valid
- *                       - IoTP_RC_QUICKSTART_NOT_SUPPORTED if a specified parameter is not valid for quitckstart
- *
- */
-DLLExport IoTP_RC IoTPConfig_setProperty(IoTPConfig * config, const char * name, const char * value);
-
+DLLExport IOTPRC IoTPConfig_create(IoTPConfig **config, const char *configFileName);
 
 /**
- * IoTPConfig_clear: Clear all properties.
+ * IoTPConfig_readConfigFile() API updates the property settings in the config object from a YAML file.
  *
- * This function clears IBM Watson IoT Config object, previously initialized using
+ * @param config         - A pointer to an IoTPConfig handle.
+ * @param configFileName - Configuration file path
+ * @return IOTPRC       - Returns IOTPRC_SUCCESS onsuccess or IOTPRC_* on error
+ */
+DLLExport IOTPRC IoTPConfig_readConfigFile(IoTPConfig * config, const char * configFileName);
+
+/**
+ * IoTPConfig_readEnvironment() API updates the property settings from environment variables.
+ *
+ * @param config         - A pointer to an IoTPConfig handle.
+ * @return IOTPRC       - Returns IOTPRC_SUCCESS onsuccess or IOTPRC_* on error
+ */
+DLLExport IOTPRC IoTPConfig_readEnvironment(IoTPConfig *config);
+
+/**
+ * IoTPConfig_setProperty() API updates the settings of an individual property.
+ *
+ * @param config         - A pointer to an IoTPConfig handle.
+ * @param name           - Name of the property
+ * @param value          - Value of the property
+ * @return IOTPRC       - Returns IOTPRC_SUCCESS onsuccess or IOTPRC_* on error
+ */
+DLLExport IOTPRC IoTPConfig_setProperty(IoTPConfig * config, const char * name, const char * value);
+
+/**
+ * IoTPConfig_clear() API clears config object, previously initialized using
  * IOTConfig_create() API.
  * 
  * @param config         - A pointer to an IoTPConfig handle.
- *
- * @return IoTP_RC  - Returns one of the following codes: 
- *                       - IoTP_SUCCESS for success
- *                       - IoTP_RC_INVALID_HANDLE if handle is not valid
- *
+ * @return IOTPRC       - Returns IOTPRC_SUCCESS onsuccess or IOTPRC_* on error
  */
-DLLExport IoTP_RC IoTPConfig_clear(IoTPConfig *config);
-
+DLLExport IOTPRC IoTPConfig_clear(IoTPConfig *config);
 
 /*
- * IoTPConfig_getProperty: Returns the settings of an individual property
+ * IoTPConfig_getProperty() API returns the settings of an individual property.
  *
  * @param config         - A pointer to an IoTPConfig handle.
- *
  * @param name           - Name of the property
- *
  * @param value          - Buffer to return property value
- *
  * @param len            - Length of value buffer
- *
- * @return IoTP_RC  - Returns one of the following codes: 
- *                       - IoTP_SUCCESS for success
- *                       - IoTP_RC_INVALID_HANDLE if handle is not valid
- *                       - IoTP_RC_INVALID_PARAM if a specified parameter is not valid
- *
+ * @return IOTPRC       - Returns IOTPRC_SUCCESS onsuccess or IOTPRC_* on error
  */
-DLLExport IoTP_RC IoTPConfig_getProperty(IoTPConfig *config, const char * name, char ** value, int len);
+DLLExport IOTPRC IoTPConfig_getProperty(IoTPConfig *config, const char * name, char ** value, int len);
+
+/*
+ * IoTP_rc_description() API returns description string of an error or return code.
+ *
+ * @param rc             - IOTPRC value
+ * @return description   - Description string for rc
+ */
+DLLExport const char * IoTP_rc_description(IOTPRC rc);
 
 
 #if defined(__cplusplus)

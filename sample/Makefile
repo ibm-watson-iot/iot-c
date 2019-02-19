@@ -60,6 +60,7 @@ IOTPLIBS = -lpaho-mqtt3as -liotp-as-device -liotp-as-gateway -liotp-as-applicati
 LDFLAGS_DEV = ${START_GROUP} -lpthread -lssl -lcrypto ${END_GROUP} $(LIBDIRS) -lpaho-mqtt3as -liotp-as-device
 LDFLAGS_GWY = ${START_GROUP} -lpthread -lssl -lcrypto ${END_GROUP} $(LIBDIRS) -lpaho-mqtt3as -liotp-as-gateway
 LDFLAGS_APP = ${START_GROUP} -lpthread -lssl -lcrypto ${END_GROUP} $(LIBDIRS) -lpaho-mqtt3as -liotp-as-application
+LDFLAGS_MANAGED_DEV = ${START_GROUP} -lpthread -lssl -lcrypto ${END_GROUP} $(LIBDIRS) -lpaho-mqtt3as -liotp-as-managedDevice
 
 ifeq ($(OSTYPE),Linux)
 
@@ -87,15 +88,18 @@ GWY_SAMPLES = $(patsubst %.c, $(blddir)/%, $(GWY_SAMPLE_SRCS))
 APP_SAMPLE_SRCS = $(wildcard application*.c)
 APP_SAMPLES = $(patsubst %.c, $(blddir)/%, $(APP_SAMPLE_SRCS))
 
+MANAGED_DEV_SAMPLE_SRCS = $(wildcard managedDevice*.c)
+MANAGED_DEV_SAMPLES = $(patsubst %.c, $(blddir)/%, $(MANAGED_DEV_SAMPLE_SRCS))
 
-.PHONY: all clean $(DEV_SAMPLES) $(GWY_SAMPLES) $(APP_SAMPLES)
+
+.PHONY: all clean $(DEV_SAMPLES) $(GWY_SAMPLES) $(APP_SAMPLES) $(MANAGED_DEV_SAMPLES)
 
 all: mkdir build
 
 mkdir:
 	@mkdir -p $(blddir)
 
-build: $(DEV_SAMPLES) $(GWY_SAMPLES) $(APP_SAMPLES)
+build: $(DEV_SAMPLES) $(GWY_SAMPLES) $(APP_SAMPLES) $(MANAGED_DEV_SAMPLES)
 
 
 $(DEV_SAMPLES): $(blddir)/%: $(DEV_SAMPLE_SRCS)
@@ -106,6 +110,9 @@ $(GWY_SAMPLES): $(blddir)/%: $(GWY_SAMPLE_SRCS)
 
 $(APP_SAMPLES): $(blddir)/%: $(APP_SAMPLE_SRCS)
 	$(CC) -g -o $@ $< $(INCDIRS) $(LDFLAGS_APP) $(FLAGS_EXES)
+
+$(MANAGED_DEV_SAMPLES): $(blddir)/%: $(MANAGED_DEV_SAMPLE_SRCS)
+	$(CC) -g -o $@ $< $(INCDIRS) $(LDFLAGS_MANAGED_DEV) $(FLAGS_EXES)
 
 
 clean:

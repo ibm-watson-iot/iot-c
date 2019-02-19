@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 IBM Corp.
+ * Copyright (c) 2018-2019 IBM Corp.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -89,14 +89,9 @@ void getopts(int argc, char** argv)
  */
 void  applicationCommandCallback (char* type, char* id, char* commandName, char *format, void* payload, size_t payloadSize)
 {
-    if ( type == NULL && id == NULL ) {
-        fprintf(stdout, "Received application management status:");
-
-    } else {
-        fprintf(stdout, "Received application command:\n");
-        fprintf(stdout, "Type=%s ID=%s CommandName=%s Format=%s Len=%d\n", type, id, commandName, format, (int)payloadSize);
-        fprintf(stdout, "Payload: %s\n", (char *)payload);
-    }
+    fprintf(stdout, "Received application command:\n");
+    fprintf(stdout, "Type=%s ID=%s CommandName=%s Format=%s Len=%d\n", type, id, commandName, format, (int)payloadSize);
+    fprintf(stdout, "Payload: %s\n", (char *)payload);
 
     /* Application developers - add your custom code to process application commands */
 }
@@ -207,7 +202,7 @@ int main(int argc, char *argv[])
 
     /* Disconnect application */
     rc = IoTPApplication_disconnect(application);
-    if ( rc != IoTP_SUCCESS ) {
+    if ( rc != IOTPRC_SUCCESS ) {
         fprintf(stderr, "ERROR: Failed to disconnect from  Watson IoT Platform: rc=%d\n", rc);
         exit(1);
     }

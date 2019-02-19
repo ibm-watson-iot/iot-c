@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 IBM Corp.
+ * Copyright (c) 2018-2019 IBM Corp.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -34,7 +34,6 @@
   #define DLLExport __attribute__ ((visibility ("default")))
 #endif
 
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -53,7 +52,7 @@
 
 #include "iotp_rc.h"
 
-#define MAX_YAML_SECTIONS 5
+#define MAX_YAML_CONFIG_SECTIONS 5
 
 /* Environment variables */
 extern char **environ;
@@ -117,62 +116,74 @@ typedef enum IoTPLogTypes {
 /**
  * IoTPCallbackHandler: Handler to process callbacks
  *
- * @param type           - IoTP client type ID
- *
+ * @param type           - IoTP client (device/gateway) type ID
  * @param id             - IoTP client ID
- *
- * @param callbackId     - Callback ID
- *
+ * @param callbackId     - Callback ID e.g. commandId
  * @param format         - Reponse format (e.g. JSON)
- *
  * @param payload        - Pointer to payload buffer
- *
  * @param payloadlen     - Size of payload buffer
- *
  */
 typedef void (*IoTPCallbackHandler)(char* type, char* id, char* command, char *format, void* payload, size_t payloadlen);
 
+/**
+ * List of Device Management actions and response that can be the platform.
+ */
+typedef enum {
+    IoTP_DMResponse          = 1,
+    IoTP_DMUpdate            = 2,
+    IoTP_DMObserve           = 3,
+    IoTP_DMCancel            = 4,
+    IoTP_DMFactoryReset      = 5,
+    IoTP_DMReboot            = 6,
+    IoTP_DMFirmwareDownload  = 7,
+    IoTP_DMFirmwareUpdate    = 8,
+    IoTP_DMActions           = 9
+} IoTP_DMAction_type_t;
 
 /**
- * IoTPLogHandler: Handler to process log and trace messages from IoTP Client
+ * IoTPDMActionHandler: Handler to process device and firmware action Callback.
+ * Platform sends payload in JSON format.
+ *
+ * @param type           - DM Action type - IoTP_DMAction_type_t
+ * @param reqId          - Request ID
+ * @param payload        - Pointer to payload buffer
+ * @param payloadlen     - Size of payload buffer
+ */
+typedef void (*IoTPDMActionHandler)(IoTP_DMAction_type_t type, char *reqId, void *payload, size_t payloadlen);
+
+
+/**
+ * IoTPLogHandler: Callback handler to process log and trace messages from IoTP Client.
  *
  * @param logLevel       - Log Level
- *
  * @param message        - Log or trace message
- *
  */
 typedef void IoTPLogHandler(int logLevel, char *message);
 
-
 /**
- * MQTTLogHandler: Handler to process log and trace messages from MQTT library
+ * MQTTLogHandler: Callback handler to process log and trace messages from MQTT library.
  *
  * @param logLevel       - Trace Level
- *
  * @param message        - Trace message
- *
  */
 typedef void MQTTTraceHandler(int traceLevel, char *message);
-
 
 /*
 /// @cond EXCLUDE
 */
 
-DLLExport void iotp_utils_logInvoke(IoTPLogLevel level, const char * func, const char * file, int line, const char * fmts, ...);
+DLLExport void iotp_utils_log(IoTPLogLevel level, const char * file, const char * func, int line, const char * fmts, ...);
 DLLExport void iotp_utils_setLogLevel(IoTPLogLevel level);
 DLLExport void iotp_utils_freePtr(void * p);
 DLLExport char * iotp_utils_trim(char *str);
 DLLExport void iotp_utils_generateUUID(char* uuid_str);
 DLLExport void iotp_utils_delay(long milsecs);
 DLLExport void iotp_utils_writeClientVersion(void);
-DLLExport IoTP_RC iotp_utils_setLogHandler(IoTPLogTypes type, void * handler);
-DLLExport IoTP_RC iotp_utils_fileExist(const char * filePath);
+DLLExport IOTPRC iotp_utils_setLogHandler(IoTPLogTypes type, void * handler);
+DLLExport IOTPRC iotp_utils_fileExist(const char * filePath);
 DLLExport char * iotp_utils_getToken(char * from, const char * leading, const char * trailing, char * * more);
-DLLExport const char * IoTP_rc_description(IoTP_RC rc);
 
-#define LOG(sev, fmts...) \
-        iotp_utils_logInvoke((LOGLEVEL_##sev), __FUNCTION__, __FILE__, __LINE__, fmts);
+#define LOG(sev, fmts...) iotp_utils_log((LOGLEVEL_##sev), __FILE__, __FUNCTION__, __LINE__, fmts);
 
 /*
 /// @endcond

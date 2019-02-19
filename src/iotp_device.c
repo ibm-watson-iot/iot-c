@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2018 IBM Corp.
+ * Copyright (c) 2018-2019 IBM Corp.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -24,12 +24,12 @@
 
 
 /* Creates a WIoTP device client */
-IoTP_RC IoTPDevice_create(IoTPDevice **device, IoTPConfig *config) 
+IOTPRC IoTPDevice_create(IoTPDevice **device, IoTPConfig *config) 
 {
-    IoTP_RC rc = IoTP_SUCCESS;
+    IOTPRC rc = IOTPRC_SUCCESS;
 
     rc = iotp_client_create((void **)device, config, IoTPClient_device);
-    if ( rc != IoTP_SUCCESS ) {
+    if ( rc != IOTPRC_SUCCESS ) {
         LOG(ERROR, "Failed to create IoTPDevice: rc=%d", rc);
     }
 
@@ -37,12 +37,12 @@ IoTP_RC IoTPDevice_create(IoTPDevice **device, IoTPConfig *config)
 }
 
 /* Set MQTT Trace handler */
-IoTP_RC IoTPDevice_setMQTTLogHandler(IoTPDevice *device, IoTPLogHandler *cb) 
+IOTPRC IoTPDevice_setMQTTLogHandler(IoTPDevice *device, IoTPLogHandler *cb) 
 {
-    IoTP_RC rc = IoTP_SUCCESS;
+    IOTPRC rc = IOTPRC_SUCCESS;
 
     rc = iotp_client_setMQTTLogHandler((void *)device, cb);
-    if ( rc != IoTP_SUCCESS ) {
+    if ( rc != IOTPRC_SUCCESS ) {
         LOG(ERROR, "Failed to set MQTT Log handler: rc=%d", rc);
     }
 
@@ -50,14 +50,14 @@ IoTP_RC IoTPDevice_setMQTTLogHandler(IoTPDevice *device, IoTPLogHandler *cb)
 }
 
 /* Disconnects and destroys a WIoTP device client */
-IoTP_RC IoTPDevice_destroy(IoTPDevice *device)
+IOTPRC IoTPDevice_destroy(IoTPDevice *device)
 {
-    IoTP_RC rc = IoTP_SUCCESS;
+    IOTPRC rc = IOTPRC_SUCCESS;
     int destroyMQTTClient = 1;
 
     /* disconnect and destroy client */
     rc = iotp_client_destroy((void *)device, destroyMQTTClient);
-    if ( rc != IoTP_SUCCESS ) {
+    if ( rc != IOTPRC_SUCCESS ) {
         LOG(ERROR, "Failed to destroy IoTPDevice: rc=%d", rc);
     }
 
@@ -65,12 +65,12 @@ IoTP_RC IoTPDevice_destroy(IoTPDevice *device)
 }
 
 /* Connects to WIoTP */
-IoTP_RC IoTPDevice_connect(IoTPDevice *device)
+IOTPRC IoTPDevice_connect(IoTPDevice *device)
 {
-    IoTP_RC rc = IoTP_SUCCESS;
+    IOTPRC rc = IOTPRC_SUCCESS;
 
     rc = iotp_client_connect((void *)device);
-    if ( rc != IoTP_SUCCESS ) {
+    if ( rc != IOTPRC_SUCCESS ) {
         LOG(ERROR, "Failed to connect IoTPDevice: rc=%d", rc);
     }
 
@@ -78,12 +78,12 @@ IoTP_RC IoTPDevice_connect(IoTPDevice *device)
 }
 
 /* Disconnects from WIoTP */
-IoTP_RC IoTPDevice_disconnect(IoTPDevice *device)
+IOTPRC IoTPDevice_disconnect(IoTPDevice *device)
 {
-    IoTP_RC rc = IoTP_SUCCESS;
+    IOTPRC rc = IOTPRC_SUCCESS;
 
     rc = iotp_client_disconnect((void *)device);
-    if ( rc != IoTP_SUCCESS ) {
+    if ( rc != IOTPRC_SUCCESS ) {
         LOG(ERROR, "Failed to disconnect IoTPDevice: rc=%d", rc);
     }
 
@@ -91,18 +91,18 @@ IoTP_RC IoTPDevice_disconnect(IoTPDevice *device)
 }
 
 /* Sends event to WIoTP */
-IoTP_RC IoTPDevice_sendEvent(IoTPDevice *device, char *eventId, char *data, char *formatString, QoS qos, MQTTProperties *props)
+IOTPRC IoTPDevice_sendEvent(IoTPDevice *device, char *eventId, char *data, char *formatString, QoS qos, MQTTProperties *props)
 {
-    IoTP_RC rc = IoTP_SUCCESS;
+    IOTPRC rc = IOTPRC_SUCCESS;
 
     /* Sanity check */
     if ( !device || !eventId || *eventId == '\0' || !formatString || *formatString == '\0' ) {
-        rc = IoTP_RC_PARAM_NULL_VALUE;
+        rc = IOTPRC_PARAM_NULL_VALUE;
         LOG(WARN, "IoTPDevice_sendEvent received NULL arguments: rc=%d", rc);
         return rc;
     }
     if ( qos != QoS0 && qos != QoS1 && qos != QoS2 ) {
-        rc = IoTP_RC_PARAM_INVALID_VALUE;
+        rc = IOTPRC_PARAM_INVALID_VALUE;
         LOG(WARN, "IoTPDevice_sendEvent received invalid arguments: rc=%d", rc);
         return rc;
     }
@@ -118,7 +118,7 @@ IoTP_RC IoTPDevice_sendEvent(IoTPDevice *device, char *eventId, char *data, char
 
     rc = iotp_client_publish((void *)device, topic, data, qos, props);
 
-    if ( rc != IoTP_SUCCESS ) {
+    if ( rc != IOTPRC_SUCCESS ) {
         LOG(ERROR, "IoTPDevice failed to send event: %s rc=%d", eventId, rc);
     }
 
@@ -126,12 +126,12 @@ IoTP_RC IoTPDevice_sendEvent(IoTPDevice *device, char *eventId, char *data, char
 }
 
 /* Sets command handler */
-IoTP_RC IoTPDevice_setCommandHandler(IoTPDevice *device, IoTPCallbackHandler cb)
+IOTPRC IoTPDevice_setCommandHandler(IoTPDevice *device, IoTPCallbackHandler cb)
 {
-    IoTP_RC rc = IoTP_SUCCESS;
+    IOTPRC rc = IOTPRC_SUCCESS;
 
-    rc = iotp_client_setHandler((void *)device, NULL, IoTP_Handler_GlobalCommand, cb);
-    if ( rc != IoTP_SUCCESS ) {
+    rc = iotp_client_setHandler((void *)device, NULL, IoTP_Handler_Commands, cb);
+    if ( rc != IOTPRC_SUCCESS ) {
         LOG(ERROR, "Failed to set IoTPDevice global command handler: rc=%d", rc);
     }
 
@@ -139,13 +139,13 @@ IoTP_RC IoTPDevice_setCommandHandler(IoTPDevice *device, IoTPCallbackHandler cb)
 }
 
 
-IoTP_RC IoTPDevice_subscribeToCommands(IoTPDevice *device, char *commandId, char *formatString)
+IOTPRC IoTPDevice_subscribeToCommands(IoTPDevice *device, char *commandId, char *formatString)
 {
-    IoTP_RC rc = IoTP_SUCCESS;
+    IOTPRC rc = IOTPRC_SUCCESS;
 
     /* Sanity check */
     if ( !commandId || *commandId == '\0' || !formatString || *formatString == '\0' ) {
-        rc = IoTP_RC_PARAM_NULL_VALUE;
+        rc = IOTPRC_PARAM_NULL_VALUE;
         LOG(WARN, "IoTPDevice_subscribeToCommands received invalid or NULL arguments: rc=%d", rc);
         return rc;
     }
@@ -159,7 +159,7 @@ IoTP_RC IoTPDevice_subscribeToCommands(IoTPDevice *device, char *commandId, char
     LOG(DEBUG,"Subscribe command. topic: %s", topic);
 
     rc = iotp_client_subscribe((void *)device, topic, QoS0);
-    if ( rc != IoTP_SUCCESS ) {
+    if ( rc != IOTPRC_SUCCESS ) {
         LOG(ERROR, "IoTPDevice failed to subscribe to the command: %s rc=%d", topic, rc);
     }
 
@@ -167,27 +167,27 @@ IoTP_RC IoTPDevice_subscribeToCommands(IoTPDevice *device, char *commandId, char
 }
 
 /* Set a callback handler and subscribe to a command - not allowed is global handler is set */
-IoTP_RC IoTPDevice_handleCommand(IoTPDevice *device, IoTPCallbackHandler cb, char *commandId, char *formatString)
+IOTPRC IoTPDevice_handleCommand(IoTPDevice *device, IoTPCallbackHandler cb, char *commandId, char *formatString)
 {
-    IoTP_RC rc = IoTP_SUCCESS;
+    IOTPRC rc = IOTPRC_SUCCESS;
 
     /* Sanity check */
     if ( !cb || !commandId || *commandId == '\0' || !formatString || *formatString == '\0' ) {
-        rc = IoTP_RC_PARAM_NULL_VALUE;
+        rc = IOTPRC_PARAM_NULL_VALUE;
         LOG(WARN, "IoTPDevice_handleCommand received invalid or NULL arguments: rc=%d", rc);
         return rc;
     }
 
     /* check for wild card character - not supported by this API */
     if ( strstr(commandId, "+")) {
-        rc = IoTP_RC_PARAM_NULL_VALUE;
+        rc = IOTPRC_PARAM_NULL_VALUE;
         LOG(WARN, "IoTPDevice_handleCommand does not support wild card characters: rc=%d", rc);
         return rc;
     }
 
     /* set handler */
     rc = iotp_client_setHandler((void *)device, commandId, IoTP_Handler_Command, cb);
-    if ( rc != IoTP_SUCCESS ) {
+    if ( rc != IOTPRC_SUCCESS ) {
         LOG(ERROR, "IoTPDevice failed to set command handler: rc=%d", rc);
     }
 
@@ -200,7 +200,7 @@ IoTP_RC IoTPDevice_handleCommand(IoTPDevice *device, IoTPCallbackHandler cb, cha
     LOG(DEBUG,"Subscribe command. topic: %s", topic);
 
     rc = iotp_client_subscribe((void *)device, topic, QoS0);
-    if ( rc != IoTP_SUCCESS ) {
+    if ( rc != IOTPRC_SUCCESS ) {
         LOG(ERROR, "IoTPDevice failed to subscribe to the command: %s rc=%d", topic, rc);
     }
 
@@ -208,13 +208,13 @@ IoTP_RC IoTPDevice_handleCommand(IoTPDevice *device, IoTPCallbackHandler cb, cha
 }
 
 /* Unsubscribe from a command */
-IoTP_RC IoTPDevice_unsubscribeFromCommands(IoTPDevice *device, char *commandId, char *formatString)
+IOTPRC IoTPDevice_unsubscribeFromCommands(IoTPDevice *device, char *commandId, char *formatString)
 {
-    IoTP_RC rc = IoTP_SUCCESS;
+    IOTPRC rc = IOTPRC_SUCCESS;
 
     /* Sanity check */
     if ( !commandId || *commandId == '\0' || !formatString || *formatString == '\0' ) {
-        rc = IoTP_RC_PARAM_NULL_VALUE;
+        rc = IOTPRC_PARAM_NULL_VALUE;
         LOG(ERROR, "IoTPDevice_unsubscribeFromCommands received invalid or NULL arguments, rc=%d", rc);
         return rc;
     }
@@ -228,7 +228,7 @@ IoTP_RC IoTPDevice_unsubscribeFromCommands(IoTPDevice *device, char *commandId, 
     LOG(DEBUG,"Subscribe command. topic: %s", topic);
 
     rc = iotp_client_unsubscribe((void *)device, topic);
-    if ( rc != IoTP_SUCCESS ) {
+    if ( rc != IOTPRC_SUCCESS ) {
         LOG(ERROR, "IoTPDevice failed to unsubscribe from the command: %s rc=%d", topic, rc);
     }
 

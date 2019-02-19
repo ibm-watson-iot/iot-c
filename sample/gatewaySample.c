@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 IBM Corp.
+ * Copyright (c) 2018-2019 IBM Corp.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -89,14 +89,9 @@ void getopts(int argc, char** argv)
  */
 void  gatewayCommandCallback (char* type, char* id, char* commandName, char *format, void* payload, size_t payloadSize)
 {
-    if ( type == NULL && id == NULL ) {
-        fprintf(stdout, "Received gateway management status:");
-
-    } else {
-        fprintf(stdout, "Received gateway command:\n");
-        fprintf(stdout, "Type=%s ID=%s CommandName=%s Format=%s Len=%d\n", type, id, commandName, format, (int)payloadSize);
-        fprintf(stdout, "Payload: %s\n", (char *)payload);
-    }
+    fprintf(stdout, "Received gateway command:\n");
+    fprintf(stdout, "Type=%s ID=%s CommandName=%s Format=%s Len=%d\n", type, id, commandName, format, (int)payloadSize);
+    fprintf(stdout, "Payload: %s\n", (char *)payload);
 
     /* Gateway developers - add your custom code to process gateway commands */
 }
@@ -205,7 +200,7 @@ int main(int argc, char *argv[])
 
     /* Disconnect gateway */
     rc = IoTPGateway_disconnect(gateway);
-    if ( rc != IoTP_SUCCESS ) {
+    if ( rc != IOTPRC_SUCCESS ) {
         fprintf(stderr, "ERROR: Failed to disconnect from  Watson IoT Platform: rc=%d\n", rc);
         exit(1);
     }

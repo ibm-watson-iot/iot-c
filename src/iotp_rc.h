@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 IBM Corp.
+ * Copyright (c) 2018-2019 IBM Corp.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -21,23 +21,6 @@
 #if defined(__cplusplus)
  extern "C" {
 #endif
-
-/*
-/// @cond EXCLUDE
-*/
-
-#if defined(WIN32) || defined(WIN64)
-  #define DLLImport __declspec(dllimport)
-  #define DLLExport __declspec(dllexport)
-#else
-  #define DLLImport extern
-  #define DLLExport __attribute__ ((visibility ("default")))
-#endif
-
-/*
-/// @endcond
-*/
-
 
 /*! \page iotpdevclient IoTP C Client Code Development Guide
 
@@ -65,67 +48,100 @@ TODO: Describe Client code development steps (including any best practices).
   
  */
 
+
+#if defined(WIN32) || defined(WIN64)
+  #define DLLImport __declspec(dllimport)
+  #define DLLExport __declspec(dllexport)
+#else
+  #define DLLImport extern
+  #define DLLExport __attribute__ ((visibility ("default")))
+#endif
+
+/* IOTP Client reason and error codes */
 typedef enum {
 
     /** Indicates successful completion of IoTP Client operation.  */
-    IoTP_SUCCESS = 0,
+    IOTPRC_SUCCESS = 0,
     
     /** Indicates a generic failure an IoTP Client operation. */
-    IoTP_FAILURE = 1,
+    IOTPRC_FAILURE = 1,
     
     /** Memory error */
-    IoTP_RC_NOMEM = 1001,
+    IOTPRC_NOMEM = 1001,
     
     /** Could not open file. */
-    IoTP_RC_FILE_OPEN = 1002,
+    IOTPRC_FILE_OPEN = 1002,
     
     /** Logging is already initialized. */
-    IoTP_RC_LOGGING_INITED = 1003,
+    IOTPRC_LOGGING_INITED = 1003,
     
     /** IoTP client handle is NULL or not initialized. */
-    IoTP_RC_INVALID_HANDLE = 1004,
+    IOTPRC_INVALID_HANDLE = 1004,
     
     /** A required configuration parameter is not specified. */
-    IoTP_RC_MISSING_INPUT_PARAM = 1005,
+    IOTPRC_MISSING_INPUT_PARAM = 1005,
     
     /** Invalid configuration parameter is specified. */
-    IoTP_RC_INVALID_PARAM = 1006,
+    IOTPRC_INVALID_PARAM = 1006,
     
     /** NULL or empty value for the configuration parameter is specified. */
-    IoTP_RC_PARAM_NULL_VALUE = 1007,
+    IOTPRC_PARAM_NULL_VALUE = 1007,
     
     /** Invalid value for the configuration parameter is specified. */
-    IoTP_RC_PARAM_INVALID_VALUE = 1008,
+    IOTPRC_PARAM_INVALID_VALUE = 1008,
     
     /** WIoTP quickstart sandbox is not supported for the requested operation. */
-    IoTP_RC_QUICKSTART_NOT_SUPPORTED = 1009,
+    IOTPRC_QUICKSTART_NOT_SUPPORTED = 1009,
     
     /** Invalid argument is specified. */
-    IoTP_RC_INVALID_ARGS = 1010,
+    IOTPRC_INVALID_ARGS = 1010,
     
     /** NULL or empty value for an argument is specified. */
-    IoTP_RC_ARGS_NULL_VALUE = 1011,
+    IOTPRC_ARGS_NULL_VALUE = 1011,
     
     /** Invalid value of an argument is specified. */
-    IoTP_RC_ARGS_INVALID_VALUE = 1012,
+    IOTPRC_ARGS_INVALID_VALUE = 1012,
     
     /** Error while executing the Client certificate callback */
-    IoTP_RC_CERT_CALLBACK = 1013,
+    IOTPRC_CERT_CALLBACK = 1013,
 
     /** Can not destoy a handle which is in use */
-    IoTP_RC_HANDLE_IN_USE = 1014,
+    IOTPRC_HANDLE_IN_USE = 1014,
 
     /** File does not exist or can not access */
-    IoTP_RC_NO_ACCESS = 1015,
+    IOTPRC_NOT_FOUND = 1015,
 
     /** IoTP Client is not connected to the platform */
-    IoTP_RC_NOT_CONNECTED = 1016,
+    IOTPRC_NOT_CONNECTED = 1016,
 
     /** IoTP Client action timed out */
-    IoTP_RC_TIMEOUT = 1017
+    IOTPRC_TIMEOUT = 1017,
 
-} IoTP_RC;
+    /** No message callback handler is configured. Can not process the message. */
+    IOTPRC_HANDLER_NOT_FOUND = 1018,
 
+    /** No message callback handler is invalid. */
+    IOTPRC_HANDLER_INVALID = 1019,
+
+    /** Device management action is initiated */
+    IOTPRC_DM_ACTION_STARTED = 1020,
+
+    /** Device management action has failed */
+    IOTPRC_DM_ACTION_FAILED = 1021,
+
+    /** Device management action is not supported */
+    IOTPRC_DM_ACTION_NOT_SUPPORTED = 1022
+
+} IOTPRC;
+
+/**
+ * IoTPRC_toString() API returns string description of WIoTP client reason codes,
+ * Paho MQTT Async client library error codes and Paho MQTT reason codes.
+ *
+ * @param rc             - Reason code
+ * @return desc          - String with description of the reason code
+ */
+DLLExport const char * IOTPRC_toString(IOTPRC rc);
 
 #if defined(__cplusplus)
  }

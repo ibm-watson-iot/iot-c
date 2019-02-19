@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 IBM Corp.
+ * Copyright (c) 2019 IBM Corp.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -16,19 +16,21 @@
  *******************************************************************************/
 
 /*
- * This sample shows how-to develop a device code using Watson IoT Platform
- * iot-c device client library, connect and interact with Watson IoT Platform Service.
+ * This sample shows how-to develop a managed device code using Watson IoT Platform
+ * iot-c managed device client library, connect and interact with Watson IoT Platform Service.
  * 
  * This sample includes the function/code snippets to perform the following actions:
  * - Initiliaze client library
- * - Configure device from configuration parameters specified in a configuration file
+ * - Configure managed device from configuration parameters specified in a configuration file
  * - Set client logging
  * - Enable error handling routines
  * - Send device events to WIoTP service
  * - Receive and process commands from WIoTP service
+ * - Make device as a managed device
+ * - Receive managed device action and process it
  *
  * SYNTAX:
- * deviceSample --config <config_file_path>
+ * managedDeviceSample --config <config_file_path>
  *
  * Pre-requisite:
  * 1. This sample requires a device configuration file. 
@@ -44,11 +46,11 @@
 #include <unistd.h>
 
 /* Include header file of IBM Watson IoT platform C Client for devices */ 
-#include "iotp_device.h"
+#include "iotp_managedDevice.h"
 
 char *configFilePath = NULL;
 volatile int interrupt = 0;
-char *progname = "deviceSample";
+char *progname = "managedDeviceSample";
 int useEnv = 0;
 int testCycle = 0;
 
@@ -93,7 +95,7 @@ void getopts(int argc, char** argv)
 }
 
 /* 
- * Device command callback function
+ * Managed Device command callback function
  * Device developers can customize this function based on their use case
  * to handle device commands sent by WIoTP.
  * Set this callback function using API setCommandHandler().
@@ -133,7 +135,7 @@ int main(int argc, char *argv[])
      * Specifiy variable for WIoT client object 
      */
     IoTPConfig *config = NULL;
-    IoTPDevice *device = NULL;
+    IoTPManagedDevice *device = NULL;
 
     /* check for args */
     if ( argc < 2 )
@@ -166,23 +168,39 @@ int main(int argc, char *argv[])
     } 
 
     /* Create IoTPDevice object */
-    rc = IoTPDevice_create(&device, config);
+    rc = IoTPManagedDevice_create(&device, config);
     if ( rc != 0 ) {
         fprintf(stderr, "ERROR: Failed to configure IoTP device: rc=%d\n", rc);
         exit(1);
     }
 
     /* Set MQTT Trace handler */
-    rc = IoTPDevice_setMQTTLogHandler(device, &MQTTTraceCallback);
+    rc = IoTPManagedDevice_setMQTTLogHandler(device, &MQTTTraceCallback);
     if ( rc != 0 ) {
         fprintf(stderr, "WARN: Failed to set MQTT Trace handler: rc=%d\n", rc);
     }
 
     /* Invoke connection API IoTPDevice_connect() to connect to WIoTP. */
-    rc = IoTPDevice_connect(device);
+    rc = IoTPManagedDevice_connect(device);
     if ( rc != 0 ) {
         fprintf(stderr, "ERROR: Failed to connect to Watson IoT Platform: rc=%d\n", rc);
         exit(1);
+    }
+
+    /* set managed device attribute */
+    rc = IoTPManagedDevice_setAttribute(device, "lifetime", "180");
+    rc |= IoTPManagedDevice_setAttribute(device, "deviceActions", "1");
+    rc |= IoTPManagedDevice_setAttribute(device, "firmwareActions", "1");
+    if ( rc != 0 ) {
+        fprintf(stderr, "ERROR: Failed to set managed device attributes: rc=%d\n", rc);
+        goto device_exit;
+    }
+
+    /* Make this device a managed device */
+    rc = IoTPManagedDevice_manage(device);
+    if ( rc != 0 ) {
+        fprintf(stderr, "ERROR: Failed to make device a managed device: rc=%d\n", rc);
+        goto device_exit;
     }
 
     /*
@@ -190,7 +208,7 @@ int main(int argc, char *argv[])
      * Refer to deviceCommandCallback() function DEV_NOTES for details on
      * how to process device commands received from WIoTP.
      */
-    IoTPDevice_setCommandHandler(device, deviceCommandCallback);
+    IoTPManagedDevice_setCommandHandler(device, deviceCommandCallback);
 
     /*
      * Invoke device command subscription API IoTPDevice_subscribeToCommands().
@@ -199,7 +217,7 @@ int main(int argc, char *argv[])
      */
     char *commandName = "+";
     char *format = "+";
-    IoTPDevice_subscribeToCommands(device, commandName, format);
+    IoTPManagedDevice_subscribeToCommands(device, commandName, format);
 
 
     /* Use IoTPDevice_sendEvent() API to send device events to Watson IoT Platform. */
@@ -210,7 +228,7 @@ int main(int argc, char *argv[])
     while(!interrupt)
     {
         fprintf(stdout, "Send status event\n");
-        rc = IoTPDevice_sendEvent(device,"status", data, "json", QoS0, NULL);
+        rc = IoTPManagedDevice_sendEvent(device,"status", data, "json", QoS0, NULL);
         fprintf(stdout, "RC from publishEvent(): %d\n", rc);
 
         if ( testCycle > 0 ) {
@@ -224,15 +242,23 @@ int main(int argc, char *argv[])
 
     fprintf(stdout, "Publish event cycle is complete.\n");
 
+    /* Make this device an unmanaged device */
+    rc = IoTPManagedDevice_unmanage(device, NULL);
+    if ( rc != 0 ) {
+        fprintf(stderr, "ERROR: Failed to make device an unmanaged device: rc=%d\n", rc);
+    }
+
+device_exit:
+
     /* Disconnect device */
-    rc = IoTPDevice_disconnect(device);
+    rc = IoTPManagedDevice_disconnect(device);
     if ( rc != IOTPRC_SUCCESS ) {
         fprintf(stderr, "ERROR: Failed to disconnect from  Watson IoT Platform: rc=%d\n", rc);
         exit(1);
     }
 
     /* Destroy client */
-    IoTPDevice_destroy(device);
+    IoTPManagedDevice_destroy(device);
 
     /* Clear configuration */
     IoTPConfig_clear(config);
