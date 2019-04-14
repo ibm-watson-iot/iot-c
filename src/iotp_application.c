@@ -26,7 +26,7 @@ IOTPRC IoTPApplication_create(IoTPApplication **application, IoTPConfig *config)
 {
     IOTPRC rc = IOTPRC_SUCCESS;
 
-    rc = iotp_client_create((void **)application, config, IoTPClient_gateway);
+    rc = iotp_client_create((void **)application, config, IoTPClient_application);
     if ( rc != IOTPRC_SUCCESS ) {
         LOG(ERROR, "Failed to create IoTPGateway: rc=%d", rc);
     }

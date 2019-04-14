@@ -186,11 +186,11 @@ int main(int argc, char *argv[])
     }
 
     /*
-     * Set device command callback using API IoTPDevice_setCommandHandler().
+     * Set device command callback using API IoTPDevice_setCommandsHandler().
      * Refer to deviceCommandCallback() function DEV_NOTES for details on
      * how to process device commands received from WIoTP.
      */
-    IoTPDevice_setCommandHandler(device, deviceCommandCallback);
+    IoTPDevice_setCommandsHandler(device, deviceCommandCallback);
 
     /*
      * Invoke device command subscription API IoTPDevice_subscribeToCommands().

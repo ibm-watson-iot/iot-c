@@ -30,7 +30,7 @@
  * - IoTPDevice_connect
  * - IoTPDevice_disconnect
  * - IoTPDevice_sendEvent
- * - IoTPDevice_setCommandHandler
+ * - IoTPDevice_setCommandsHandler
  * - IoTPDevice_subscribeToCommands
  * - IoTPDevice_handleCommand
  * - IoTPDevice_unsubscribeFromCommands

@@ -126,7 +126,7 @@ IOTPRC IoTPDevice_sendEvent(IoTPDevice *device, char *eventId, char *data, char 
 }
 
 /* Sets command handler */
-IOTPRC IoTPDevice_setCommandHandler(IoTPDevice *device, IoTPCallbackHandler cb)
+IOTPRC IoTPDevice_setCommandsHandler(IoTPDevice *device, IoTPCallbackHandler cb)
 {
     IOTPRC rc = IOTPRC_SUCCESS;
 
@@ -167,21 +167,21 @@ IOTPRC IoTPDevice_subscribeToCommands(IoTPDevice *device, char *commandId, char 
 }
 
 /* Set a callback handler and subscribe to a command - not allowed is global handler is set */
-IOTPRC IoTPDevice_handleCommand(IoTPDevice *device, IoTPCallbackHandler cb, char *commandId, char *formatString)
+IOTPRC IoTPDevice_setCommandHandler(IoTPDevice *device, IoTPCallbackHandler cb, char *commandId, char *formatString)
 {
     IOTPRC rc = IOTPRC_SUCCESS;
 
     /* Sanity check */
     if ( !cb || !commandId || *commandId == '\0' || !formatString || *formatString == '\0' ) {
         rc = IOTPRC_PARAM_NULL_VALUE;
-        LOG(WARN, "IoTPDevice_handleCommand received invalid or NULL arguments: rc=%d", rc);
+        LOG(WARN, "IoTPDevice_setCommandHandler received invalid or NULL arguments: rc=%d", rc);
         return rc;
     }
 
     /* check for wild card character - not supported by this API */
     if ( strstr(commandId, "+")) {
         rc = IOTPRC_PARAM_NULL_VALUE;
-        LOG(WARN, "IoTPDevice_handleCommand does not support wild card characters: rc=%d", rc);
+        LOG(WARN, "IoTPDevice_setCommandHandler does not support wild card characters: rc=%d", rc);
         return rc;
     }
 

@@ -108,14 +108,14 @@ DLLExport IOTPRC IoTPDevice_connect(IoTPDevice *device);
 DLLExport IOTPRC IoTPDevice_disconnect(IoTPDevice *device);
 
 /**
- * The IoTPDevice_setCommandHandler() API sets the Command Callback function,
+ * The IoTPDevice_setCommandsHandler() API sets the Command Callback function,
  * to receive the commands from IBM Watson IoT Platform servce.
  *
  * @param device         - A pointer to IoTP device handle.
  * @param cb             - A Function pointer to the IoTPCallbackHandler. 
  * @return IOTPRC       - Returns IOTPRC_SUCCESS onsuccess or IOTPRC_* on error
  */
-DLLExport IOTPRC IoTPDevice_setCommandHandler(IoTPDevice *device, IoTPCallbackHandler cb);
+DLLExport IOTPRC IoTPDevice_setCommandsHandler(IoTPDevice *device, IoTPCallbackHandler cb);
 
 /**
  * The IoTPDevice_subscribeToCommands() API subscribe to commands for the device.
@@ -130,7 +130,7 @@ DLLExport IOTPRC IoTPDevice_setCommandHandler(IoTPDevice *device, IoTPCallbackHa
 DLLExport IOTPRC IoTPDevice_subscribeToCommands(IoTPDevice *device, char *commandId, char *formatString);
 
 /**
- * The IoTPDevice_handleCommand() API subscribes to a specific command and 
+ * The IoTPDevice_setCommandHandler() API subscribes to a specific command and 
  * sets a command handler for the command. 
  *
  * @param device         - A pointer to IoTP device handle.
@@ -140,7 +140,7 @@ DLLExport IOTPRC IoTPDevice_subscribeToCommands(IoTPDevice *device, char *comman
  * @param formatString   - Reponse format. e.g. json, xml, txt, csv. Also accepts MQTT wild card character "+"
  * @return IOTPRC       - Returns IOTPRC_SUCCESS onsuccess or IOTPRC_* on error
  */
-DLLExport IOTPRC IoTPDevice_handleCommand(IoTPDevice *device, IoTPCallbackHandler cb, char *commandId, char *formatString);
+DLLExport IOTPRC IoTPDevice_setCommandHandler(IoTPDevice *device, IoTPCallbackHandler cb, char *commandId, char *formatString);
 
 /**
  * The IoTPDevice_unsubscribeFromCommands() API unsubscribes from commands for the device.

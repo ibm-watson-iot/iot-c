@@ -202,7 +202,11 @@ IOTPRC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char 
 
     argptr = (char *)value;
     if ( argptr && *argptr != '\0' ) {
-        argint = atoi(argptr);
+        char *endptr = NULL;
+        argint = (int)strtol(argptr, &endptr, 10);
+        if (endptr != NULL && *endptr != '\0') {
+            argint = 0;
+        }
     }
 
     /* Process Identity configuration items */

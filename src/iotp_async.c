@@ -1283,9 +1283,9 @@ IOTPRC iotp_client_unmanage(void *iotpClient, char *reqId)
 static int iotp_client_dmProcessReponse(void *context, char *topicName, int topicLen, MQTTAsync_message * message)
 {
     IOTPRC rc = IOTPRC_SUCCESS;
-    IoTPDMActionHandler cb = NULL;
+    // IoTPDMActionHandler cb = NULL;
     IoTPClient *client = (IoTPClient *)context;
-    IoTP_DMAction_type_t type = 0;
+    // IoTP_DMAction_type_t type = 0;
     IoTPManagedClient *managedClient = NULL;
 
 
@@ -1364,9 +1364,9 @@ dmmsg_processed:
 static int iotp_client_dmMessageArrived(void *context, char *topicName, int topicLen, MQTTAsync_message * message)
 {
     IOTPRC rc = IOTPRC_SUCCESS;
-    IoTPDMActionHandler cb = NULL;
+    // IoTPDMActionHandler cb = NULL;
     IoTPClient *client = (IoTPClient *)context;
-    IoTP_DMAction_type_t type = 0;
+    // IoTP_DMAction_type_t type = 0;
 
     /* sanity check */
     if (client == NULL || (client && client->config == NULL)) {
