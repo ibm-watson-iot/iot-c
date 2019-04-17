@@ -126,7 +126,7 @@ typedef enum IoTPLogTypes {
 typedef void (*IoTPCallbackHandler)(char* type, char* id, char* command, char *format, void* payload, size_t payloadlen);
 
 /**
- * List of Device Management actions and response that can be the platform.
+ * List of Device Management actions and response that can be invoked by the platform.
  */
 typedef enum {
     IoTP_DMResponse          = 1,

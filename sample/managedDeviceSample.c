@@ -123,6 +123,44 @@ void MQTTTraceCallback (int level, char * message)
     fflush(stdout);
 }
 
+/*
+ * Managed Device DM callback function
+ */
+void DMActionCallbak(IoTP_DMAction_type_t type, char *reqId, void *payload, size_t payloadlen) {
+    fprintf(stdout, "DM Requst ID: %s\n", reqId);
+    switch(type) {
+        case IoTP_DMResponse:
+            fprintf(stdout, "Received DM Action response\n");
+            fprintf(stdout, "Payload: %s\n", payload?(char *)payload:"");
+            /* Add code for your device */
+            break;
+
+        case IoTP_DMFactoryReset:
+            fprintf(stdout, "Start factory reset action\n");
+            /* Add code for your device */
+            break;
+
+        case IoTP_DMReboot:
+            fprintf(stdout, "Start device reboot action\n");
+            /* Add code for your device */
+            break;
+
+        case IoTP_DMFirmwareDownload:
+            fprintf(stdout, "Start Firmware download action\n");
+            /* Add code for your device */
+            break;
+
+        case IoTP_DMFirmwareUpdate:
+            fprintf(stdout, "Start Firmware Update action\n");
+            /* Add code for your device */
+            break;
+
+        default:
+            fprintf(stdout, "Can not handle DM action: %d\n", type);
+            break;
+    }
+}
+
 /* Main program */
 int main(int argc, char *argv[])
 {
@@ -199,6 +237,15 @@ int main(int argc, char *argv[])
     rc |= IoTPManagedDevice_setAttribute(device, "firmwareActions", "1");
     if ( rc != 0 ) {
         fprintf(stderr, "ERROR: Failed to set managed device attributes: rc=%d\n", rc);
+        goto device_exit;
+    }
+
+    /*
+     * Set callback to process device management actions 
+     */
+    rc = IoTPManagedDevice_setActionHandler(device, IoTP_DMActions, DMActionCallbak); 
+    if ( rc != 0 ) {
+        fprintf(stderr, "ERROR: Failed to set device management action callback: rc=%d\n", rc);
         goto device_exit;
     }
 

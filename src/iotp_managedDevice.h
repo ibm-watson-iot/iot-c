@@ -196,7 +196,7 @@ DLLExport IOTPRC IoTPManagedDevice_manage(IoTPManagedDevice *managedDevice);
 DLLExport IOTPRC IoTPManagedDevice_unmanage(IoTPManagedDevice *managedDevice, char * reqId);
 
 /**
- * The IoTPManagedDevice_setActionHandler() API sets an action callback handler to process
+ * The IoTPManagedDevice_setActionDMHandler() API sets an action callback handler to process
  * device management actions (like reboot, factory_reset, firmware download, and firmware update)
  * initiated by IBM IoT Watson Platform.
  *

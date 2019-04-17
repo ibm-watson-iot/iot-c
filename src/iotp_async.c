@@ -29,6 +29,7 @@ static struct {
     IoTP_DMAction_type_t  type;
     const char *          topic;
 } dmActionTopics[] = {
+    { 0,                        "NotUsed"                  },
     { IoTP_DMResponse,          DM_ACTION_RESPONSE         },
     { IoTP_DMUpdate,            DM_ACTION_UPDATE           },
     { IoTP_DMObserve,           DM_ACTION_OBSERVE          }, 
@@ -831,6 +832,7 @@ IOTPRC iotp_client_setHandler(void *iotpClient, char *topic, int type, IoTPCallb
     }
 
     /* Add handler to the list. */
+/*
     if ( client->handlers->count == 0 ) {
         IoTPHandler * handler = (IoTPHandler *)calloc(1, sizeof(IoTPHandler));
         handler->type = type;
@@ -848,28 +850,72 @@ IOTPRC iotp_client_setHandler(void *iotpClient, char *topic, int type, IoTPCallb
 
         return rc;
     }
+*/
 
-    /* Check if command handler is already set for commandId */
-    /* Loop thru the list */
-     if ( client->handlers->count == 1 ) {
-        IoTPHandler * handler = client->handlers->entries[0];
-        if ( handler->type == IoTP_Handler_Commands ) {
-            handler->cbFunc = cbFunc;
-            LOG(INFO, "Callback for all commands is updated.");
+    /* Check if command handler is set for all commands */
+    if ( client->handlers->allCommandsId != 0 ) {
+        if ( type == IoTP_Handler_Commands ) {
+            IoTPHandler * handler = client->handlers->entries[client->handlers->allCommandsId - 1];
+            if ( handler->type == IoTP_Handler_Commands ) {
+                handler->cbFunc = cbFunc;
+                LOG(INFO, "Callback for all commands is updated.");
+                return rc;
+            } else {
+                rc = IOTPRC_FAILURE;
+                LOG(WARN, "Type of currently set callback for all commands is of incorrect type: %d", handler->type);
+                return rc;
+            }
+        } else {
+            rc = IOTPRC_FAILURE;
+            LOG(WARN, "Callback for all commands is already set. Can not set callback for topic: %s", topic);
+            return rc;
+        }
+    }
+
+    /* Loop thru all set callbacks, update or add */
+    int found = 0;
+    int i=0;
+    for (i = 0; i < client->handlers->count; i++) {
+        IoTPHandler *handler = client->handlers->entries[i];
+        if (topic && handler->topic && strcmp(topic, handler->topic) == 0) {
+            found = 1;
+            break;
+        }
+    }
+    if ( found == 0 ) {
+        /* Add handler */
+        IoTPHandler * handler = (IoTPHandler *)calloc(1, sizeof(IoTPHandler));
+        handler->type = type;
+        handler->topic = NULL;
+        if ( topic && *topic != '\0' ) {
+            handler->topic = strdup(topic);
+        }
+        handler->cbFunc = cbFunc;
+        rc = iotp_add_handler(client->handlers, handler);
+        if ( rc == IOTPRC_SUCCESS ) {
+            LOG(INFO, "Handler (type=%s) is added. Topic=%s", iotp_client_getHandlerTypeStr(type), topic? topic:"NULL");
+        } else {
+            LOG(INFO, "Failed to add handler (type=%s) for topic=%s rc=%d", iotp_client_getHandlerTypeStr(type), topic? topic:"NULL", rc);
         }
 
     } else {
-        /* Global can not be set - individual handlers exist */
-        rc = IOTPRC_FAILURE;
-        LOG(INFO, "Can not register global callback. rc=%d", rc);
+        /* Update handler */
+        IoTPHandler * handler = client->handlers->entries[i];
+        if ( handler->type == type ) {
+            handler->cbFunc = cbFunc;
+            LOG(INFO, "Callback is updated for topic: %s", topic);
+        } else {
+            rc = IOTPRC_FAILURE;
+            LOG(INFO, "Callback update is requested for invalid type: %d topic=%s", type, topic);
+        }
     }
-
+    
     return rc;
 }
 
 
 /* Set the DM Action Handler - callback function */
-IOTPRC iotp_client_setDMActionHandler(void *iotpClient, IoTP_DMAction_type_t type, IoTPDMActionHandler cbFunc)
+IOTPRC iotp_client_setActionHandler(void *iotpClient, IoTP_DMAction_type_t type, IoTPDMActionHandler cbFunc)
 {
     IOTPRC rc = 0;
     IoTPClient *client = (IoTPClient *)iotpClient;
@@ -885,14 +931,47 @@ IOTPRC iotp_client_setDMActionHandler(void *iotpClient, IoTP_DMAction_type_t typ
     /* Get topic of the DM Action */
     if ( type < IoTP_DMResponse && type > IoTP_DMActions ) {
         rc = IOTPRC_HANDLER_INVALID;
+        LOG(ERROR, "Invalid handle type:%d rc=%d", type, rc);
         return rc;
     }
 
     /* Get topic string for the handle type */
     topic = dmActionTopics[type].topic;
-    
-    /* Add handler to the list. */
-    if ( client->handlers->count == 0 ) {
+
+    LOG(DEBUG, "Set DM Action callback for topic: %s", topic);
+
+    /* Check if action handler is set for all DM actions */
+    if ( client->handlers->allDMActionsId != 0 ) {
+        if ( type == IoTP_Handler_DMActions ) {
+            IoTPHandler * handler = client->handlers->entries[client->handlers->allDMActionsId - 1];
+            if ( handler->type == IoTP_Handler_DMActions ) {
+                handler->cbFunc = cbFunc;
+                LOG(INFO, "Callback for all DM actions is updated.");
+                return rc;
+            } else {
+                rc = IOTPRC_FAILURE;
+                LOG(WARN, "Type of currently set callback for all DM actions is of incorrect type: %d", handler->type);
+                return rc;
+            }
+        } else {
+            rc = IOTPRC_FAILURE;
+            LOG(WARN, "Callback for all DM actions is already set. Can not set callback for action topic: %s", topic);
+            return rc;
+        }
+    }
+
+    /* Loop thru all set callbacks, update or add */
+    int found = 0;
+    int i=0;
+    for (i = 0; i < client->handlers->count; i++) {
+        IoTPHandler *handler = client->handlers->entries[i];
+        if (topic && handler->topic && strcmp(topic, handler->topic) == 0) {
+            found = 1;
+            break;
+        }
+    }
+    if ( found == 0 ) {
+        /* Add handler to the list. */
         IoTPHandler * handler = (IoTPHandler *)calloc(1, sizeof(IoTPHandler));
         handler->type = type;
         handler->topic = NULL;
@@ -902,26 +981,21 @@ IOTPRC iotp_client_setDMActionHandler(void *iotpClient, IoTP_DMAction_type_t typ
         handler->cbFunc = cbFunc;
         rc = iotp_add_handler(client->handlers, handler);
         if ( rc == IOTPRC_SUCCESS ) {
-            LOG(INFO, "Handler (type=%s) is added. Topic=%s", iotp_client_getDMActionHandlerTypeStr(type), topic? topic:"NULL");
+            LOG(INFO, "Handler (type=%s) is added. DM action topic=%s", iotp_client_getDMActionHandlerTypeStr(type), topic? topic:"NULL");
         } else {
-            LOG(INFO, "Failed to add handler (type=%s) for topic=%s rc=%d", iotp_client_getDMActionHandlerTypeStr(type), topic? topic:"NULL", rc);
+            LOG(INFO, "Failed to add handler (type=%s) for DM action topic=%s rc=%d", iotp_client_getDMActionHandlerTypeStr(type), topic? topic:"NULL", rc);
         }
         return rc;
-    }
-
-    /* Check if command handler is already set for commandId */
-    /* Loop thru the list */
-     if ( client->handlers->count == 1 ) {
-        IoTPHandler * handler = client->handlers->entries[0];
-        if ( handler->type == IoTP_Handler_Commands ) {
-            handler->cbFunc = cbFunc;
-            LOG(INFO, "Callback for all commands is updated.");
-        }
-
     } else {
-        /* Global can not be set - individual handlers exist */
-        rc = IOTPRC_FAILURE;
-        LOG(INFO, "Can not register global callback. rc=%d", rc);
+        /* Update handler */
+        IoTPHandler * handler = client->handlers->entries[i];
+        if ( handler->type == type ) {
+            handler->cbFunc = cbFunc;
+            LOG(INFO, "Callback is updated for DM action topic: %s", topic);
+        } else {
+            rc = IOTPRC_FAILURE;
+            LOG(INFO, "Callback update is requested for invalid type: %d DM action topic=%s", type, topic);
+        }
     }
 
     return rc;
@@ -1276,12 +1350,45 @@ IOTPRC iotp_client_unmanage(void *iotpClient, char *reqId)
     return rc;
 }
 
+/* Get DM Action handler callback */
+static IoTPDMActionHandler iotp_getActionCallback(IoTPClient *client, char *topicName) {
+    IoTPDMActionHandler cb = NULL;
+
+    /* check if callbacks are set */
+    if ( client->handlers->count == 0 ) {
+        /* no callback is configured */
+        LOG(ERROR, "No callbacks are set for this client.");
+        return NULL;
+    }
+
+    /* get DM Action callback */
+    IoTPHandler * sub = iotp_client_getHandler(client->handlers, topicName);
+    if ( sub == NULL ) {
+        /* check if action handler for all actions are set */
+        sub = iotp_client_getHandler(client->handlers, DM_ACTION_ALL);
+        if ( sub == NULL ) {
+            /* no callback is configured */
+            LOG(ERROR, "Callback not found for topic: %s", topicName? topicName:"");
+            return NULL;
+        }
+    }
+
+    /* Callback type for DM actions should be less than IoTP_Handler_Commands */
+    if ( sub->type >= IoTP_Handler_Commands ) {
+        LOG(ERROR, "Invalid callback set for device action topic: %s", topicName? topicName:"");
+        return NULL;
+    }
+
+    /* Set callback */
+    cb = (IoTPDMActionHandler)sub->cbFunc;
+    LOG(DEBUG, "Device Management action callback found for topic: %s", topicName? topicName:"");
+
+    return cb;
+}
 
 /* Update device location */
-void iotp_updateLocationData(IoTPClient *client, char *reqID, cJSON* value)
+static void iotp_updateLocationData(IoTPClient *client, char *reqID, cJSON* value)
 {
-    LOG(DEBUG, "entry::");
-
     double latitude, longitude, elevation,accuracy;
     char* measuredDateTime;
     char* updatedDateTime;
@@ -1300,16 +1407,12 @@ void iotp_updateLocationData(IoTPClient *client, char *reqID, cJSON* value)
         latitude, longitude, elevation, measuredDateTime, updatedDateTime, accuracy, reqID);
 
     iotp_client_publish(client, DM_UPDATE_LOCATION, data, QoS1, NULL);
-
-    LOG(DEBUG, "exit::");
 }
 
 
 /* Update firmware data */
-void iotp_updateFirmwareData(IoTPClient *client, IoTPManagedClient *managedClient, char *reqID, cJSON* value)
+static void iotp_updateFirmwareData(IoTPClient *client, IoTPManagedClient *managedClient, char *reqID, cJSON* value)
 {
-    LOG(DEBUG, "entry::");
-
     char response[128];
 
 /*
@@ -1340,11 +1443,8 @@ void iotp_updateFirmwareData(IoTPClient *client, IoTPManagedClient *managedClien
 
     iotp_client_publish(client, DM_RESPONSE, response, QoS1, NULL);
 
-    LOG(DEBUG, "exit::");
+    return;
 }
-
-
-
 
 /* Handle received messages - invoke the callback. */
 static int iotp_client_dmProcessReponse(void *context, char *topicName, int topicLen, MQTTAsync_message * message)
@@ -1352,7 +1452,6 @@ static int iotp_client_dmProcessReponse(void *context, char *topicName, int topi
     IOTPRC rc = IOTPRC_SUCCESS;
     IoTPClient *client = (IoTPClient *)context;
     IoTPManagedClient *managedClient = NULL;
-
 
     /* sanity check */
     if (client == NULL || (client && client->config == NULL)) {
@@ -1363,30 +1462,8 @@ static int iotp_client_dmProcessReponse(void *context, char *topicName, int topi
 
     managedClient = client->managedClient;
 
-    /* check for callbacks */
-    if ( client->handlers->count == 0 ) {
-        /* no callback is configured */
-        rc = IOTPRC_HANDLER_NOT_FOUND;
-        goto dmmsg_processed;
-    }
-
-    /* get callback */
-    IoTPHandler * sub = iotp_client_getHandler(client->handlers, topicName);
-    if ( sub == NULL ) {
-        /* no callback is configured */
-        rc = IOTPRC_HANDLER_NOT_FOUND;
-        LOG(ERROR, "Callback not found for topic: %s", topicName? topicName:"");
-        goto dmmsg_processed;
-    }
-
-    /* Processing gateway/device commands - Callback type should be greater than IoTP_Handler_Commands */
-    if ( sub->type < IoTP_Handler_Commands ) {
-        rc = IOTPRC_HANDLER_INVALID;
-        goto dmmsg_processed;
-    }
-
-    /* Set callback */
-    IoTPDMActionHandler cb = (IoTPDMActionHandler)sub->cbFunc;
+    /* Get callback */
+    IoTPDMActionHandler cb = iotp_getActionCallback(client, topicName);
 
     if ( cb != 0 ) {
         /* Process incoming message if callback is defined */
@@ -1395,7 +1472,8 @@ static int iotp_client_dmProcessReponse(void *context, char *topicName, int topi
         void *payload = message->payload;
         size_t payloadlen = message->payloadlen;
         char *pl = (char*) malloc(payloadlen+1);
-        strncpy(pl, payload, payloadlen+1);
+        memset(pl, 0, payloadlen+1);
+        strncpy(pl, payload, payloadlen);
         reqID = strtok(pl, ",");
         status= strtok(NULL, ",");
 
@@ -1410,7 +1488,7 @@ static int iotp_client_dmProcessReponse(void *context, char *topicName, int topi
         LOG(INFO, "Context:%x Status:%s reqID:%s payload:%s", context, status, reqID, pl);
 
         /* Invoke callback if returned request ID matches with request ID of the client */
-        if (managedClient->reqID && !strcmp(managedClient->reqID, reqID))
+        if (managedClient && managedClient->reqID && !strcmp(managedClient->reqID, reqID))
         {
             LOG(DEBUG, "Calling registered callabck to process the device management message");
             (*cb)(IoTP_DMResponse, reqID, payload, payloadlen);
@@ -1428,7 +1506,7 @@ dmmsg_processed:
 
 
 /* Handle firmware download message */
-int iotp_client_dmProcessFirmwareDownload(void *context, char *topicName, int topicLen, MQTTAsync_message * message)
+static int iotp_client_dmProcessFirmwareDownload(void *context, char *topicName, int topicLen, MQTTAsync_message * message)
 {
     IOTPRC rc = IOTPRC_SUCCESS;
     IoTPClient *client = (IoTPClient *)context;
@@ -1442,29 +1520,20 @@ int iotp_client_dmProcessFirmwareDownload(void *context, char *topicName, int to
     }
 
     managedClient = client->managedClient;
-
-    /* get DM Action callback */
-    IoTPHandler * sub = iotp_client_getHandler(client->handlers, topicName);
-    if ( sub == NULL ) {
-        /* no callback is configured */
-        rc = IOTPRC_HANDLER_NOT_FOUND;
-        LOG(ERROR, "Callback not found for topic: %s", topicName? topicName:"");
+    if (managedClient != NULL && managedClient->deviceFirmware.state != FIRMWARESTATE_IDLE) {
+        rc = DM_ACTION_RC_BAD_REQUEST;
+        LOG(DEBUG,"Cannot download as the device is not in the idle state");
         return rc;
     }
 
-    /* Processing gateway/device commands - Callback type should be greater than IoTP_Handler_Commands */
-    if ( sub->type < IoTP_Handler_Commands ) {
-        rc = IOTPRC_HANDLER_INVALID;
-        return rc;
-    }
-
-    /* Set callback */
-    IoTPDMActionHandler cb = (IoTPDMActionHandler)sub->cbFunc;
+    /* Get callback */
+    IoTPDMActionHandler cb = iotp_getActionCallback(client, topicName);
 
     void *payload = message->payload;
     size_t payloadlen = message->payloadlen;
     char *pl = (char*) malloc(payloadlen+1);
-    strncpy(pl, payload, payloadlen+1);
+    memset(pl, 0, payloadlen+1);
+    strncpy(pl, payload, payloadlen);
 
     cJSON * jsonPayload = cJSON_Parse(pl);
     char *reqID = cJSON_GetObjectItem(jsonPayload, "reqId")->valuestring;
@@ -1475,28 +1544,18 @@ int iotp_client_dmProcessFirmwareDownload(void *context, char *topicName, int to
         managedClient->reqID = savedReqID;
     }
 
-    LOG(DEBUG, "Received reqId:%s", reqID);
-
-    if (managedClient->deviceFirmware.state != FIRMWARESTATE_IDLE) {
-        rc = DM_ACTION_RC_BAD_REQUEST;
-        LOG(DEBUG,"Cannot download as the device is not in the idle state");
-    } else {
-        rc = DM_ACTION_RC_RESPONSE_ACCEPTED;
-        LOG(DEBUG,"Firmware Download Initiated");
-    }
+    LOG(DEBUG,"Initiating Firmware Download. reqID: %s", reqID);
 
     char respmsg[128];
-    snprintf(respmsg, 128, "{\"rc\":%d,\"reqId\":%s}", rc, reqID);
+    snprintf(respmsg, 128, "{\"rc\":%d,\"reqId\":%s}", DM_ACTION_RC_RESPONSE_ACCEPTED, reqID);
 
     iotp_client_publish(client, DM_RESPONSE, respmsg, QoS1, NULL);
 
-    if (rc == DM_ACTION_RC_RESPONSE_ACCEPTED) {
-        if ( cb != 0 ) {
-            LOG(DEBUG,"Calling Firmware Download callback");
-            (*cb)(IoTP_DMFirmwareDownload, reqID, payload, payloadlen);
-        } else {
-            LOG(ERROR, "Firmware download callback is not set.");
-        }
+    if ( cb != 0 ) {
+        LOG(DEBUG,"Calling Firmware Download callback");
+        (*cb)(IoTP_DMFirmwareDownload, reqID, payload, payloadlen);
+    } else {
+        LOG(ERROR, "Firmware download callback is not set.");
     }
 
     free(pl);
@@ -1519,29 +1578,20 @@ int iotp_client_dmProcessFirmwareUpdate(void *context, char *topicName, int topi
     }
 
     managedClient = client->managedClient;
-
-    /* get DM Action callback */
-    IoTPHandler * sub = iotp_client_getHandler(client->handlers, topicName);
-    if ( sub == NULL ) {
-        /* no callback is configured */
-        rc = IOTPRC_HANDLER_NOT_FOUND;
-        LOG(ERROR, "Callback not found for topic: %s", topicName? topicName:"");
+    if (managedClient != NULL && managedClient->deviceFirmware.state != FIRMWARESTATE_DOWNLOADED) {
+        rc = DM_ACTION_RC_BAD_REQUEST;
+        LOG(DEBUG,"Cannot update firmware and firmware image is not downloaded yet.");
         return rc;
     }
 
-    /* Processing gateway/device commands - Callback type should be greater than IoTP_Handler_Commands */
-    if ( sub->type < IoTP_Handler_Commands ) {
-        rc = IOTPRC_HANDLER_INVALID;
-        return rc;
-    }
-
-    /* Set callback */
-    IoTPDMActionHandler cb = (IoTPDMActionHandler)sub->cbFunc;
+    /* Get callback */
+    IoTPDMActionHandler cb = iotp_getActionCallback(client, topicName);
 
     void *payload = message->payload;
     size_t payloadlen = message->payloadlen;
     char *pl = (char*) malloc(payloadlen+1);
-    strncpy(pl, payload, payloadlen+1);
+    memset(pl, 0, payloadlen+1);
+    strncpy(pl, payload, payloadlen);
 
     cJSON * jsonPayload = cJSON_Parse(pl);
     char *reqID = cJSON_GetObjectItem(jsonPayload, "reqId")->valuestring;
@@ -1552,34 +1602,23 @@ int iotp_client_dmProcessFirmwareUpdate(void *context, char *topicName, int topi
         managedClient->reqID = savedReqID;
     }
 
-    LOG(DEBUG, "Received reqId:%s", reqID);
-
-    if (managedClient->deviceFirmware.state != FIRMWARESTATE_DOWNLOADED) {
-        rc = DM_ACTION_RC_BAD_REQUEST;
-        LOG(DEBUG,"Cannot update firmware and firmware image is not downloaded yet.");
-    } else {
-        rc = DM_ACTION_RC_RESPONSE_ACCEPTED;
-        LOG(DEBUG,"Firmware Download Initiated");
-    }
+    LOG(DEBUG, "Initiating Firmware Update. reqId:%s", reqID);
 
     char respmsg[128];
-    snprintf(respmsg, 128, "{\"rc\":%d,\"reqId\":%s}", rc, reqID);
+    snprintf(respmsg, 128, "{\"rc\":%d,\"reqId\":%s}", DM_ACTION_RC_RESPONSE_ACCEPTED, reqID);
 
     iotp_client_publish(client, DM_RESPONSE, respmsg, QoS1, NULL);
 
-    if (rc == DM_ACTION_RC_RESPONSE_ACCEPTED) {
-        if ( cb != 0 ) {
-            LOG(DEBUG,"Calling Firmware Download callback");
-            (*cb)(IoTP_DMFirmwareUpdate, reqID, payload, payloadlen);
-        } else {
-            LOG(ERROR, "Firmware download callback is not set.");
-        }
+    if ( cb != 0 ) {
+        LOG(DEBUG,"Calling Firmware Download callback");
+        (*cb)(IoTP_DMFirmwareUpdate, reqID, payload, payloadlen);
+    } else {
+        LOG(ERROR, "Firmware download callback is not set.");
     }
 
     free(pl);
     return rc;
 }
-
 
 
 /* Handle update message */
@@ -1602,7 +1641,8 @@ int iotp_client_dmProcessUpdate(void *context, char *topicName, int topicLen, MQ
     void *payload = message->payload;
     size_t payloadlen = message->payloadlen;
     char *pl = (char*) malloc(payloadlen+1);
-    strncpy(pl, payload, payloadlen+1);
+    memset(pl, 0, payloadlen+1);
+    strncpy(pl, payload, payloadlen);
 
     int i = 0;
     cJSON * jsonPayload = cJSON_Parse(pl);
@@ -1663,28 +1703,14 @@ int iotp_client_dmProcessRebootReset(void *context, char *topicName, int topicLe
 
     managedClient = client->managedClient;
 
-    /* get DM Action callback */
-    IoTPHandler * sub = iotp_client_getHandler(client->handlers, topicName);
-    if ( sub == NULL ) {
-        /* no callback is configured */
-        rc = IOTPRC_HANDLER_NOT_FOUND;
-        LOG(ERROR, "Callback not found for topic: %s", topicName? topicName:"");
-        return rc;
-    }
-
-    /* Processing gateway/device commands - Callback type should be greater than IoTP_Handler_Commands */
-    if ( sub->type < IoTP_Handler_Commands ) {
-        rc = IOTPRC_HANDLER_INVALID;
-        return rc;
-    }
-
-    /* Set callback */
-    IoTPDMActionHandler cb = (IoTPDMActionHandler)sub->cbFunc;
+    /* Get callback */
+    IoTPDMActionHandler cb = iotp_getActionCallback(client, topicName);
 
     void *payload = message->payload;
     size_t payloadlen = message->payloadlen;
     char *pl = (char*) malloc(payloadlen+1);
-    strncpy(pl, payload, payloadlen+1);
+    memset(pl, 0, payloadlen+1);
+    strncpy(pl, payload, payloadlen);
 
     cJSON * jsonPayload = cJSON_Parse(pl);
     char *reqID = cJSON_GetObjectItem(jsonPayload, "reqId")->valuestring;
@@ -1703,7 +1729,7 @@ int iotp_client_dmProcessRebootReset(void *context, char *topicName, int topicLe
             (*cb)(IoTP_DMReboot, reqID, payload, payloadlen);
         } else {
             LOG(DEBUG,"Calling device reset callback");
-            (*cb)(IoTP_DMReboot, reqID, payload, payloadlen);
+            (*cb)(IoTP_DMFactoryReset, reqID, payload, payloadlen);
         }
     } else {
         LOG(ERROR, "Firmware download callback is not set.");
@@ -1714,8 +1740,8 @@ int iotp_client_dmProcessRebootReset(void *context, char *topicName, int topicLe
 }
 
 
-/* Handle Observ message */
-int iotp_client_dmProcessObserv(void *context, char *topicName, int topicLen, MQTTAsync_message * message)
+/* Handle Observe action */
+int iotp_client_dmProcessObserve(void *context, char *topicName, int topicLen, MQTTAsync_message * message)
 {
     IOTPRC rc = IOTPRC_SUCCESS;
     IoTPClient *client = (IoTPClient *)context;
@@ -1733,7 +1759,8 @@ int iotp_client_dmProcessObserv(void *context, char *topicName, int topicLen, MQ
     void *payload = message->payload;
     size_t payloadlen = message->payloadlen;
     char *pl = (char*) malloc(payloadlen+1);
-    strncpy(pl, payload, payloadlen+1);
+    memset(pl, 0, payloadlen+1);
+    strncpy(pl, payload, payloadlen);
 
     cJSON * jsonPayload = cJSON_Parse(pl);
     char *reqID = cJSON_GetObjectItem(jsonPayload, "reqId")->valuestring;
@@ -1773,7 +1800,8 @@ int iotp_client_dmProcessCancel(void *context, char *topicName, int topicLen, MQ
     void *payload = message->payload;
     size_t payloadlen = message->payloadlen;
     char *pl = (char*) malloc(payloadlen+1);
-    strncpy(pl, payload, payloadlen+1);
+    memset(pl, 0, payloadlen+1);
+    strncpy(pl, payload, payloadlen);
 
     cJSON * jsonPayload = cJSON_Parse(pl);
     char *reqID = cJSON_GetObjectItem(jsonPayload, "reqId")->valuestring;
@@ -1795,7 +1823,7 @@ int iotp_client_dmProcessCancel(void *context, char *topicName, int topicLen, MQ
         LOG(DEBUG,"Cancel called for fieldName:%s", fieldName->valuestring);
 
         if (!strcmp(fieldName->valuestring, "mgmt.firmware")) {
-            managedClient->observ = 0;
+            managedClient->observe = 0;
             char respmsg[256];
             sprintf(respmsg,"{\"rc\":%d,\"reqId\":%s}", DM_ACTION_RC_RESPONSE_SUCCESS, reqID);
             iotp_client_publish(client, DM_RESPONSE, respmsg, QoS1, NULL);
@@ -1819,23 +1847,17 @@ static int iotp_client_dmMessageArrived(void *context, char *topicName, int topi
     if (client == NULL || (client && client->config == NULL)) {
         rc = IOTPRC_INVALID_HANDLE;
         LOG(ERROR, "Invalid client handle: rc=%d", rc);
-        goto dmmsg_processed;
+        return rc;
     }
 
     managedClient = client->managedClient;
-
-    /* check for callbacks */
-    if ( client->handlers->count == 0 ) {
-        /* no callback is configured */
-        rc = IOTPRC_HANDLER_NOT_FOUND;
-        goto dmmsg_processed;
+    if ( managedClient == NULL ) {
+        rc = IOTPRC_INVALID_HANDLE;
+        LOG(ERROR, "Not a managed client: rc=%d", rc);
+        return rc;
     }
 
-    if ( topicLen > 4096 ) {
-        rc = IOTPRC_ARGS_INVALID_VALUE;
-        goto dmmsg_processed;
-    }
-
+    /* invoke DM action processing functions based on topic name */
     if (!strcmp(topicName, DM_ACTION_RESPONSE)){
         iotp_client_dmProcessReponse(context, topicName, topicLen, message);
     } else if (!strcmp(topicName, DM_ACTION_FIRMWAREDOWNLOAD)) {
@@ -1849,12 +1871,11 @@ static int iotp_client_dmMessageArrived(void *context, char *topicName, int topi
     } else if (!strcmp(topicName, DM_ACTION_FACTORYRESET)) {
         iotp_client_dmProcessRebootReset(context, topicName, topicLen, message, 0);
     } else if (!strcmp(topicName, DM_ACTION_OBSERVE)) {
-        iotp_client_dmProcessObserv(context, topicName, topicLen, message);
+        iotp_client_dmProcessObserve(context, topicName, topicLen, message);
     } else if (!strcmp(topicName, DM_ACTION_CANCEL)) {
         iotp_client_dmProcessCancel(context, topicName, topicLen, message);
     }
 
-dmmsg_processed:
     return rc;
 }
 

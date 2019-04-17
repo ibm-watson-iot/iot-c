@@ -229,7 +229,7 @@ typedef struct IoTPManagedClient {
     int                lifetime;
     int                supportsDeviceActions;
     int                supportsFirmwareActions;
-    int                observ;
+    int                observe;
     char *             metadata;
     char *             deviceInfo; 
     IoTPClientLocation deviceLocation;
@@ -324,6 +324,7 @@ DLLExport IOTPRC iotp_client_setMQTTLogHandler(void *client, IoTPLogHandler *cb)
 DLLExport IOTPRC iotp_client_manage(void * client);
 DLLExport IOTPRC iotp_client_unmanage(void * client, char *reqId);
 DLLExport IOTPRC iotp_client_setAttribute(void *client, char *name, char *value);
+DLLExport IOTPRC iotp_client_setActionHandler(void *iotpClient, IoTP_DMAction_type_t type, IoTPDMActionHandler cbFunc);
 
 
 /*

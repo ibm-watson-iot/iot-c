@@ -277,3 +277,17 @@ IOTPRC IoTPManagedDevice_unmanage(IoTPManagedDevice *managedDevice, char * reqId
 }
 
 
+/* Sets DM Action handler */
+IOTPRC IoTPManagedDevice_setActionHandler(IoTPManagedDevice *managedDevice, IoTP_DMAction_type_t type, IoTPDMActionHandler cb)
+{
+    IOTPRC rc = IOTPRC_SUCCESS;
+
+    rc = iotp_client_setActionHandler((void *)managedDevice, type, cb);
+    if ( rc != IOTPRC_SUCCESS ) {
+        LOG(ERROR, "Failed to set DM Action handler: rc=%d", rc);
+    }
+
+    return rc;
+}
+
+
