@@ -1710,13 +1710,101 @@ int iotp_client_dmProcessRebootReset(void *context, char *topicName, int topicLe
     }
 
     free(pl);
-
-dmmsg_processed:
-    LOG(DEBUG, "exit::");
     return rc;
 }
 
 
+/* Handle Observ message */
+int iotp_client_dmProcessObserv(void *context, char *topicName, int topicLen, MQTTAsync_message * message)
+{
+    IOTPRC rc = IOTPRC_SUCCESS;
+    IoTPClient *client = (IoTPClient *)context;
+    IoTPManagedClient *managedClient = NULL;
+
+    /* sanity check */
+    if (client == NULL || (client && client->config == NULL)) {
+        rc = IOTPRC_INVALID_HANDLE;
+        LOG(ERROR, "Invalid client handle: rc=%d", rc);
+        return rc;
+    }
+
+    managedClient = client->managedClient;
+
+    void *payload = message->payload;
+    size_t payloadlen = message->payloadlen;
+    char *pl = (char*) malloc(payloadlen+1);
+    strncpy(pl, payload, payloadlen+1);
+
+    cJSON * jsonPayload = cJSON_Parse(pl);
+    char *reqID = cJSON_GetObjectItem(jsonPayload, "reqId")->valuestring;
+    char *savedReqID = managedClient->reqID;
+    if ( savedReqID != NULL && reqID != NULL ) {
+        free(savedReqID);
+        savedReqID = strdup(reqID);
+        managedClient->reqID = savedReqID;
+    }
+
+    LOG(DEBUG, "Received reqId:%s", reqID);
+
+    char respmsg[256];
+    char *plFormat = "{\"rc\":%d,\"reqId\":\"%s\",\"d\":{\"fields\":[{\"field\":\"mgmt.firmware\",\"value\":{\"state\":0,\"updateStatus\":0}}]}}";
+    snprintf(respmsg, 256, plFormat, DM_ACTION_RC_RESPONSE_SUCCESS, reqID);
+    iotp_client_publish(client, DM_RESPONSE, respmsg, QoS1, NULL);
+    free(pl);
+    return rc;
+}
+
+/* Handle cancel action */
+int iotp_client_dmProcessCancel(void *context, char *topicName, int topicLen, MQTTAsync_message * message)
+{
+    IOTPRC rc = IOTPRC_SUCCESS;
+    IoTPClient *client = (IoTPClient *)context;
+    IoTPManagedClient *managedClient = NULL;
+
+    /* sanity check */
+    if (client == NULL || (client && client->config == NULL)) {
+        rc = IOTPRC_INVALID_HANDLE;
+        LOG(ERROR, "Invalid client handle: rc=%d", rc);
+        return rc;
+    }
+
+    managedClient = client->managedClient;
+
+    void *payload = message->payload;
+    size_t payloadlen = message->payloadlen;
+    char *pl = (char*) malloc(payloadlen+1);
+    strncpy(pl, payload, payloadlen+1);
+
+    cJSON * jsonPayload = cJSON_Parse(pl);
+    char *reqID = cJSON_GetObjectItem(jsonPayload, "reqId")->valuestring;
+    char *savedReqID = managedClient->reqID;
+    if ( savedReqID != NULL && reqID != NULL ) {
+        free(savedReqID);
+        savedReqID = strdup(reqID);
+        managedClient->reqID = savedReqID;
+    }
+
+    LOG(DEBUG, "Received reqId:%s", reqID);
+
+    cJSON *d = cJSON_GetObjectItem(jsonPayload, "d");
+    cJSON *fields = cJSON_GetObjectItem(d, "fields");
+    int i = 0;
+    for (i = 0; i < cJSON_GetArraySize(fields); i++) {
+        cJSON * field = cJSON_GetArrayItem(fields, i);
+        cJSON* fieldName = cJSON_GetObjectItem(field, "field");
+        LOG(DEBUG,"Cancel called for fieldName:%s", fieldName->valuestring);
+
+        if (!strcmp(fieldName->valuestring, "mgmt.firmware")) {
+            managedClient->observ = 0;
+            char respmsg[256];
+            sprintf(respmsg,"{\"rc\":%d,\"reqId\":%s}", DM_ACTION_RC_RESPONSE_SUCCESS, reqID);
+            iotp_client_publish(client, DM_RESPONSE, respmsg, QoS1, NULL);
+        }
+    }
+
+    free(pl);
+    return rc;
+}
 
 
 
@@ -1760,19 +1848,13 @@ static int iotp_client_dmMessageArrived(void *context, char *topicName, int topi
         iotp_client_dmProcessRebootReset(context, topicName, topicLen, message, 1);
     } else if (!strcmp(topicName, DM_ACTION_FACTORYRESET)) {
         iotp_client_dmProcessRebootReset(context, topicName, topicLen, message, 0);
+    } else if (!strcmp(topicName, DM_ACTION_OBSERVE)) {
+        iotp_client_dmProcessObserv(context, topicName, topicLen, message);
+    } else if (!strcmp(topicName, DM_ACTION_CANCEL)) {
+        iotp_client_dmProcessCancel(context, topicName, topicLen, message);
     }
-
-/*
-    } else if (!strcmp(topic, DMOBSERVE)) {
-        iotp_client_dmProcessObserve(payload);
-    } else if (!strcmp(topic, DMCANCEL)) {
-        iotp_client_dmProcessCancel(payload);
-    }
-*/
-
 
 dmmsg_processed:
-
     return rc;
 }
 

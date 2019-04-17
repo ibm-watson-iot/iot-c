@@ -229,6 +229,7 @@ typedef struct IoTPManagedClient {
     int                lifetime;
     int                supportsDeviceActions;
     int                supportsFirmwareActions;
+    int                observ;
     char *             metadata;
     char *             deviceInfo; 
     IoTPClientLocation deviceLocation;
