@@ -226,12 +226,16 @@ typedef struct {
 
 /* Managed Client */
 typedef struct IoTPManagedClient {
-    char * metadata;
-    int    lifetime;
-    int    supportsDeviceActions;
-    int    supportsFirmwareActions;
-    char * deviceInfo; 
-    char * reqID;
+    int                lifetime;
+    int                supportsDeviceActions;
+    int                supportsFirmwareActions;
+    char *             metadata;
+    char *             deviceInfo; 
+    IoTPClientLocation deviceLocation;
+    IoTPClientFirmware deviceFirmware;
+    IoTPClientAction   deviceAction;
+    char *             reqID;
+    int                rc;
 } IoTPManagedClient;
 
 /* Strcture for IoTP client object */
@@ -278,6 +282,30 @@ typedef struct IoTPClient {
 #define DM_ACTION_ROOTTOPIC         "iotdm-1/"
 #define DM_ACTION_ROOTTOPIC_LEN     8
 
+/* Device action response code */
+#define DM_ACTION_RC_REBOOT_INITIATED            202
+#define DM_ACTION_RC_REBOOT_FAILED               500
+#define DM_ACTION_RC_REBOOT_NOTSUPPORTED         501
+#define DM_ACTION_RC_FACTORYRESET_INITIATED      202
+#define DM_ACTION_RC_FACTORYRESET_FAILED         500
+#define DM_ACTION_RC_FACTORYRESET_NOTSUPPORTED   501
+#define DM_ACTION_RC_UPDATE_SUCCESS              204
+#define DM_ACTION_RC_RESPONSE_SUCCESS            200
+#define DM_ACTION_RC_RESPONSE_ACCEPTED           202
+#define DM_ACTION_RC_BAD_REQUEST                 400
+#define DM_ACTION_RC_UPDATE_SUCCESS              204
+
+/* DM Action state */
+#define FIRMWARESTATE_IDLE                 0
+#define FIRMWARESTATE_DOWNLOADING          1
+#define FIRMWARESTATE_DOWNLOADED           2
+#define FIRMWAREUPDATE_SUCCESS             0
+#define FIRMWAREUPDATE_INPROGRESS          1
+#define FIRMWAREUPDATE_OUTOFMEMORY         2
+#define FIRMWAREUPDATE_CONNECTIONLOST      3
+#define FIRMWAREUPDATE_VERIFICATIONFAILED  4
+#define FIRMWAREUPDATE_UNSUPPORTEDIMAGE    5
+#define FIRMWAREUPDATE_INVALIDURL          6
 
 
 /* Prototype of internal functions */

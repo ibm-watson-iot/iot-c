@@ -1,5 +1,4 @@
-/*******************************************************************************
- * Copyright (c) 2019 IBM Corp.
+/******************************************************************************* * Copyright (c) 2019 IBM Corp.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -187,6 +186,13 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
+    /*
+     * Set device command callback using API IoTPDevice_setCommandHandler().
+     * Refer to deviceCommandCallback() function DEV_NOTES for details on
+     * how to process device commands received from WIoTP.
+     */
+    IoTPManagedDevice_setCommandHandler(device, deviceCommandCallback);
+
     /* set managed device attribute */
     rc = IoTPManagedDevice_setAttribute(device, "lifetime", "180");
     rc |= IoTPManagedDevice_setAttribute(device, "deviceActions", "1");
@@ -204,20 +210,13 @@ int main(int argc, char *argv[])
     }
 
     /*
-     * Set device command callback using API IoTPDevice_setCommandHandler().
-     * Refer to deviceCommandCallback() function DEV_NOTES for details on
-     * how to process device commands received from WIoTP.
-     */
-    IoTPManagedDevice_setCommandHandler(device, deviceCommandCallback);
-
-    /*
      * Invoke device command subscription API IoTPDevice_subscribeToCommands().
      * The arguments for this API are commandName, format, QoS
      * If you want to subscribe to all commands of any format, set commandName and format to "+"
      */
     char *commandName = "+";
     char *format = "+";
-    IoTPManagedDevice_subscribeToCommands(device, commandName, format);
+    // IoTPManagedDevice_subscribeToCommands(device, commandName, format);
 
 
     /* Use IoTPDevice_sendEvent() API to send device events to Watson IoT Platform. */
@@ -228,7 +227,7 @@ int main(int argc, char *argv[])
     while(!interrupt)
     {
         fprintf(stdout, "Send status event\n");
-        rc = IoTPManagedDevice_sendEvent(device,"status", data, "json", QoS0, NULL);
+        // rc = IoTPManagedDevice_sendEvent(device,"status", data, "json", QoS0, NULL);
         fprintf(stdout, "RC from publishEvent(): %d\n", rc);
 
         if ( testCycle > 0 ) {
