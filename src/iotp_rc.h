@@ -130,7 +130,19 @@ typedef enum {
     IOTPRC_DM_ACTION_FAILED = 1021,
 
     /** Device management action is not supported */
-    IOTPRC_DM_ACTION_NOT_SUPPORTED = 1022
+    IOTPRC_DM_ACTION_NOT_SUPPORTED = 1022,
+
+    /** Device management reponse parse error */
+    IOTPRC_DM_RESPONSE_PARSE_ERROR = 1023,
+
+    /** NULL request ID in device management reponse */
+    IOTPRC_DM_RESPONSE_NULL_REQID = 1024,
+
+    /** Invalid request ID in device management reponse */
+    IOTPRC_DM_RESPONSE_INVALID_REQID = 1025,
+
+    /** Callback is not set for device management action */
+    IOTPRC_DM_ACTION_NO_CALLBACK = 1026
 
 } IOTPRC;
 

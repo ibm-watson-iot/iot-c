@@ -20,7 +20,7 @@
 
 #include "iotp_utils.h"
 #include "iotp_internal.h"
-#include "cJSON.h"
+#include "Thread.h"
 
 /*
  * Structure with DM action type and topic mapping 
@@ -43,9 +43,11 @@ static struct {
 
 #define numActionTopic  (sizeof(dmActionTopics)/sizeof(dmActionTopics[0]))
 
-
 static int iotp_client_messageArrived(void *context, char *topicName, int topicLen, MQTTAsync_message * message);
 static int iotp_client_dmMessageArrived(void *context, char *topicName, int topicLen, MQTTAsync_message * message);
+
+static pthread_mutex_t managed_mutex_store = PTHREAD_MUTEX_INITIALIZER;
+static mutex_type managed_mutex = &managed_mutex_store;
 
 /* Add callback handler to the handler list */
 static IOTPRC iotp_add_handler(IoTPHandlers * handlers, IoTPHandler * handler) 
@@ -1211,7 +1213,9 @@ IOTPRC iotp_client_setAttribute(void *iotpClient, char *name, char *value)
 
     /* set lifetime */
     if ( name && strcasecmp(name, "lifetime") == 0 ) {
-        managedClient->lifetime = atoi(value);
+        int lifetime = atoi(value);
+        if ( lifetime < 3600 ) lifetime = 0;
+        managedClient->lifetime = lifetime;
     }
  
     /* set deviceActions */
@@ -1246,6 +1250,9 @@ IOTPRC iotp_client_manage(void *iotpClient)
     char *plFormat = "{\"d\":{\"metadata\":%s ,\"lifetime\":%ld,\"supports\":{\"deviceActions\":%d,\"firmwareActions\":%d},\"deviceInfo\":%s},\"reqId\":\"%s\"}";
     int fmLen = strlen(plFormat);
 
+    pthread_mutexattr_t attr;
+    pthread_mutexattr_init(&attr);
+
     /* verify handle */
     if ( !client || client->managedClient == NULL ) {
         rc = IOTPRC_INVALID_HANDLE;
@@ -1259,6 +1266,11 @@ IOTPRC iotp_client_manage(void *iotpClient)
     }
 
     managedClient = client->managedClient;
+
+    if ((rc = pthread_mutex_init(managed_mutex, &attr)) != 0) {
+        LOG(ERROR, "Error %d initializing managed_mutex\n", rc);
+        return rc;
+    }
 
     /* set request ID */
     if ( managedClient->reqID == NULL ) {
@@ -1281,7 +1293,7 @@ IOTPRC iotp_client_manage(void *iotpClient)
     dInfoLen = strlen(dInfo);
 
     plLen = fmLen + mDataLen + dInfoLen + reqIdLen + 10;
-    payload = (char *)malloc(plLen);
+    payload = (char *)calloc(1, plLen);
 
     snprintf(payload, plLen, plFormat, mData, managedClient->lifetime, managedClient->supportsDeviceActions,
         managedClient->supportsFirmwareActions, dInfo, reqId);
@@ -1387,220 +1399,162 @@ static IoTPDMActionHandler iotp_getActionCallback(IoTPClient *client, char *topi
 }
 
 /* Update device location */
-static void iotp_updateLocationData(IoTPClient *client, char *reqID, cJSON* value)
+static int iotp_updateLocationData(IoTPClient *client, char *reqID, int loc, int max, IoTP_json_parse_t *pobj)
 {
-    double latitude, longitude, elevation,accuracy;
+    double latitude, longitude, elevation, accuracy;
     char* measuredDateTime;
     char* updatedDateTime;
 
-    latitude = cJSON_GetObjectItem(value,"latitude")->valuedouble;
-    longitude = cJSON_GetObjectItem(value,"longitude")->valuedouble;
-    elevation = cJSON_GetObjectItem(value,"elevation")->valuedouble;
-    accuracy = cJSON_GetObjectItem(value,"accuracy")->valuedouble;
-    measuredDateTime = cJSON_GetObjectItem(value,"measuredDateTime")->valuestring;
-    updatedDateTime = cJSON_GetObjectItem(value,"updatedDateTime")->valuestring;
+    LOG(DEBUG,"Update location data");
 
-    LOG(DEBUG,"Calling updateLocationHandler");
+    while ( loc <= max ) {
+        IoTP_json_entry_t * ent = pobj->ent+loc;
+        if ( ent->objtype == JSON_Object || ent->objtype == JSON_Array ) break;
+
+        if (ent->name && !strcmp(ent->name, "latitude")) {
+            latitude = strtod(ent->value, NULL);
+        } else if (ent->name && !strcmp(ent->name, "longitude")) {
+            longitude = strtod(ent->value, NULL);
+        } else if (ent->name && !strcmp(ent->name, "elevation")) {
+            elevation = strtod(ent->value, NULL);
+        } else if (ent->name && !strcmp(ent->name, "accuracy")) {
+            accuracy = strtod(ent->value, NULL);
+        } else if (ent->name && !strcmp(ent->name, "measuredDateTime")) {
+            measuredDateTime = (char *)ent->value;
+        } else if (ent->name && !strcmp(ent->name, "updatedDateTime")) {
+            updatedDateTime = (char *)ent->value;
+        }
+        loc++;
+    }
 
     char data[1024];
     snprintf(data, 1024, "{\"d\":{\"longitude\":%f,\"latitude\":%f,\"elevation\":%f,\"measuredDateTime\":\"%s\",\"updatedDateTime\":\"%s\",\"accuracy\":%f},\"reqId\":\"%s\"}",
         latitude, longitude, elevation, measuredDateTime, updatedDateTime, accuracy, reqID);
 
     iotp_client_publish(client, DM_UPDATE_LOCATION, data, QoS1, NULL);
+    return loc;
 }
 
 
 /* Update firmware data */
-static void iotp_updateFirmwareData(IoTPClient *client, IoTPManagedClient *managedClient, char *reqID, cJSON* value)
+static int iotp_updateFirmwareData(IoTPClient *client, IoTPManagedClient *managedClient, char *reqID, int loc, int max, IoTP_json_parse_t *pobj)
 {
     char response[128];
 
-/*
-    strcpy(dmClient.DeviceData.mgmt.firmware.version, cJSON_GetObjectItem(value, "version")->valuestring);
-    LOG(DEBUG,"Firmware Version: %s",dmClient.DeviceData.mgmt.firmware.version);
+    while ( loc <= max ) {
+        IoTP_json_entry_t * ent = pobj->ent+loc;
+        if ( ent->objtype == JSON_Object || ent->objtype == JSON_Array ) break;
 
-    strcpy(dmClient.DeviceData.mgmt.firmware.name, cJSON_GetObjectItem(value, "name")->valuestring);
-    LOG(DEBUG,"Name: %s",dmClient.DeviceData.mgmt.firmware.name);
+        if (ent->name && !strcmp(ent->name, "version")) {
+            if ( managedClient->deviceFirmware.version ) free(managedClient->deviceFirmware.version);
+            managedClient->deviceFirmware.version = ent->value? strdup(ent->value):NULL;
+            LOG(DEBUG,"Firmware Version: %s", managedClient->deviceFirmware.version? managedClient->deviceFirmware.version:"");
+        } else if (ent->name && !strcmp(ent->name, "name")) {
+            if ( managedClient->deviceFirmware.name ) free(managedClient->deviceFirmware.name);
+            managedClient->deviceFirmware.name = ent->value? strdup(ent->value):NULL;
+            LOG(DEBUG,"Firmware Name: %s", managedClient->deviceFirmware.name? managedClient->deviceFirmware.name:"");
+        } else if (ent->name && !strcmp(ent->name, "uri")) {
+            if ( managedClient->deviceFirmware.uri ) free(managedClient->deviceFirmware.uri);
+            managedClient->deviceFirmware.uri = ent->value? strdup(ent->value):NULL;
+            LOG(DEBUG,"Firmware URI: %s", managedClient->deviceFirmware.uri? managedClient->deviceFirmware.uri:"");
+        } else if (ent->name && !strcmp(ent->name, "verifier")) {
+            if ( managedClient->deviceFirmware.verifier ) free(managedClient->deviceFirmware.verifier);
+            managedClient->deviceFirmware.verifier = ent->value? strdup(ent->value):NULL;
+            LOG(DEBUG,"Firmware Verifier: %s", managedClient->deviceFirmware.verifier? managedClient->deviceFirmware.verifier:"");
+        } else if (ent->name && !strcmp(ent->name, "updatedDateTime")) {
+            if ( managedClient->deviceFirmware.updatedDateTime ) free(managedClient->deviceFirmware.updatedDateTime);
+            managedClient->deviceFirmware.updatedDateTime = ent->value? strdup(ent->value):NULL;
+            LOG(DEBUG,"Firmware Update DateTime: %s", managedClient->deviceFirmware.updatedDateTime? managedClient->deviceFirmware.updatedDateTime:"");
+        } else if (ent->name && !strcmp(ent->name, "state")) {
+            managedClient->deviceFirmware.state = ent->count;
+            LOG(DEBUG,"Firmware State: %d", managedClient->deviceFirmware.state);
+        } else if (ent->name && !strcmp(ent->name, "updateStatus")) {
+            managedClient->deviceFirmware.updateStatus = ent->count;
+            LOG(DEBUG,"Firmware Update Status: %d", managedClient->deviceFirmware.updateStatus);
+        }
 
-    strcpy(dmClient.DeviceData.mgmt.firmware.url, cJSON_GetObjectItem(value, "uri")->valuestring);
-    LOG(DEBUG,"URI: %s",dmClient.DeviceData.mgmt.firmware.url);
-
-    strcpy(dmClient.DeviceData.mgmt.firmware.verifier, cJSON_GetObjectItem(value, "verifier")->valuestring);
-    LOG(DEBUG,"Verifier: %s",dmClient.DeviceData.mgmt.firmware.verifier);
-
-    dmClient.DeviceData.mgmt.firmware.state = cJSON_GetObjectItem(value,"state")->valueint;
-    LOG(DEBUG,"State: %d",dmClient.DeviceData.mgmt.firmware.state);
-
-    dmClient.DeviceData.mgmt.firmware.updateStatus = cJSON_GetObjectItem(value,"updateStatus")->valueint;
-    LOG(DEBUG,"updateStatus: %d",dmClient.DeviceData.mgmt.firmware.updateStatus);
-
-    strcpy(dmClient.DeviceData.mgmt.firmware.updatedDateTime, cJSON_GetObjectItem(value, "updatedDateTime")->valuestring);
-    LOG(DEBUG,"updatedDateTime: %s",dmClient.DeviceData.mgmt.firmware.updatedDateTime);
-*/
+        loc++;
+    }
 
     sprintf(response, "{\"rc\":%d,\"reqId\":\"%s\"}", DM_ACTION_RC_UPDATE_SUCCESS, reqID);
-    LOG(DEBUG,"Response: %s",response);
+    LOG(DEBUG,"Response: %s", response);
 
     iotp_client_publish(client, DM_RESPONSE, response, QoS1, NULL);
 
-    return;
+    return loc;
 }
 
 /* Handle received messages - invoke the callback. */
-static int iotp_client_dmProcessReponse(void *context, char *topicName, int topicLen, MQTTAsync_message * message)
+static int iotp_client_dmProcessReponse(IoTPClient *client, IoTPManagedClient *managedClient, char *topicName, int payloadlen, char *pl, IoTP_json_parse_t *pobj, char *reqID)
 {
     IOTPRC rc = IOTPRC_SUCCESS;
-    IoTPClient *client = (IoTPClient *)context;
-    IoTPManagedClient *managedClient = NULL;
-
-    /* sanity check */
-    if (client == NULL || (client && client->config == NULL)) {
-        rc = IOTPRC_INVALID_HANDLE;
-        LOG(ERROR, "Invalid client handle: rc=%d", rc);
-        goto dmmsg_processed;
-    }
-
-    managedClient = client->managedClient;
 
     /* Get callback */
     IoTPDMActionHandler cb = iotp_getActionCallback(client, topicName);
 
+    char *status = iotp_json_getString(pobj, "status");
+
     if ( cb != 0 ) {
-        /* Process incoming message if callback is defined */
-        char *reqID;
-        char *status;
-        void *payload = message->payload;
-        size_t payloadlen = message->payloadlen;
-        char *pl = (char*) malloc(payloadlen+1);
-        memset(pl, 0, payloadlen+1);
-        strncpy(pl, payload, payloadlen);
-        reqID = strtok(pl, ",");
-        status= strtok(NULL, ",");
-
-        reqID = strtok(reqID, ":\"");
-        reqID = strtok(NULL, ":\"");
-        reqID = strtok(NULL, ":\"");
-
-        status= strtok(status, "}");
-        status= strtok(status, ":");
-        status= strtok(NULL, ":");
-
-        LOG(INFO, "Context:%x Status:%s reqID:%s payload:%s", context, status, reqID, pl);
-
         /* Invoke callback if returned request ID matches with request ID of the client */
-        if (managedClient && managedClient->reqID && !strcmp(managedClient->reqID, reqID))
-        {
-            LOG(DEBUG, "Calling registered callabck to process the device management message");
-            (*cb)(IoTP_DMResponse, reqID, payload, payloadlen);
-        }
-
-        free(pl);
+        LOG(INFO, "Invoke registered callback. reqID:%s status:%s", reqID, status?status:"");
+        (*cb)(IoTP_DMResponse, (char *)reqID, pl, payloadlen);
+    } else {
+        rc = IOTPRC_DM_ACTION_NO_CALLBACK;
+        LOG(ERROR, "No registered callback found. reqID:%s status:%s", reqID, status?status:"");
     }
 
-dmmsg_processed:
     if ( rc == IOTPRC_SUCCESS )
         return 1;
 
     return 0;
 }
 
-
 /* Handle firmware download message */
-static int iotp_client_dmProcessFirmwareDownload(void *context, char *topicName, int topicLen, MQTTAsync_message * message)
+static int iotp_client_dmProcessFirmwareDownload(IoTPClient *client, IoTPManagedClient *managedClient, char *topicName, int payloadlen, char *pl, IoTP_json_parse_t *pobj, char *reqID)
 {
     IOTPRC rc = IOTPRC_SUCCESS;
-    IoTPClient *client = (IoTPClient *)context;
-    IoTPManagedClient *managedClient = NULL;
 
-    /* sanity check */
-    if (client == NULL || (client && client->config == NULL)) {
-        rc = IOTPRC_INVALID_HANDLE;
-        LOG(ERROR, "Invalid client handle: rc=%d", rc);
-        return rc;
-    }
-
-    managedClient = client->managedClient;
+    /* check firmware state */
     if (managedClient != NULL && managedClient->deviceFirmware.state != FIRMWARESTATE_IDLE) {
         rc = DM_ACTION_RC_BAD_REQUEST;
-        LOG(DEBUG,"Cannot download as the device is not in the idle state");
+        LOG(ERROR,"Cannot download as the device is not in the idle state");
         return rc;
     }
 
     /* Get callback */
     IoTPDMActionHandler cb = iotp_getActionCallback(client, topicName);
-
-    void *payload = message->payload;
-    size_t payloadlen = message->payloadlen;
-    char *pl = (char*) malloc(payloadlen+1);
-    memset(pl, 0, payloadlen+1);
-    strncpy(pl, payload, payloadlen);
-
-    cJSON * jsonPayload = cJSON_Parse(pl);
-    char *reqID = cJSON_GetObjectItem(jsonPayload, "reqId")->valuestring;
-    char *savedReqID = managedClient->reqID;
-    if ( savedReqID != NULL && reqID != NULL ) {
-        free(savedReqID);
-        savedReqID = strdup(reqID);
-        managedClient->reqID = savedReqID;
-    }
 
     LOG(DEBUG,"Initiating Firmware Download. reqID: %s", reqID);
 
     char respmsg[128];
     snprintf(respmsg, 128, "{\"rc\":%d,\"reqId\":%s}", DM_ACTION_RC_RESPONSE_ACCEPTED, reqID);
-
     iotp_client_publish(client, DM_RESPONSE, respmsg, QoS1, NULL);
 
     if ( cb != 0 ) {
-        LOG(DEBUG,"Calling Firmware Download callback");
-        (*cb)(IoTP_DMFirmwareDownload, reqID, payload, payloadlen);
+        (*cb)(IoTP_DMFirmwareDownload, reqID, pl, payloadlen);
     } else {
         LOG(ERROR, "Firmware download callback is not set.");
     }
 
-    free(pl);
     return rc;
 }
 
 
 /* Handle firmware update */
-int iotp_client_dmProcessFirmwareUpdate(void *context, char *topicName, int topicLen, MQTTAsync_message * message)
+static int iotp_client_dmProcessFirmwareUpdate(IoTPClient *client, IoTPManagedClient *managedClient, char *topicName, int payloadlen, char *pl, IoTP_json_parse_t *pobj, char *reqID)
 {
     IOTPRC rc = IOTPRC_SUCCESS;
-    IoTPClient *client = (IoTPClient *)context;
-    IoTPManagedClient *managedClient = NULL;
 
-    /* sanity check */
-    if (client == NULL || (client && client->config == NULL)) {
-        rc = IOTPRC_INVALID_HANDLE;
-        LOG(ERROR, "Invalid client handle: rc=%d", rc);
-        return rc;
-    }
-
+    /* check managed node firmware state */
     managedClient = client->managedClient;
     if (managedClient != NULL && managedClient->deviceFirmware.state != FIRMWARESTATE_DOWNLOADED) {
         rc = DM_ACTION_RC_BAD_REQUEST;
-        LOG(DEBUG,"Cannot update firmware and firmware image is not downloaded yet.");
+        LOG(ERROR,"The firmware image is not downloaded yet.");
         return rc;
     }
 
     /* Get callback */
     IoTPDMActionHandler cb = iotp_getActionCallback(client, topicName);
-
-    void *payload = message->payload;
-    size_t payloadlen = message->payloadlen;
-    char *pl = (char*) malloc(payloadlen+1);
-    memset(pl, 0, payloadlen+1);
-    strncpy(pl, payload, payloadlen);
-
-    cJSON * jsonPayload = cJSON_Parse(pl);
-    char *reqID = cJSON_GetObjectItem(jsonPayload, "reqId")->valuestring;
-    char *savedReqID = managedClient->reqID;
-    if ( savedReqID != NULL && reqID != NULL ) {
-        free(savedReqID);
-        savedReqID = strdup(reqID);
-        managedClient->reqID = savedReqID;
-    }
 
     LOG(DEBUG, "Initiating Firmware Update. reqId:%s", reqID);
 
@@ -1610,230 +1564,130 @@ int iotp_client_dmProcessFirmwareUpdate(void *context, char *topicName, int topi
     iotp_client_publish(client, DM_RESPONSE, respmsg, QoS1, NULL);
 
     if ( cb != 0 ) {
-        LOG(DEBUG,"Calling Firmware Download callback");
-        (*cb)(IoTP_DMFirmwareUpdate, reqID, payload, payloadlen);
+        (*cb)(IoTP_DMFirmwareUpdate, reqID, pl, payloadlen);
     } else {
         LOG(ERROR, "Firmware download callback is not set.");
     }
 
-    free(pl);
     return rc;
 }
 
 
 /* Handle update message */
-int iotp_client_dmProcessUpdate(void *context, char *topicName, int topicLen, MQTTAsync_message * message)
+static int iotp_client_dmProcessUpdate(IoTPClient *client, IoTPManagedClient *managedClient, char *topicName, int payloadlen, char *pl, IoTP_json_parse_t *pobj, char *reqID)
 {
     IOTPRC rc = IOTPRC_SUCCESS;
-    IoTPClient *client = (IoTPClient *)context;
-    IoTPManagedClient *managedClient = NULL;
 
-    /* sanity check */
-    if (client == NULL || (client && client->config == NULL)) {
-        rc = IOTPRC_INVALID_HANDLE;
-        LOG(ERROR, "Invalid client handle: rc=%d", rc);
-        return rc;
-    }
+    LOG(DEBUG, "Initiate update action. reqID=%s", reqID);
 
-    managedClient = client->managedClient;
-    char *currentRequestID = managedClient->reqID;
+    int entnum = 0;
+    int max = pobj->ent[entnum].count;
+    int dpos = iotp_json_get(pobj, 0, "d");
+    int fpos = iotp_json_get(pobj, dpos, "fields");
 
-    void *payload = message->payload;
-    size_t payloadlen = message->payloadlen;
-    char *pl = (char*) malloc(payloadlen+1);
-    memset(pl, 0, payloadlen+1);
-    strncpy(pl, payload, payloadlen);
-
-    int i = 0;
-    cJSON * jsonPayload = cJSON_Parse(pl);
-    if (jsonPayload) {
-        cJSON* jreqId = cJSON_GetObjectItem(jsonPayload, "reqId");
-        strcpy(currentRequestID, jreqId->valuestring);
-        LOG(DEBUG,"Update reqId: %s",currentRequestID);
-        cJSON *d = cJSON_GetObjectItem(jsonPayload, "d");
-        cJSON *fields = cJSON_GetObjectItem(d, "fields");
-
-        for (i = 0; i < cJSON_GetArraySize(fields); i++) {
-            cJSON * field = cJSON_GetArrayItem(fields, i);
-            cJSON* fieldName = cJSON_GetObjectItem(field, "field");
-            LOG(DEBUG,"Update request received for fieldName: %s",fieldName->valuestring);
-            cJSON * value = cJSON_GetObjectItem(field, "value");
-
-            if (!strcmp(fieldName->valuestring, "location")){
-                LOG(DEBUG,"Calling updateLocationRequest");
-                iotp_updateLocationData(client, currentRequestID, value);
-            }
-            else if (!strcmp(fieldName->valuestring, "mgmt.firmware")){
-                LOG(DEBUG,"Calling updateFirmwareRequest");
-                iotp_updateFirmwareData(client, managedClient, currentRequestID, value);
-            }
-            else if (!strcmp(fieldName->valuestring, "metadata")){
-                LOG(DEBUG,"METADATA not supported");
-            }
-            else if (!strcmp(fieldName->valuestring, "deviceInfo")){
-                LOG(DEBUG,"deviceInfo not supported");
-            }
-            else{
-                LOG(DEBUG, "Fieldname = %s",fieldName->valuestring);
+    /* Process update message */
+    entnum = fpos+1;
+    while ( entnum <= max ) {
+        IoTP_json_entry_t * ent = pobj->ent+entnum;
+        if ( ent->name && !strcmp("field", ent->name)) {
+            if ( ent->value && !strcmp("location", ent->value)) {
+                LOG(DEBUG,"Update Location.");
+                entnum++;
+                IoTP_json_entry_t * nent = pobj->ent+entnum;
+                if ( nent->name && !strcmp("value", nent->name)) {
+                    entnum++;
+                    entnum = iotp_updateLocationData(client, reqID, entnum, max, pobj);
+                }
+            } else if ( ent->value && !strcmp("mgmt.firmware", ent->value)) {
+                printf("Update firmware data.\n");
+                entnum++;
+                IoTP_json_entry_t * nent = pobj->ent+entnum;
+                if ( nent->name && !strcmp("value", nent->name)) {
+                    entnum++;
+                    entnum = iotp_updateFirmwareData(client, managedClient, reqID, entnum, max, pobj);
+                }
+            } else {
+                LOG(DEBUG,"Update is not supported for %s", ent->value? ent->value:"");
             }
         }
-        cJSON_Delete(jsonPayload);
-    } else{
-        LOG(DEBUG, "Error in parsing Json");
+        entnum++;
     }
 
-    LOG(DEBUG, "exit::");
     return rc;
 }
 
-
 /* Handle device reset and rebbot */
-int iotp_client_dmProcessRebootReset(void *context, char *topicName, int topicLen, MQTTAsync_message * message, int isReboot)
+static int iotp_client_dmProcessRebootReset(IoTPClient *client, char *topicName, int payloadlen, char *pl, char *reqID, int isReboot)
 {
     IOTPRC rc = IOTPRC_SUCCESS;
-    IoTPClient *client = (IoTPClient *)context;
-    IoTPManagedClient *managedClient = NULL;
-
-    /* sanity check */
-    if (client == NULL || (client && client->config == NULL)) {
-        rc = IOTPRC_INVALID_HANDLE;
-        LOG(ERROR, "Invalid client handle: rc=%d", rc);
-        return rc;
-    }
-
-    managedClient = client->managedClient;
 
     /* Get callback */
     IoTPDMActionHandler cb = iotp_getActionCallback(client, topicName);
-
-    void *payload = message->payload;
-    size_t payloadlen = message->payloadlen;
-    char *pl = (char*) malloc(payloadlen+1);
-    memset(pl, 0, payloadlen+1);
-    strncpy(pl, payload, payloadlen);
-
-    cJSON * jsonPayload = cJSON_Parse(pl);
-    char *reqID = cJSON_GetObjectItem(jsonPayload, "reqId")->valuestring;
-    char *savedReqID = managedClient->reqID;
-    if ( savedReqID != NULL && reqID != NULL ) {
-        free(savedReqID);
-        savedReqID = strdup(reqID);
-        managedClient->reqID = savedReqID;
-    }
 
     LOG(DEBUG, "Received reqId:%s", reqID);
 
     if ( cb != 0 ) {
         if ( isReboot ) {
-            LOG(DEBUG,"Calling device reboot callback");
-            (*cb)(IoTP_DMReboot, reqID, payload, payloadlen);
+            LOG(DEBUG,"Invoking device reboot callback");
+            (*cb)(IoTP_DMReboot, reqID, pl, payloadlen);
         } else {
-            LOG(DEBUG,"Calling device reset callback");
-            (*cb)(IoTP_DMFactoryReset, reqID, payload, payloadlen);
+            LOG(DEBUG,"Invoking device reset callback");
+            (*cb)(IoTP_DMFactoryReset, reqID, pl, payloadlen);
         }
     } else {
         LOG(ERROR, "Firmware download callback is not set.");
     }
 
-    free(pl);
     return rc;
 }
 
-
 /* Handle Observe action */
-int iotp_client_dmProcessObserve(void *context, char *topicName, int topicLen, MQTTAsync_message * message)
+static int iotp_client_dmProcessObserve(IoTPClient *client, char *reqID)
 {
     IOTPRC rc = IOTPRC_SUCCESS;
-    IoTPClient *client = (IoTPClient *)context;
-    IoTPManagedClient *managedClient = NULL;
 
-    /* sanity check */
-    if (client == NULL || (client && client->config == NULL)) {
-        rc = IOTPRC_INVALID_HANDLE;
-        LOG(ERROR, "Invalid client handle: rc=%d", rc);
-        return rc;
-    }
-
-    managedClient = client->managedClient;
-
-    void *payload = message->payload;
-    size_t payloadlen = message->payloadlen;
-    char *pl = (char*) malloc(payloadlen+1);
-    memset(pl, 0, payloadlen+1);
-    strncpy(pl, payload, payloadlen);
-
-    cJSON * jsonPayload = cJSON_Parse(pl);
-    char *reqID = cJSON_GetObjectItem(jsonPayload, "reqId")->valuestring;
-    char *savedReqID = managedClient->reqID;
-    if ( savedReqID != NULL && reqID != NULL ) {
-        free(savedReqID);
-        savedReqID = strdup(reqID);
-        managedClient->reqID = savedReqID;
-    }
-
-    LOG(DEBUG, "Received reqId:%s", reqID);
+    LOG(DEBUG, "Process Observ. reqId:%s", reqID);
 
     char respmsg[256];
     char *plFormat = "{\"rc\":%d,\"reqId\":\"%s\",\"d\":{\"fields\":[{\"field\":\"mgmt.firmware\",\"value\":{\"state\":0,\"updateStatus\":0}}]}}";
     snprintf(respmsg, 256, plFormat, DM_ACTION_RC_RESPONSE_SUCCESS, reqID);
     iotp_client_publish(client, DM_RESPONSE, respmsg, QoS1, NULL);
-    free(pl);
+
     return rc;
 }
 
 /* Handle cancel action */
-int iotp_client_dmProcessCancel(void *context, char *topicName, int topicLen, MQTTAsync_message * message)
+static int iotp_client_dmProcessCancel(IoTPClient *client, IoTPManagedClient *managedClient, IoTP_json_parse_t *pobj, char *reqID)
 {
     IOTPRC rc = IOTPRC_SUCCESS;
-    IoTPClient *client = (IoTPClient *)context;
-    IoTPManagedClient *managedClient = NULL;
 
-    /* sanity check */
-    if (client == NULL || (client && client->config == NULL)) {
-        rc = IOTPRC_INVALID_HANDLE;
-        LOG(ERROR, "Invalid client handle: rc=%d", rc);
-        return rc;
-    }
+    LOG(DEBUG, "Process Cancel. reqId:%s", reqID);
 
-    managedClient = client->managedClient;
+    int entnum = 0;
+    int max = pobj->ent[entnum].count;
+    int dpos = iotp_json_get(pobj, 0, "d");
+    int fpos = iotp_json_get(pobj, dpos, "fields");
 
-    void *payload = message->payload;
-    size_t payloadlen = message->payloadlen;
-    char *pl = (char*) malloc(payloadlen+1);
-    memset(pl, 0, payloadlen+1);
-    strncpy(pl, payload, payloadlen);
-
-    cJSON * jsonPayload = cJSON_Parse(pl);
-    char *reqID = cJSON_GetObjectItem(jsonPayload, "reqId")->valuestring;
-    char *savedReqID = managedClient->reqID;
-    if ( savedReqID != NULL && reqID != NULL ) {
-        free(savedReqID);
-        savedReqID = strdup(reqID);
-        managedClient->reqID = savedReqID;
-    }
-
-    LOG(DEBUG, "Received reqId:%s", reqID);
-
-    cJSON *d = cJSON_GetObjectItem(jsonPayload, "d");
-    cJSON *fields = cJSON_GetObjectItem(d, "fields");
-    int i = 0;
-    for (i = 0; i < cJSON_GetArraySize(fields); i++) {
-        cJSON * field = cJSON_GetArrayItem(fields, i);
-        cJSON* fieldName = cJSON_GetObjectItem(field, "field");
-        LOG(DEBUG,"Cancel called for fieldName:%s", fieldName->valuestring);
-
-        if (!strcmp(fieldName->valuestring, "mgmt.firmware")) {
-            managedClient->observe = 0;
-            char respmsg[256];
-            sprintf(respmsg,"{\"rc\":%d,\"reqId\":%s}", DM_ACTION_RC_RESPONSE_SUCCESS, reqID);
-            iotp_client_publish(client, DM_RESPONSE, respmsg, QoS1, NULL);
+    /* Process payload */
+    entnum = fpos+1;
+    while ( entnum <= max ) {
+        IoTP_json_entry_t * ent = pobj->ent+entnum;
+        if ( ent->name && !strcmp("field", ent->name)) {
+            if ( ent->value && !strcmp("mgmt.firmware", ent->value)) {
+                LOG(DEBUG, "Reset managed client observe flag.");
+                managedClient->observe = 0;
+                char respmsg[128];
+                sprintf(respmsg,"{\"rc\":%d,\"reqId\":%s}", DM_ACTION_RC_RESPONSE_SUCCESS, reqID);
+                iotp_client_publish(client, DM_RESPONSE, respmsg, QoS1, NULL);
+                break;
+            }
         }
+
+        entnum++;
     }
 
-    free(pl);
     return rc;
 }
-
 
 
 /* Handle received messages - invoke the callback. */
@@ -1842,40 +1696,91 @@ static int iotp_client_dmMessageArrived(void *context, char *topicName, int topi
     IOTPRC rc = IOTPRC_SUCCESS;
     IoTPClient *client = (IoTPClient *)context;
     IoTPManagedClient *managedClient = NULL;
+    IoTP_json_parse_t *pobj = NULL;
+    char *pl = NULL;
+
+    Thread_lock_mutex(managed_mutex);
 
     /* sanity check */
     if (client == NULL || (client && client->config == NULL)) {
         rc = IOTPRC_INVALID_HANDLE;
         LOG(ERROR, "Invalid client handle: rc=%d", rc);
+        Thread_unlock_mutex(managed_mutex);
         return rc;
     }
 
+    /* Get managedClient handle */
     managedClient = client->managedClient;
     if ( managedClient == NULL ) {
         rc = IOTPRC_INVALID_HANDLE;
         LOG(ERROR, "Not a managed client: rc=%d", rc);
+        Thread_unlock_mutex(managed_mutex);
         return rc;
     }
 
-    /* invoke DM action processing functions based on topic name */
-    if (!strcmp(topicName, DM_ACTION_RESPONSE)){
-        iotp_client_dmProcessReponse(context, topicName, topicLen, message);
-    } else if (!strcmp(topicName, DM_ACTION_FIRMWAREDOWNLOAD)) {
-        iotp_client_dmProcessFirmwareDownload(context, topicName, topicLen, message);
-    } else if (!strcmp(topicName, DM_ACTION_FIRMWAREUPDATE)) {
-        iotp_client_dmProcessFirmwareUpdate(context, topicName, topicLen, message);
-    } else if (!strcmp(topicName, DM_ACTION_UPDATE)) {
-        iotp_client_dmProcessUpdate(context, topicName, topicLen, message); 
-    } else if (!strcmp(topicName, DM_ACTION_REBOOT)) {
-        iotp_client_dmProcessRebootReset(context, topicName, topicLen, message, 1);
-    } else if (!strcmp(topicName, DM_ACTION_FACTORYRESET)) {
-        iotp_client_dmProcessRebootReset(context, topicName, topicLen, message, 0);
-    } else if (!strcmp(topicName, DM_ACTION_OBSERVE)) {
-        iotp_client_dmProcessObserve(context, topicName, topicLen, message);
-    } else if (!strcmp(topicName, DM_ACTION_CANCEL)) {
-        iotp_client_dmProcessCancel(context, topicName, topicLen, message);
+    /* Set JSON object */
+    void *payload = message->payload;
+    size_t payloadlen = message->payloadlen;
+    pl = (char *) malloc(payloadlen+1);
+
+    memset(pl, 0, payloadlen+1);
+    strncpy(pl, payload, payloadlen);
+
+    pobj = iotp_json_init(payloadlen, payload);
+    if ( pobj == NULL ) {
+        rc = IOTPRC_DM_RESPONSE_PARSE_ERROR;
+        goto endDMAction;
     }
 
+    /* Get request ID from payload */
+    char *reqID = iotp_json_getString(pobj, "reqId");
+
+    LOG(DEBUG, "Device Management request Topic:%s ReqID:%s", topicName?topicName:"", reqID?reqID:"");
+
+    /* invoke DM action processing functions based on topic name */
+    if (!strcmp(topicName, DM_ACTION_RESPONSE)){
+        if ( reqID == NULL ) {
+            LOG(ERROR, "NULL reqID received in DM Action response");
+            rc = IOTPRC_DM_RESPONSE_NULL_REQID;
+            goto endDMAction;
+        }
+        if ( managedClient && managedClient->reqID == NULL && reqID != NULL ) {
+            managedClient->reqID = strdup(reqID);
+        }
+        rc = iotp_client_dmProcessReponse(client, managedClient, topicName, payloadlen, pl, pobj, reqID);
+        goto endDMAction;
+    }
+
+    /* check if reqID is the current request ID set for this managedClient */
+    if (managedClient && managedClient->reqID && !strcmp(managedClient->reqID, reqID)) {
+        rc = IOTPRC_DM_RESPONSE_INVALID_REQID;
+        LOG(ERROR, "Received invalid device management reqID: %s. Managed Client reqID: %s", reqID?reqID:"", managedClient->reqID? managedClient->reqID:"");
+        goto endDMAction;
+    } 
+
+    if (!strcmp(topicName, DM_ACTION_FIRMWAREDOWNLOAD)) {
+        iotp_client_dmProcessFirmwareDownload(client, managedClient, topicName, payloadlen, pl, pobj, reqID);
+    } else if (!strcmp(topicName, DM_ACTION_FIRMWAREUPDATE)) {
+        iotp_client_dmProcessFirmwareUpdate(client, managedClient, topicName, payloadlen, pl, pobj, reqID);
+    } else if (!strcmp(topicName, DM_ACTION_UPDATE)) {
+        iotp_client_dmProcessUpdate(client, managedClient, topicName, payloadlen, pl, pobj, reqID);
+    } else if (!strcmp(topicName, DM_ACTION_REBOOT)) {
+        iotp_client_dmProcessRebootReset(client, topicName, payloadlen, pl, reqID, 1);
+    } else if (!strcmp(topicName, DM_ACTION_FACTORYRESET)) {
+        iotp_client_dmProcessRebootReset(client, topicName, payloadlen, pl, reqID, 0);
+    } else if (!strcmp(topicName, DM_ACTION_OBSERVE)) {
+        iotp_client_dmProcessObserve(client, reqID);
+    } else if (!strcmp(topicName, DM_ACTION_CANCEL)) {
+        iotp_client_dmProcessCancel(client, managedClient, pobj, reqID);
+    }
+
+endDMAction:
+    if (pobj) 
+        iotp_json_free(pobj);
+    if (pl) 
+        free(pl);
+
+    Thread_unlock_mutex(managed_mutex);
     return rc;
 }
 

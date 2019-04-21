@@ -104,7 +104,9 @@ void  deviceCommandCallback (char* type, char* id, char* commandName, char *form
     fprintf(stdout, "Received device command:\n");
     fprintf(stdout, "Type=%s ID=%s CommandName=%s Format=%s Len=%d\n", 
         type?type:"", id?id:"", commandName?commandName:"", format?format:"", (int)payloadSize);
-    fprintf(stdout, "Payload: %s\n", payload?(char *)payload:"");
+    char *pl = (char *) payload;
+    pl[payloadSize] = 0;
+    fprintf(stdout, "Payload: %s\n", pl?(char *)pl:"");
 
     /* Device developers - add your custom code to process device commands */
 }
@@ -127,11 +129,14 @@ void MQTTTraceCallback (int level, char * message)
  * Managed Device DM callback function
  */
 void DMActionCallbak(IoTP_DMAction_type_t type, char *reqId, void *payload, size_t payloadlen) {
+    char *pl = NULL;
     fprintf(stdout, "DM Requst ID: %s\n", reqId);
     switch(type) {
         case IoTP_DMResponse:
+            pl = (char *)payload;
+            pl[payloadlen] = 0;
             fprintf(stdout, "Received DM Action response\n");
-            fprintf(stdout, "Payload: %s\n", payload?(char *)payload:"");
+            fprintf(stdout, "Payload: %s\n", payload?(char *)pl:"");
             /* Add code for your device */
             break;
 
@@ -232,7 +237,7 @@ int main(int argc, char *argv[])
     IoTPManagedDevice_setCommandHandler(device, deviceCommandCallback);
 
     /* set managed device attribute */
-    rc = IoTPManagedDevice_setAttribute(device, "lifetime", "180");
+    rc = IoTPManagedDevice_setAttribute(device, "lifetime", "3600");
     rc |= IoTPManagedDevice_setAttribute(device, "deviceActions", "1");
     rc |= IoTPManagedDevice_setAttribute(device, "firmwareActions", "1");
     if ( rc != 0 ) {
@@ -273,9 +278,9 @@ int main(int argc, char *argv[])
 
     while(!interrupt)
     {
-        fprintf(stdout, "Send status event\n");
+        // fprintf(stdout, "Send status event\n");
         // rc = IoTPManagedDevice_sendEvent(device,"status", data, "json", QoS0, NULL);
-        fprintf(stdout, "RC from publishEvent(): %d\n", rc);
+        // fprintf(stdout, "RC from publishEvent(): %d\n", rc);
 
         if ( testCycle > 0 ) {
             cycle += 1;

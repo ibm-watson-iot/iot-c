@@ -207,7 +207,7 @@ typedef struct {
 typedef struct {
     char * version;
     char * name;
-    char * url;
+    char * uri;
     char * verifier;
     int    state;
     int    updateStatus;
