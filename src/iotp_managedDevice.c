@@ -291,3 +291,132 @@ IOTPRC IoTPManagedDevice_setActionHandler(IoTPManagedDevice *managedDevice, IoTP
 }
 
 
+/* Notifies error code to platform */
+IOTPRC IoTPManagedDevice_addErrorCode(IoTPManagedDevice *managedDevice, char *reqId, int errorCode)
+{
+    IOTPRC rc = IOTPRC_SUCCESS;
+
+    /* Sanity check */
+    if ( !managedDevice || !reqId ) {
+        rc = IOTPRC_PARAM_NULL_VALUE;
+        LOG(WARN, "Received invalid or NULL arguments: rc=%d", rc);
+        return rc;
+    }
+
+    /* Set topic string */
+    char *topic = "iotdevice-1/add/diag/errorCodes";
+    char message[256];
+    snprintf(message, 256, "{\"d\":{\"errorCode\":%d},\"reqId\":\"%s\"}", errorCode, reqId); 
+
+    LOG(DEBUG,"Notify errorCode: %s", message);
+
+    rc = iotp_client_publish((void *)managedDevice, topic, message, 1, NULL);
+
+    if ( rc != IOTPRC_SUCCESS ) {
+        LOG(ERROR, "Failed to notify errorCode:%d reqId:%s rc=%d", errorCode, reqId, rc);
+    }
+
+    return rc;
+}
+
+
+/* Clears error code from platform */
+IOTPRC IoTPManagedDevice_clearErrorCode(IoTPManagedDevice *managedDevice, char *reqId)
+{
+    IOTPRC rc = IOTPRC_SUCCESS;
+
+    /* Sanity check */
+    if ( !managedDevice || !reqId ) {
+        rc = IOTPRC_PARAM_NULL_VALUE;
+        LOG(WARN, "Received invalid or NULL arguments: rc=%d", rc);
+        return rc;
+    }
+
+    /* Set topic string */
+    char *topic = "iotdevice-1/clear/diag/errorCodes";
+    char message[256];
+    snprintf(message, 256, "{\"reqId\":\"%s\"}", reqId); 
+
+    LOG(DEBUG,"Clear error codes. reqId:%s", reqId);
+
+    rc = iotp_client_publish((void *)managedDevice, topic, message, 1, NULL);
+
+    if ( rc != IOTPRC_SUCCESS ) {
+        LOG(ERROR, "Failed to clear errorCodes. reqId:%s rc=%d", reqId, rc);
+    }
+
+    return rc;
+}
+
+
+/* Send log message to platform */
+IOTPRC IoTPManagedDevice_addLogEntry(IoTPManagedDevice *managedDevice, char *reqId, char *message, char *timestamp, char *data, int severity)
+{
+    IOTPRC rc = IOTPRC_SUCCESS;
+
+    /* Sanity check */
+    if ( !managedDevice || !reqId ) {
+        rc = IOTPRC_PARAM_NULL_VALUE;
+        LOG(WARN, "Received invalid or NULL arguments: rc=%d", rc);
+        return rc;
+    }
+
+    /* Set topic string */
+    char *topic = "iotdevice-1/add/diag/log";
+    char *logmsg = NULL;
+    char *logmsgformat = "{\"d\":{\"message\":\"%s\",\"timestamp\":\"%s\",\"data\":\"%s\",\"severity\":%d},\"reqId\":\"%s\"}";
+    int logmsglen = 0;
+    int  msglen = 0;
+    int  tslen = 0;
+    int  datalen = 0;
+    int reqidlen = 0;
+
+    if ( message ) msglen = strlen(message);
+    if ( timestamp ) tslen = strlen(timestamp);
+    if ( data ) datalen = strlen(data);
+    if ( reqId ) reqidlen = strlen(reqId);
+    
+    logmsglen = strlen(logmsgformat) + msglen + tslen + datalen + reqidlen + 16;
+    logmsg = (char *)malloc(logmsglen);
+    snprintf(logmsg, logmsglen, logmsgformat, message?message:"", timestamp?timestamp:"", data?data:"", severity, reqId);
+
+    LOG(DEBUG,"Add log: %s", logmsg);
+
+    rc = iotp_client_publish((void *)managedDevice, topic, logmsg, 1, NULL);
+
+    if ( rc != IOTPRC_SUCCESS ) {
+        LOG(ERROR, "Failed to send diagnostic log. reqId:%s rc=%d", reqId, rc);
+    }
+
+    return rc;
+}
+
+
+/* Notifies platform to clear diagonostics log message */
+IOTPRC IoTPManagedDevice_clearLog(IoTPManagedDevice *managedDevice, char *reqId)
+{
+    IOTPRC rc = IOTPRC_SUCCESS;
+
+    /* Sanity check */
+    if ( !managedDevice || !reqId ) {
+        rc = IOTPRC_PARAM_NULL_VALUE;
+        LOG(WARN, "Received invalid or NULL arguments: rc=%d", rc);
+        return rc;
+    }
+
+    /* Set topic string */
+    char *topic = "iotdevice-1/clear/diag/log";
+    char message[256];
+    snprintf(message, 256, "{\"reqId\":\"%s\"}", reqId); 
+
+    LOG(DEBUG,"Clear error codes. reqId:%s", reqId);
+
+    rc = iotp_client_publish((void *)managedDevice, topic, message, 1, NULL);
+
+    if ( rc != IOTPRC_SUCCESS ) {
+        LOG(ERROR, "Failed to clear diagnostic log. reqId:%s rc=%d", reqId, rc);
+    }
+
+    return rc;
+}
+

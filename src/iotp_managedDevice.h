@@ -229,6 +229,50 @@ DLLExport IOTPRC IoTPManagedDevice_unsetActionHandler(IoTPManagedDevice *managed
  */
 DLLExport IOTPRC IoTPManagedDevice_actionResponse(IoTPManagedDevice *managedDevice, char *reqId, int rc, char *message);
 
+/**
+ * The IoTPManagedDevice_addErrorCode() API to notify IBM IoT Watson IoT Platform about changes to their
+ * error status.
+ *
+ * @param managedDevice  - A pointer to IoTP managed device handle.
+ * @param reqId          - Request Id associated with the action
+ * @param errorCode      - Error code
+ * @return IOTPRC        - Returns IOTPRC_SUCCESS onsuccess or IOTPRC_* on error
+ */
+DLLExport IOTPRC IoTPManagedDevice_addErrorCode(IoTPManagedDevice *managedDevice, char *reqId, int errorCode);
+
+/**
+ * The IoTPManagedDevice_clearErrorCodes() API to notify IBM IoT Watson IoT Platform to clear all error codes
+ * for the device.
+ *
+ * @param managedDevice  - A pointer to IoTP managed device handle.
+ * @param reqId          - Request Id associated with the action
+ * @return IOTPRC        - Returns IOTPRC_SUCCESS onsuccess or IOTPRC_* on error
+ */
+DLLExport IOTPRC IoTPManagedDevice_clearErrorCodes(IoTPManagedDevice *managedDevice, char *reqId);
+
+/**
+ * The IoTPManagedDevice_addLogEntry() API sends a log message to IBM Watson IoT Platform.
+ *
+ * @param managedDevice  - A pointer to IoTP managed device handle.
+ * @param reqId          - Request Id associated with the action
+ * @param message        - Log message
+ * @param timestamp      - Time stamp in ISO8601 format
+ * @param data           - Data
+ * @param severity       - Severity (0:Info, 1:Warning, 2:Error)
+ * @return IOTPRC        - Returns IOTPRC_SUCCESS onsuccess or IOTPRC_* on error
+ */
+DLLExport IOTPRC IoTPManagedDevice_addLogEntry(IoTPManagedDevice *managedDevice, char *reqId, char *message, char *timestamp, char *data, int severity);
+
+/**
+ * The IoTPManagedDevice_clearLog() API notifies IBM Watson IoT Platform to clear diagnostic log messages.
+ *
+ * @param managedDevice  - A pointer to IoTP managed device handle.
+ * @param reqId          - Request Id associated with the action
+ * @return IOTPRC        - Returns IOTPRC_SUCCESS onsuccess or IOTPRC_* on error
+ */
+DLLExport IOTPRC IoTPManagedDevice_clearLog(IoTPManagedDevice *managedDevice, char *reqId);
+
+
 
 #if defined(__cplusplus)
  }
