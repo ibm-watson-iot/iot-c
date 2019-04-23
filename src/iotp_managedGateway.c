@@ -108,15 +108,24 @@ IOTPRC IoTPManagedGateway_sendEvent(IoTPManagedGateway *managedGateway, char *ev
     }
 
 
-    /* Set topic string */
-    char *format = "iot-2/evt/%s/fmt/%s";
-    int len = strlen(format) + strlen(eventId) + strlen(formatString) - 3;
-    char topic[len];
-    snprintf(topic, len, format, eventId, formatString);
+    /* get device type and id of this managed gateway object */
+    char *typeId     = iotp_client_getDeviceType((void *)managedGateway);
+    char *deviceId   = iotp_client_getDeviceId((void *)managedGateway);
 
-    LOG(DEBUG,"Send event. topic: %s", topic);
+    if ( deviceId == NULL || typeId == NULL ) {
+        rc = IOTPRC_PARAM_NULL_VALUE;
+        LOG(ERROR, "Invalid configuration. rc=%d", rc);
+        return rc;
+    }
 
-    rc = iotp_client_publish((void *)managedGateway, topic, data, qos, props);
+    /* set topic */
+    int tlen = strlen(typeId) + strlen(deviceId) + strlen(eventId) + strlen(formatString) + 26;
+    char publishTopic[tlen];
+    snprintf(publishTopic, tlen, "iot-2/type/%s/id/%s/evt/%s/fmt/%s", typeId, deviceId, eventId, formatString);
+
+    LOG(DEBUG,"Send event. Topic: %s", publishTopic);
+
+    rc = iotp_client_publish((void *)managedGateway, publishTopic, data, qos, props);
 
     if ( rc != IOTPRC_SUCCESS ) {
         LOG(ERROR, "IoTPManagedGateway failed to send event: %s rc=%d", eventId, rc);

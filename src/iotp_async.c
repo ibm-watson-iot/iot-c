@@ -484,6 +484,43 @@ IOTPRC iotp_client_create(void **iotpClient, IoTPConfig *config, IoTPClientType 
     return rc;
 }
 
+/* Get device type from client handle */
+char * iotp_client_getDeviceType(void *iotpClient)
+{
+    char *deviceType = NULL;
+    IoTPClient *client = (IoTPClient *)iotpClient;
+
+    /* Check if client handle is valid */
+    if ( client == NULL || (client && client->config == NULL)) {
+        return NULL;
+    }
+
+    IoTPConfig *config = (IoTPConfig *)client->config;
+    if ( config->identity->typeId != NULL ) {
+        deviceType = config->identity->typeId;
+    }
+    return deviceType;
+}
+    
+
+/* Get device id from client handle */
+char * iotp_client_getDeviceId(void *iotpClient)
+{
+    char *deviceId = NULL;
+    IoTPClient *client = (IoTPClient *)iotpClient;
+
+    /* Check if client handle is valid */
+    if ( client == NULL || (client && client->config == NULL)) {
+        return NULL;
+    }
+
+    IoTPConfig *config = (IoTPConfig *)client->config;
+    if ( config->identity->deviceId != NULL ) {
+        deviceId = config->identity->deviceId;
+    }
+    return deviceId;
+}
+    
 /* Sets MQTT log handler for IoTP client */
 IOTPRC iotp_client_setMQTTLogHandler(void *iotpClient, IoTPLogHandler *cb) 
 {
@@ -537,17 +574,6 @@ IOTPRC iotp_client_destroy(void *iotpClient, int destroyMQTTClient)
         rc = IOTPRC_INVALID_HANDLE;
         return rc;
     } 
-
-    /* if client is connected, disconnect and destory */
-/*
-    if ( iotp_client_isConnected(iotpClient) == IOTPRC_SUCCESS ) {
-        MQTTAsync *mqttClient = (MQTTAsync *)client->mqttClient;
-        iotp_client_disconnect(iotpClient);
-        if ( destroyMQTTClient == 1 && mqttClient != NULL ) {
-            MQTTAsync_destroy(mqttClient);
-        }
-    }
-*/
 
     iotp_utils_freePtr((void *)client->clientId);
     iotp_utils_freePtr((void *)client->connectionURI);

@@ -96,10 +96,22 @@ IOTPRC IoTPGateway_sendEvent(IoTPGateway *gateway, char *eventId, char *data, ch
         return rc;
     }
 
-    char publishTopic[strlen(eventId) + strlen(formatString) + 16];
-    sprintf(publishTopic, "iot-2/evt/%s/fmt/%s", eventId, formatString);
+    /* get device type and id of this gateway object */
+    char *typeId     = iotp_client_getDeviceType((void *)gateway);
+    char *deviceId   = iotp_client_getDeviceId((void *)gateway);
 
-    LOG(DEBUG,"Calling publishData to publish to topic - %s",publishTopic);
+    if ( deviceId == NULL || typeId == NULL ) {
+        rc = IOTPRC_PARAM_NULL_VALUE;
+        LOG(ERROR, "Invalid configuration. rc=%d", rc);
+        return rc;
+    }
+        
+    /* set topic */
+    int tlen = strlen(typeId) + strlen(deviceId) + strlen(eventId) + strlen(formatString) + 26;
+    char publishTopic[tlen];
+    snprintf(publishTopic, tlen, "iot-2/type/%s/id/%s/evt/%s/fmt/%s", typeId, deviceId, eventId, formatString);
+
+    LOG(DEBUG,"Send event. Topic: %s", publishTopic);
 
     rc = iotp_client_publish((void *)gateway, publishTopic, data, qos, props);
 
