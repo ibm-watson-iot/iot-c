@@ -84,16 +84,6 @@ DLLExport IOTPRC IoTPGateway_create(IoTPGateway **gateway, IoTPConfig *config);
 DLLExport IOTPRC IoTPGateway_setMQTTLogHandler(IoTPGateway *gateway, IoTPLogHandler *cb);
 
 /**
- * The IoTPGateway_setLogHandler() API sets a callback to handle gateway client 
- * library log and trace  messages
- *
- * @param gateway        - A pointer to IoTP gateway handle.
- * @param cb             - Pointer to log handler
- * @return IOTPRC       - Returns IOTPRC_SUCCESS on success or IOTPRC_* on error
- */
-DLLExport IOTPRC IoTPGateway_setLogHandler(IoTPGateway *gateway, IoTPLogHandler cb);
-
-/**
  * The IoTPGateway_destroy() API destroys the gateway client handle
  * previously created by using IoTPGateway_create() API.
  * 

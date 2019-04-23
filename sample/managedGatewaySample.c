@@ -1,4 +1,5 @@
-/******************************************************************************* * Copyright (c) 2019 IBM Corp.
+/*******************************************************************************
+ * Copyright (c) 2019 IBM Corp.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -10,30 +11,30 @@
  *   http://www.eclipse.org/org/documents/edl-v10.php.
  *
  * Contributors:
- *    Ranjan Dasgupta - Initial drop of deviceSample.c
+ *    Ranjan Dasgupta - Initial drop of gatewaySample.c
  * 
  *******************************************************************************/
 
 /*
- * This sample shows how-to develop a managed device code using Watson IoT Platform
- * iot-c managed device client library, connect and interact with Watson IoT Platform Service.
+ * This sample shows how-to develop a managed gateway code using Watson IoT Platform
+ * iot-c managed gateway client library, connect and interact with Watson IoT Platform Service.
  * 
  * This sample includes the function/code snippets to perform the following actions:
  * - Initiliaze client library
- * - Configure managed device from configuration parameters specified in a configuration file
+ * - Configure managed gateway from configuration parameters specified in a configuration file
  * - Set client logging
  * - Enable error handling routines
- * - Send device events to WIoTP service
+ * - Send gateway events to WIoTP service
  * - Receive and process commands from WIoTP service
- * - Make device as a managed device
- * - Receive managed device action and process it
+ * - Make gateway as a managed gateway
+ * - Receive managed gateway action and process it
  *
  * SYNTAX:
- * managedDeviceSample --config <config_file_path>
+ * managedGatewaySample --config <config_file_path>
  *
  * Pre-requisite:
- * 1. This sample requires a device configuration file. 
- *    Refer to "Device Confioguration File" section of iot-c docs for details.
+ * 1. This sample requires a managed gateway configuration file. 
+ *    Refer to "Managed Gateway Configuration File" section of iot-c docs for details.
  * 2. Register type and id (specified in the configuration file) with IBM Watson IoT Platform service.
  *
  */
@@ -44,14 +45,12 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-/* Include header file of IBM Watson IoT platform C Client for devices */ 
-#include "iotp_managedDevice.h"
+/* Include header file of IBM Watson IoT platform C Client for managed gateways */ 
+#include "iotp_managedGateway.h"
 
 char *configFilePath = NULL;
 volatile int interrupt = 0;
-char *progname = "managedDeviceSample";
-int useEnv = 0;
-int testCycle = 0;
+char *progname = "managedGatewaySample";
 
 /* Usage text */
 void usage(void) {
@@ -80,35 +79,23 @@ void getopts(int argc, char** argv)
             else
                 usage();
         }
-        if (strcmp(argv[count], "--useEnv") == 0) {
-            useEnv = 1;
-        }
-        if (strcmp(argv[count], "--testCycle") == 0) {
-            if (++count < argc)
-                testCycle = atoi(argv[count]);
-            else
-                usage();
-        }
         count++;
     }
 }
 
 /* 
- * Managed Device command callback function
- * Device developers can customize this function based on their use case
- * to handle device commands sent by WIoTP.
+ * Gateway command callback function
+ * Gateway developers can customize this function based on their use case
+ * to handle gateway commands sent by WIoTP.
  * Set this callback function using API setCommandHandler().
  */
-void  deviceCommandCallback (char* type, char* id, char* commandName, char *format, void* payload, size_t payloadSize)
+void  gatewayCommandCallback (char* type, char* id, char* commandName, char *format, void* payload, size_t payloadSize)
 {
-    fprintf(stdout, "Received device command:\n");
-    fprintf(stdout, "Type=%s ID=%s CommandName=%s Format=%s Len=%d\n", 
-        type?type:"", id?id:"", commandName?commandName:"", format?format:"", (int)payloadSize);
-    char *pl = (char *) payload;
-    pl[payloadSize] = 0;
-    fprintf(stdout, "Payload: %s\n", pl?(char *)pl:"");
+    fprintf(stdout, "Received gateway command:\n");
+    fprintf(stdout, "Type=%s ID=%s CommandName=%s Format=%s Len=%d\n", type, id, commandName, format, (int)payloadSize);
+    fprintf(stdout, "Payload: %s\n", (char *)payload);
 
-    /* Device developers - add your custom code to process device commands */
+    /* Gateway developers - add your custom code to process gateway commands */
 }
 
 void logCallback (int level, char * message)
@@ -126,7 +113,7 @@ void MQTTTraceCallback (int level, char * message)
 }
 
 /*
- * Managed Device DM callback function
+ * Managed Gateway DM callback function
  */
 void DMActionCallbak(IoTP_DMAction_type_t type, char *reqId, void *payload, size_t payloadlen) {
     char *pl = NULL;
@@ -166,18 +153,18 @@ void DMActionCallbak(IoTP_DMAction_type_t type, char *reqId, void *payload, size
     }
 }
 
+
 /* Main program */
 int main(int argc, char *argv[])
 {
     int rc = 0;
-    int cycle = 0;
 
     /* 
      * DEV_NOTES:
      * Specifiy variable for WIoT client object 
      */
     IoTPConfig *config = NULL;
-    IoTPManagedDevice *device = NULL;
+    IoTPManagedGateway *managedGateway = NULL;
 
     /* check for args */
     if ( argc < 2 )
@@ -194,7 +181,6 @@ int main(int argc, char *argv[])
     rc = IoTPConfig_setLogHandler(IoTPLog_FileDescriptor, stdout);
     if ( rc != 0 ) {
         fprintf(stderr, "WARN: Failed to set IoTP Client log handler: rc=%d\n", rc);
-        exit(1);
     }
 
     /* Create IoTPConfig object using configuration options defined in the configuration file. */
@@ -204,112 +190,100 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    /* read additional config from environment */
-    if ( useEnv == 1 ) {
-        IoTPConfig_readEnvironment(config);
-    } 
-
-    /* Create IoTPDevice object */
-    rc = IoTPManagedDevice_create(&device, config);
+    /* Create IoTPManagedGateway object */
+    rc = IoTPManagedGateway_create(&managedGateway, config);
     if ( rc != 0 ) {
-        fprintf(stderr, "ERROR: Failed to configure IoTP device: rc=%d\n", rc);
+        fprintf(stderr, "ERROR: Failed to configure IoTP managed gateway: rc=%d\n", rc);
         exit(1);
     }
 
     /* Set MQTT Trace handler */
-    rc = IoTPManagedDevice_setMQTTLogHandler(device, &MQTTTraceCallback);
+    rc = IoTPManagedGateway_setMQTTLogHandler(managedGateway, &MQTTTraceCallback);
     if ( rc != 0 ) {
         fprintf(stderr, "WARN: Failed to set MQTT Trace handler: rc=%d\n", rc);
     }
 
-    /* Invoke connection API IoTPDevice_connect() to connect to WIoTP. */
-    rc = IoTPManagedDevice_connect(device);
+    /* Invoke connection API IoTPManagedGateway_connect() to connect to WIoTP. */
+    rc = IoTPManagedGateway_connect(managedGateway);
     if ( rc != 0 ) {
         fprintf(stderr, "ERROR: Failed to connect to Watson IoT Platform: rc=%d\n", rc);
         exit(1);
     }
 
     /*
-     * Set device command callback using API IoTPDevice_setCommandHandler().
-     * Refer to deviceCommandCallback() function DEV_NOTES for details on
-     * how to process device commands received from WIoTP.
+     * Set managed gateway command callback using API IoTPManagedGateway_setCommandHandler().
+     * Refer to gatewayCommandCallback() function DEV_NOTES for details on
+     * how to process gateway commands received from WIoTP.
      */
-    IoTPManagedDevice_setCommandHandler(device, deviceCommandCallback);
+    IoTPManagedGateway_setCommandHandler(managedGateway, gatewayCommandCallback);
 
-    /* set managed device attribute */
-    rc = IoTPManagedDevice_setAttribute(device, "lifetime", "3600");
-    rc |= IoTPManagedDevice_setAttribute(device, "deviceActions", "1");
-    rc |= IoTPManagedDevice_setAttribute(device, "firmwareActions", "1");
+    /* set managed gateway attribute */
+    rc = IoTPManagedGateway_setAttribute(managedGateway, "lifetime", "3600");
+    rc |= IoTPManagedGateway_setAttribute(managedGateway, "deviceActions", "1");
+    rc |= IoTPManagedGateway_setAttribute(managedGateway, "firmwareActions", "1");
     if ( rc != 0 ) {
-        fprintf(stderr, "ERROR: Failed to set managed device attributes: rc=%d\n", rc);
+        fprintf(stderr, "ERROR: Failed to set managed gateway attributes: rc=%d\n", rc);
         goto device_exit;
     }
 
     /*
-     * Set callback to process device management actions 
+     * Set callback to process device management actions
      */
-    rc = IoTPManagedDevice_setActionHandler(device, IoTP_DMActions, DMActionCallbak); 
+    rc = IoTPManagedGateway_setActionHandler(managedGateway, IoTP_DMActions, DMActionCallbak);
     if ( rc != 0 ) {
-        fprintf(stderr, "ERROR: Failed to set device management action callback: rc=%d\n", rc);
+        fprintf(stderr, "ERROR: Failed to set gateway management action callback: rc=%d\n", rc);
         goto device_exit;
     }
 
-    /* Make this device a managed device */
-    rc = IoTPManagedDevice_manage(device);
+    /* Make this gateway a managed gateway */
+    rc = IoTPManagedGateway_manage(managedGateway);
     if ( rc != 0 ) {
-        fprintf(stderr, "ERROR: Failed to make device a managed device: rc=%d\n", rc);
+        fprintf(stderr, "ERROR: Failed to make gateway a managed gateway: rc=%d\n", rc);
         goto device_exit;
     }
 
     /*
-     * Invoke device command subscription API IoTPDevice_subscribeToCommands().
+     * Invoke gateway command subscription API IoTPManagedGateway_subscribeToCommands().
      * The arguments for this API are commandName, format, QoS
      * If you want to subscribe to all commands of any format, set commandName and format to "+"
      */
     char *commandName = "+";
     char *format = "+";
-    IoTPManagedDevice_subscribeToCommands(device, commandName, format);
+    IoTPManagedGateway_subscribeToCommands(managedGateway, commandName, format);
 
 
-    /* Use IoTPDevice_sendEvent() API to send device events to Watson IoT Platform. */
+    /* Use IoTPManagedGateway_sendEvent() API to send gateway events to Watson IoT Platform. */
 
-    /* Sample event - this sample device will send this event once in every 10 seconds. */
+    /* Sample event - this sample gateway will send this event once in every 10 seconds. */
     char *data = "{\"d\" : {\"SensorID\": \"Test\", \"Reading\": 7 }}";
 
     while(!interrupt)
     {
         fprintf(stdout, "Send status event\n");
-        rc = IoTPManagedDevice_sendEvent(device,"status", data, "json", QoS0, NULL);
+        rc = IoTPManagedGateway_sendEvent(managedGateway,"status",data, "json", QoS0, NULL);
         fprintf(stdout, "RC from publishEvent(): %d\n", rc);
-
-        if ( testCycle > 0 ) {
-            cycle += 1;
-            if ( cycle >= testCycle ) {
-                break;
-            }
-        }
         sleep(10);
     }
 
-    fprintf(stdout, "Publish event cycle is complete.\n");
+    fprintf(stdout, "Received a signal - exiting publish event cycle.\n");
 
-    /* Make this device an unmanaged device */
-    rc = IoTPManagedDevice_unmanage(device, NULL);
+    /* Make this gateway an unmanaged gateway */
+    rc = IoTPManagedGateway_unmanage(managedGateway, NULL);
     if ( rc != 0 ) {
-        fprintf(stderr, "ERROR: Failed to make device an unmanaged device: rc=%d\n", rc);
+        fprintf(stderr, "ERROR: Failed to make device an unmanaged gateway: rc=%d\n", rc);
     }
 
 device_exit:
 
-    /* Disconnect device */
-    rc = IoTPManagedDevice_disconnect(device);
+    /* Disconnect gateway */
+    rc = IoTPManagedGateway_disconnect(managedGateway);
     if ( rc != IOTPRC_SUCCESS ) {
         fprintf(stderr, "ERROR: Failed to disconnect from  Watson IoT Platform: rc=%d\n", rc);
         exit(1);
     }
 
     /* Destroy client */
-    IoTPManagedDevice_destroy(device);
+    IoTPManagedGateway_destroy(managedGateway);
 
     /* Clear configuration */
     IoTPConfig_clear(config);

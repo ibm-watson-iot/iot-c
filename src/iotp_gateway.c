@@ -384,8 +384,6 @@ IOTPRC IoTPGateway_subscribeToMonitoringMessages(IoTPGateway *gateway, char *typ
     return rc;
 }
 
-
-
 IOTPRC IoTPGateway_unsubscribeFromMonitoringMessages(IoTPGateway *gateway, char *typeId, char *deviceId)
 {
     IOTPRC rc = IOTPRC_SUCCESS;

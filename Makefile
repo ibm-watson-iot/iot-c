@@ -168,6 +168,16 @@ MANAGED_DEVICE_AS_OBJS = $(addprefix $(blddir)/,$(MANAGED_DEVICE_AS_O))
 MANAGED_DEVICE_AS_LIB_NAME = iotp-as-managedDevice
 MANAGED_DEVICE_AS_LIB_TARGET = $(blddir)/lib$(MANAGED_DEVICE_AS_LIB_NAME).so.$(VERSION)
 
+# Managed Gateway Library
+MANAGED_GATEWAY_AS_C = $(UTILS_C) $(CLIENT_AS_C) iotp_managedGateway.c
+MANAGED_GATEWAY_AS_H = $(UTILS_H) $(CLIENT_AS_H) iotp_managedGateway.h
+MANAGED_GATEWAY_AS_O = $(MANAGED_GATEWAY_AS_C:.c=.o)
+MANAGED_GATEWAY_AS_SRCS = $(addprefix $(srcdir)/,$(MANAGED_GATEWAY_AS_C))
+MANAGED_GATEWAY_AS_HEADERS = $(addprefix $(srcdir)/,$(MANAGED_GATEWAY_AS_H))
+MANAGED_GATEWAY_AS_OBJS = $(addprefix $(blddir)/,$(MANAGED_GATEWAY_AS_O))
+MANAGED_GATEWAY_AS_LIB_NAME = iotp-as-managedGateway
+MANAGED_GATEWAY_AS_LIB_TARGET = $(blddir)/lib$(MANAGED_GATEWAY_AS_LIB_NAME).so.$(VERSION)
+
 # IoTP Library (optional)
 # For device applications that may include APIs exposed by application, device, gateway or managed library 
 IOTP_AS_C = $(UTILS_C) $(CLIENT_AS_C) iotp_device.c iotp_gateway.c iotp_application.c iotp_managed_device.c
@@ -243,7 +253,8 @@ iotp-device-as-lib: paho-mqtt iotp-version $(DEVICE_AS_LIB_TARGET)
 iotp-gateway-as-lib: paho-mqtt iotp-version $(GATEWAY_AS_LIB_TARGET)
 iotp-application-as-lib: paho-mqtt iotp-version $(APPLICATION_AS_LIB_TARGET)
 iotp-managedDevice-as-lib: paho-mqtt iotp-version $(MANAGED_DEVICE_AS_LIB_TARGET)
-iotp-as-libs: iotp-device-as-lib iotp-gateway-as-lib iotp-application-as-lib iotp-managedDevice-as-lib
+iotp-managedGateway-as-lib: paho-mqtt iotp-version $(MANAGED_GATEWAY_AS_LIB_TARGET)
+iotp-as-libs: iotp-device-as-lib iotp-gateway-as-lib iotp-application-as-lib iotp-managedDevice-as-lib iotp-managedGateway-as-lib
 
 # IoTP asynchrous client library with device, gateway, and application APIs
 iotp-as-lib: paho-mqtt iotp-version $(IOTP_AS_LIB_TARGET)
@@ -300,6 +311,11 @@ $(MANAGED_DEVICE_AS_LIB_TARGET): $(MANAGED_DEVICE_AS_SRCS) $(MANAGED_DEVICE_AS_H
 	$(CC) $(CCFLAGS_SO) -o $@ $(MANAGED_DEVICE_AS_SRCS) $(LDFLAGS_AS)
 	-ln -s lib$(MANAGED_DEVICE_AS_LIB_NAME).so.$(VERSION) $(blddir)/lib$(MANAGED_DEVICE_AS_LIB_NAME).so.$(MAJOR_VERSION)
 	-ln -s lib$(MANAGED_DEVICE_AS_LIB_NAME).so.$(MAJOR_VERSION) $(blddir)/lib$(MANAGED_DEVICE_AS_LIB_NAME).so
+
+$(MANAGED_GATEWAY_AS_LIB_TARGET): $(MANAGED_GATEWAY_AS_SRCS) $(MANAGED_GATEWAY_AS_HEADERS) $(blddir)/iotp_version.h
+	$(CC) $(CCFLAGS_SO) -o $@ $(MANAGED_GATEWAY_AS_SRCS) $(LDFLAGS_AS)
+	-ln -s lib$(MANAGED_GATEWAY_AS_LIB_NAME).so.$(VERSION) $(blddir)/lib$(MANAGED_GATEWAY_AS_LIB_NAME).so.$(MAJOR_VERSION)
+	-ln -s lib$(MANAGED_GATEWAY_AS_LIB_NAME).so.$(MAJOR_VERSION) $(blddir)/lib$(MANAGED_GATEWAY_AS_LIB_NAME).so
 
 $(IOTP_AS_LIB_TARGET): $(IOTP_AS_SRCS) $(IOTP_AS_HEADERS) $(blddir)/iotp_version.h
 	$(CC) $(CCFLAGS_SO) -o $@ $(IOTP_AS_SRCS) $(LDFLAGS_AS)
