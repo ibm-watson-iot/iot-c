@@ -22,6 +22,17 @@
 #include "iotp_internal.h"
 #include "Thread.h"
 
+#if defined(WIN32) || defined(WIN64)
+static mutex_type iotp_client_mutex = NULL;
+static mutex_type iotp_managed_mutex = NULL;
+#else
+static pthread_mutex_t iotp_client_mutex_store = PTHREAD_MUTEX_INITIALIZER;
+static mutex_type iotp_client_mutex = &iotp_client_mutex_store;
+static pthread_mutex_t iotp_managed_mutex_store = PTHREAD_MUTEX_INITIALIZER;
+static mutex_type iotp_managed_mutex = &iotp_managed_mutex_store;
+#endif
+static int iotp_mutex_inited = 0;
+
 /*
  * Structure with DM action type and topic mapping 
  */
@@ -29,16 +40,16 @@ static struct {
     IoTP_DMAction_type_t  type;
     const char *          topic;
 } dmActionTopics[] = {
-    { 0,                        "NotUsed"                  },
-    { IoTP_DMResponse,          DM_ACTION_RESPONSE         },
-    { IoTP_DMUpdate,            DM_ACTION_UPDATE           },
-    { IoTP_DMObserve,           DM_ACTION_OBSERVE          }, 
-    { IoTP_DMCancel,            DM_ACTION_CANCEL           },
-    { IoTP_DMFactoryReset,      DM_ACTION_FACTORYRESET     },
-    { IoTP_DMReboot,            DM_ACTION_REBOOT           },
-    { IoTP_DMFirmwareDownload,  DM_ACTION_FIRMWAREDOWNLOAD },
-    { IoTP_DMFirmwareUpdate,    DM_ACTION_FIRMWAREUPDATE   },
-    { IoTP_DMActions,           DM_ACTION_ALL              }
+    { 0,                        "NotUsed" },
+    { IoTP_DMResponse,          NULL      },
+    { IoTP_DMUpdate,            NULL      },
+    { IoTP_DMObserve,           NULL      }, 
+    { IoTP_DMCancel,            NULL      },
+    { IoTP_DMFactoryReset,      NULL      },
+    { IoTP_DMReboot,            NULL      },
+    { IoTP_DMFirmwareDownload,  NULL      },
+    { IoTP_DMFirmwareUpdate,    NULL      },
+    { IoTP_DMActions,           NULL      }
 };
 
 #define numActionTopic  (sizeof(dmActionTopics)/sizeof(dmActionTopics[0]))
@@ -46,8 +57,123 @@ static struct {
 static int iotp_client_messageArrived(void *context, char *topicName, int topicLen, MQTTAsync_message * message);
 static int iotp_client_dmMessageArrived(void *context, char *topicName, int topicLen, MQTTAsync_message * message);
 
-static pthread_mutex_t managed_mutex_store = PTHREAD_MUTEX_INITIALIZER;
-static mutex_type managed_mutex = &managed_mutex_store;
+
+/* Initialize mutex - should be done only one time */
+static void iotp_init_mutex(void)
+{
+    if ( iotp_mutex_inited == 1 ) {
+        return;
+    }
+
+#if defined(WIN32) || defined(WIN64)
+    if ( iotp_client_mutex == NULL ) {
+        iotp_client_mutex = CreateMutex(NULL, 0, NULL);
+        iotp_managed_mutex = CreateMutex(NULL, 0, NULL);
+        iotp_mutex_inited = 1;
+    }
+#else
+    int rc = 0;
+    pthread_mutexattr_t attr;
+    pthread_mutexattr_init(&attr);
+    if ((rc = pthread_mutex_init(iotp_client_mutex, &attr)) != 0)
+        LOG(ERROR, "Initializing iotp_client_mutex. rc=%d", rc);
+    if ((rc = pthread_mutex_init(iotp_managed_mutex, &attr)) != 0)
+        LOG(ERROR, "Initializing iotp_managed_mutex. rc=%d", rc);
+    iotp_mutex_inited = 1;
+#endif
+
+}
+
+/* Initialize DM Action Topics for managed device or managed gateway */
+static IOTPRC iotp_init_dmActionTopics(IoTPClientType type, char *deviceType, char *deviceId)
+{
+    IOTPRC rc = IOTPRC_SUCCESS;
+    int prefixLen = 0;
+    int tlen = 0;
+    char *prefix = NULL;
+    char *topic = NULL;
+
+    if ( type != IoTPClient_managed_device && type != IoTPClient_managed_gateway ) {
+        rc = IOTPRC_INVALID_PARAM;
+        LOG(ERROR, "Invalid type:%d rc=%d", type, rc);
+        return rc;
+    }
+
+    if ( type == IoTPClient_managed_device ) {
+        prefixLen = strlen(DM_ACTION_DEVICE_PREFIXFMT) + 1;
+        prefix = (char *) malloc(prefixLen);
+        snprintf(prefix, prefixLen, DM_ACTION_DEVICE_PREFIXFMT);
+    } else {
+        if ( deviceType == NULL || deviceId == NULL ) {
+            rc = IOTPRC_PARAM_NULL_VALUE;
+            LOG(ERROR, "Invalid device type or id. rc=%d", rc);
+            return rc;
+        }
+
+        prefixLen = strlen(DM_ACTION_GATEWAY_PREFIXFMT) + strlen(deviceType) + strlen(deviceId) + 1;
+        prefix = (char *) malloc(prefixLen);
+        snprintf(prefix, prefixLen, DM_ACTION_GATEWAY_PREFIXFMT, deviceType, deviceId);
+    }
+
+    tlen = strlen(DM_ACTION_RESPONSE);
+    topic = (char *) malloc(prefixLen + tlen + 1);
+    snprintf(topic, tlen, "%s%s", prefix, DM_ACTION_RESPONSE);
+    dmActionTopics[IoTP_DMResponse].topic = topic;
+
+    tlen = strlen(DM_ACTION_UPDATE);
+    topic = (char *) malloc(prefixLen + tlen + 1);
+    snprintf(topic, tlen, "%s%s", prefix, DM_ACTION_UPDATE);
+    dmActionTopics[IoTP_DMResponse].topic = topic;
+
+    tlen = strlen(DM_ACTION_OBSERVE);
+    topic = (char *) malloc(prefixLen + tlen + 1);
+    snprintf(topic, tlen, "%s%s", prefix, DM_ACTION_OBSERVE);
+    dmActionTopics[IoTP_DMObserve].topic = topic;
+
+    tlen = strlen(DM_ACTION_CANCEL);
+    topic = (char *) malloc(prefixLen + tlen + 1);
+    snprintf(topic, tlen, "%s%s", prefix, DM_ACTION_CANCEL);
+    dmActionTopics[IoTP_DMCancel].topic = topic;
+
+    tlen = strlen(DM_ACTION_FACTORYRESET);
+    topic = (char *) malloc(prefixLen + tlen + 1);
+    snprintf(topic, tlen, "%s%s", prefix, DM_ACTION_FACTORYRESET);
+    dmActionTopics[IoTP_DMFactoryReset].topic = topic;
+
+    tlen = strlen(DM_ACTION_REBOOT);
+    topic = (char *) malloc(prefixLen + tlen + 1);
+    snprintf(topic, tlen, "%s%s", prefix, DM_ACTION_REBOOT);
+    dmActionTopics[IoTP_DMReboot].topic = topic;
+
+    tlen = strlen(DM_ACTION_FIRMWAREDOWNLOAD);
+    topic = (char *) malloc(prefixLen + tlen + 1);
+    snprintf(topic, tlen, "%s%s", prefix, DM_ACTION_FIRMWAREDOWNLOAD);
+    dmActionTopics[IoTP_DMFirmwareDownload].topic = topic;
+
+    tlen = strlen(DM_ACTION_FIRMWAREUPDATE);
+    topic = (char *) malloc(prefixLen + tlen + 1);
+    snprintf(topic, tlen, "%s%s", prefix, DM_ACTION_FIRMWAREUPDATE);
+    dmActionTopics[IoTP_DMFirmwareUpdate].topic = topic;
+
+    tlen = strlen(DM_ACTION_ALL);
+    topic = (char *) malloc(prefixLen + tlen + 1);
+    snprintf(topic, tlen, "%s%s", prefix, DM_ACTION_ALL);
+    dmActionTopics[IoTP_DMActions].topic = topic;
+
+    return rc;
+}
+
+/* free DM action topics */
+static void iotp_free_dmActionTopics(void)
+{
+    int i = 0;
+    for (i=1; i<=IoTP_DMActions; i++) {
+        if ( dmActionTopics[IoTP_DMActions].topic != NULL ) {
+            free((void *)dmActionTopics[IoTP_DMActions].topic);
+            dmActionTopics[IoTP_DMActions].topic = NULL;
+        }
+    }
+}
 
 /* Add callback handler to the handler list */
 static IOTPRC iotp_add_handler(IoTPHandlers * handlers, IoTPHandler * handler) 
@@ -291,30 +417,37 @@ static IOTPRC iotp_validate_config(int type, IoTPConfig *config)
 /* Callback function to process successful disconnection */
 void onDisconnect(void *context, MQTTAsync_successData5 *response)
 {
+    char *clientId = NULL;
     IoTPClient *client = (IoTPClient *)context;
-    char *clientId = client->clientId;
-    LOG(INFO, "Client (id=%s) is successfully disconnected.", clientId? clientId:"NULL");
+    Thread_lock_mutex(iotp_client_mutex);
     client->connected = 0;
+    clientId = client->clientId;
+    Thread_unlock_mutex(iotp_client_mutex);
+    LOG(INFO, "Client (id=%s) is successfully disconnected.", clientId? clientId:"NULL");
 }
 
 /* Callback function to process successful connection */
 void onConnect(void *context, MQTTAsync_successData5 *response)
 {
+    char *clientId = NULL;
     IoTPClient *client = (IoTPClient *)context;
-    char *clientId = client->clientId;
-    LOG(INFO, "Client (id=%s) is connected successfully.", clientId? clientId:"NULL");
+    Thread_lock_mutex(iotp_client_mutex);
     client->connected = 1;
+    clientId = client->clientId;
+    Thread_unlock_mutex(iotp_client_mutex);
+    LOG(INFO, "Client (id=%s) is connected successfully.", clientId? clientId:"NULL");
 }
 
 /* Callback function to process connection failure */
 void onConnectFailure(void* context, MQTTAsync_failureData5 *response)
 {
-    IoTPClient *client = (IoTPClient *)context;
     char *clientId = NULL;
-    if ( client && client->clientId )
-        clientId = client->clientId;
-    LOG(INFO, "Client (id=%s) connection has failed. rc=%d", clientId? clientId:"NULL", response? response->code:0);
+    IoTPClient *client = (IoTPClient *)context;
+    Thread_lock_mutex(iotp_client_mutex);
     client->connected = -1;
+    clientId = client->clientId;
+    Thread_unlock_mutex(iotp_client_mutex);
+    LOG(INFO, "Client (id=%s) connection has failed. rc=%d", clientId? clientId:"NULL", response? response->code:0);
 }
 
 /* Callback function to process successful send */
@@ -338,7 +471,7 @@ void onSubscribe(void* context, MQTTAsync_successData5 *response)
 {
     IoTPClient *client = (IoTPClient *)context;
     char *clientId = client->clientId;
-    LOG(INFO, "Client (id=%s) has subscribe to the topic", clientId? clientId:"NULL");
+    LOG(DEBUG, "Client (id=%s) has subscribe to the topic.", clientId? clientId:"NULL");
 }
 
 /* Callback function to process subscription failure */
@@ -346,7 +479,11 @@ void onSubscribeFailure(void* context, MQTTAsync_failureData5 *response)
 {
     IoTPClient *client = (IoTPClient *)context;
     char *clientId = client->clientId;
-    LOG(WARN, "Client (id=%s) has failed to subscribe to the topic: rc=%d", clientId? clientId:"NULL", response? response->code:0);
+    if ( response ) {
+        LOG(WARN, "Client (id=%s) has failed to subscribe. rc=%d errmsg=%s", clientId? clientId:"NULL", response->code, response->message?response->message:"");
+    } else {
+        LOG(WARN, "Client (id=%s) has failed to subscribe. rc= errmsg=", clientId? clientId:"NULL");
+    }
 }
 
 /* Callback function to process successful unsubscribed a topic */
@@ -369,6 +506,9 @@ void onUnSubscribeFailure(void* context, MQTTAsync_failureData5 *response)
 IOTPRC iotp_client_create(void **iotpClient, IoTPConfig *config, IoTPClientType type)
 {
     IOTPRC rc = IOTPRC_SUCCESS;
+
+    /* Initialize mutex */
+    iotp_init_mutex();
 
     /* set connection URI */
     char *connectionURI = NULL;
@@ -676,11 +816,20 @@ IOTPRC iotp_client_connect(void *iotpClient)
             client->type, client->clientId, client->connectionURI);
 
         /* wait till client is disconnected */
-        while ( client->connected == 0 ) {
+        int isConnected = 0;
+        while ( isConnected == 0 ) {
             iotp_utils_delay(3000);
-            if ( client->connected == -1 ) {
+            Thread_lock_mutex(iotp_client_mutex);
+            isConnected =  client->connected;
+            Thread_unlock_mutex(iotp_client_mutex);
+            if (isConnected == 1) {
+                break;
+            }
+            if ( isConnected == -1 ) {
                 LOG(ERROR, "Connection failed");
+                Thread_lock_mutex(iotp_client_mutex);
                 client->connected = 0;
+                Thread_unlock_mutex(iotp_client_mutex);
                 break;
             }
             LOG(INFO, "Wait for client to connect: cycle=%d", cycle);
@@ -740,8 +889,8 @@ IOTPRC iotp_client_publish(void *iotpClient, char *topic, char *payload, int qos
     pubmsg.qos = qos;
     pubmsg.retained = 0;
 
-    LOG(DEBUG, "Publish Message: qos=%d retained=%d payloadlen=%d payload: %s",
-                    pubmsg.qos, pubmsg.retained, pubmsg.payloadlen, payload);
+    LOG(DEBUG, "Publish Message: topic=%s qos=%d retained=%d payloadlen=%d payload: %s",
+                    topic, pubmsg.qos, pubmsg.retained, pubmsg.payloadlen, payload);
 
     rc = MQTTAsync_send(mqttClient, topic, payloadlen, payload, qos, 0, &opts);
     if ( rc != MQTTASYNC_SUCCESS && rc != IOTPRC_INVALID_HANDLE ) {
@@ -1172,6 +1321,9 @@ IOTPRC iotp_client_disconnect(void *iotpClient)
         }
     }
 
+    /* Free DM action topics, if set*/
+    iotp_free_dmActionTopics();
+
     return rc;
 }
 
@@ -1208,7 +1360,7 @@ IOTPRC iotp_client_retry_connection(void *iotpClient)
         LOG(DEBUG, "Retry Attempt #%d ", retry);
         int delay = reconnect_delay(retry++);
         LOG(DEBUG, " next attempt in %d seconds\n", delay);
-        sleep(delay);
+        iotp_utils_delay(1000*delay);
     }
 
     return rc;
@@ -1276,9 +1428,6 @@ IOTPRC iotp_client_manage(void *iotpClient)
     char *plFormat = "{\"d\":{\"metadata\":%s ,\"lifetime\":%ld,\"supports\":{\"deviceActions\":%d,\"firmwareActions\":%d},\"deviceInfo\":%s},\"reqId\":\"%s\"}";
     int fmLen = strlen(plFormat);
 
-    pthread_mutexattr_t attr;
-    pthread_mutexattr_init(&attr);
-
     /* verify handle */
     if ( !client || client->managedClient == NULL ) {
         rc = IOTPRC_INVALID_HANDLE;
@@ -1292,11 +1441,6 @@ IOTPRC iotp_client_manage(void *iotpClient)
     }
 
     managedClient = client->managedClient;
-
-    if ((rc = pthread_mutex_init(managed_mutex, &attr)) != 0) {
-        LOG(ERROR, "Error %d initializing managed_mutex\n", rc);
-        return rc;
-    }
 
     /* set request ID */
     if ( managedClient->reqID == NULL ) {
@@ -1324,15 +1468,47 @@ IOTPRC iotp_client_manage(void *iotpClient)
     snprintf(payload, plLen, plFormat, mData, managedClient->lifetime, managedClient->supportsDeviceActions,
         managedClient->supportsFirmwareActions, dInfo, reqId);
  
-    LOG(DEBUG, "Send device management manage request: %s", payload);
-    rc = iotp_client_subscribe(iotpClient, "iotdm-1/#", QoS0);
-    if ( rc == IOTPRC_SUCCESS ) {
-        rc = iotp_client_publish(iotpClient, DM_MANAGE, payload, QoS1, props);
+    if ( client->type == IoTPClient_managed_gateway ) {
+        char *deviceType = iotp_client_getDeviceType(client);
+        char *deviceId = iotp_client_getDeviceId(client);
+
+        /* Initialize DM action topics */
+        iotp_init_dmActionTopics(IoTPClient_managed_gateway, deviceType, deviceId);
+
+        rc = iotp_client_subscribe(iotpClient, "iotdm-1/#", QoS0);
         if ( rc == IOTPRC_SUCCESS ) {
-            LOG(INFO, "Managed Device: reqId = %s", reqId);
-            client->managed = 1;
-        } else {
-            LOG(INFO, "Failed to send Managed Device request: rc=%d", rc);
+            int prefixLen = strlen(DM_GATEWAY_TOPIC_PREFIXFMT) + strlen(deviceType) + strlen(deviceId) + 1;
+            int pubtopicLen = prefixLen + strlen(DM_MANAGE) + 1;
+            char prefix[prefixLen];
+            char pubtopic[pubtopicLen];
+            snprintf(prefix, prefixLen, DM_GATEWAY_TOPIC_PREFIXFMT, deviceType, deviceId); 
+            snprintf(pubtopic, pubtopicLen, "%s%s", prefix, DM_MANAGE); 
+            rc = iotp_client_publish(iotpClient, pubtopic, payload, QoS1, props);
+            if ( rc == IOTPRC_SUCCESS ) {
+                LOG(INFO, "Managed Gateway: reqId = %s", reqId);
+                client->managed = 1;
+            } else {
+                LOG(INFO, "Failed to send Managed Gateway request: rc=%d", rc);
+            }
+        }
+
+    } else {
+
+        /* Initialize DM action topics */
+        iotp_init_dmActionTopics(IoTPClient_managed_device, NULL, NULL);
+
+        rc = iotp_client_subscribe(iotpClient, "iotdm-1/#", QoS0);
+        if ( rc == IOTPRC_SUCCESS ) {
+            int pubtopicLen = strlen(DM_DEVICE_TOPIC_PREFIXFMT) + strlen(DM_MANAGE) + 1;
+            char pubtopic[pubtopicLen];
+            snprintf(pubtopic, pubtopicLen, "%s%s", DM_DEVICE_TOPIC_PREFIXFMT, DM_MANAGE); 
+            rc = iotp_client_publish(iotpClient, pubtopic, payload, QoS1, props);
+            if ( rc == IOTPRC_SUCCESS ) {
+                LOG(INFO, "Managed Device: reqId = %s", reqId);
+                client->managed = 1;
+            } else {
+                LOG(INFO, "Failed to send Managed Device request: rc=%d", rc);
+            }
         }
     }
 
@@ -1725,13 +1901,13 @@ static int iotp_client_dmMessageArrived(void *context, char *topicName, int topi
     IoTP_json_parse_t *pobj = NULL;
     char *pl = NULL;
 
-    Thread_lock_mutex(managed_mutex);
+    Thread_lock_mutex(iotp_managed_mutex);
 
     /* sanity check */
     if (client == NULL || (client && client->config == NULL)) {
         rc = IOTPRC_INVALID_HANDLE;
         LOG(ERROR, "Invalid client handle: rc=%d", rc);
-        Thread_unlock_mutex(managed_mutex);
+        Thread_unlock_mutex(iotp_managed_mutex);
         return rc;
     }
 
@@ -1740,7 +1916,7 @@ static int iotp_client_dmMessageArrived(void *context, char *topicName, int topi
     if ( managedClient == NULL ) {
         rc = IOTPRC_INVALID_HANDLE;
         LOG(ERROR, "Not a managed client: rc=%d", rc);
-        Thread_unlock_mutex(managed_mutex);
+        Thread_unlock_mutex(iotp_managed_mutex);
         return rc;
     }
 
@@ -1761,10 +1937,10 @@ static int iotp_client_dmMessageArrived(void *context, char *topicName, int topi
     /* Get request ID from payload */
     char *reqID = iotp_json_getString(pobj, "reqId");
 
-    LOG(DEBUG, "Device Management request Topic:%s ReqID:%s", topicName?topicName:"", reqID?reqID:"");
+    LOG(DEBUG, "Device Management request ID:%s", reqID?reqID:"");
 
     /* invoke DM action processing functions based on topic name */
-    if (!strcmp(topicName, DM_ACTION_RESPONSE)){
+    if (strstr(topicName, DM_ACTION_RESPONSE)) {
         if ( reqID == NULL ) {
             LOG(ERROR, "NULL reqID received in DM Action response");
             rc = IOTPRC_DM_RESPONSE_NULL_REQID;
@@ -1784,19 +1960,19 @@ static int iotp_client_dmMessageArrived(void *context, char *topicName, int topi
         goto endDMAction;
     } 
 
-    if (!strcmp(topicName, DM_ACTION_FIRMWAREDOWNLOAD)) {
+    if (strstr(topicName, DM_ACTION_FIRMWAREDOWNLOAD)) {
         iotp_client_dmProcessFirmwareDownload(client, managedClient, topicName, payloadlen, pl, pobj, reqID);
-    } else if (!strcmp(topicName, DM_ACTION_FIRMWAREUPDATE)) {
+    } else if (strstr(topicName, DM_ACTION_FIRMWAREUPDATE)) {
         iotp_client_dmProcessFirmwareUpdate(client, managedClient, topicName, payloadlen, pl, pobj, reqID);
-    } else if (!strcmp(topicName, DM_ACTION_UPDATE)) {
+    } else if (strstr(topicName, DM_ACTION_UPDATE)) {
         iotp_client_dmProcessUpdate(client, managedClient, topicName, payloadlen, pl, pobj, reqID);
-    } else if (!strcmp(topicName, DM_ACTION_REBOOT)) {
+    } else if (strstr(topicName, DM_ACTION_REBOOT)) {
         iotp_client_dmProcessRebootReset(client, topicName, payloadlen, pl, reqID, 1);
-    } else if (!strcmp(topicName, DM_ACTION_FACTORYRESET)) {
+    } else if (strstr(topicName, DM_ACTION_FACTORYRESET)) {
         iotp_client_dmProcessRebootReset(client, topicName, payloadlen, pl, reqID, 0);
-    } else if (!strcmp(topicName, DM_ACTION_OBSERVE)) {
+    } else if (strstr(topicName, DM_ACTION_OBSERVE)) {
         iotp_client_dmProcessObserve(client, reqID);
-    } else if (!strcmp(topicName, DM_ACTION_CANCEL)) {
+    } else if (strstr(topicName, DM_ACTION_CANCEL)) {
         iotp_client_dmProcessCancel(client, managedClient, pobj, reqID);
     }
 
@@ -1806,7 +1982,7 @@ endDMAction:
     if (pl) 
         free(pl);
 
-    Thread_unlock_mutex(managed_mutex);
+    Thread_unlock_mutex(iotp_managed_mutex);
     return rc;
 }
 

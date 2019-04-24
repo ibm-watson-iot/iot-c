@@ -257,28 +257,33 @@ typedef struct IoTPClient {
 #define COMMAND_ROOTTOPIC       "iot-2/"
 #define COMMAND_ROOTTOPIC_LEN   6
 
-/* Device Management topics */
+/* Device Management topics format */
+#define DM_DEVICE_TOPIC_PREFIXFMT   "iotdevice-1/"
+#define DM_GATEWAY_TOPIC_PREFIXFMT  "iotdevice-1/type/%s/id/%s/"
+#define DM_ACTION_DEVICE_PREFIXFMT  "iotdm-1/"
+#define DM_ACTION_GATEWAY_PREFIXFMT "iotdm-1/type/%s/id/%s/"
+
 /* Topics used for device to platform communications */
-#define DM_MANAGE               "iotdevice-1/mgmt/manage"
-#define DM_UNMANAGE             "iotdevice-1/mgmt/unmanage"
-#define DM_NOTIFY               "iotdevice-1/notify"
-#define DM_RESPONSE             "iotdevice-1/response"
-#define DM_UPDATE_LOCATION      "iotdevice-1/device/update/location"
-#define DM_CREATE_DIAG_ERRCODES "iotdevice-1/add/diag/errorCodes"
-#define DM_CLEAR_DIAG_ERRCODES  "iotdevice-1/clear/diag/errorCodes"
-#define DM_ADD_DIAG_LOG         "iotdevice-1/add/diag/log"
-#define DM_CLEAR_DIAG_LOG       "iotdevice-1/clear/diag/log"
+#define DM_MANAGE                   "mgmt/manage"
+#define DM_UNMANAGE                 "mgmt/unmanage"
+#define DM_NOTIFY                   "notify"
+#define DM_RESPONSE                 "response"
+#define DM_UPDATE_LOCATION          "device/update/location"
+#define DM_CREATE_DIAG_ERRCODES     "add/diag/errorCodes"
+#define DM_CLEAR_DIAG_ERRCODES      "clear/diag/errorCodes"
+#define DM_ADD_DIAG_LOG             "add/diag/log"
+#define DM_CLEAR_DIAG_LOG           "clear/diag/log"
 
 /* Topics used for platform to device communications */
-#define DM_ACTION_RESPONSE          "iotdm-1/response"
-#define DM_ACTION_UPDATE            "iotdm-1/device/update"
-#define DM_ACTION_OBSERVE           "iotdm-1/observe"
-#define DM_ACTION_CANCEL            "iotdm-1/cancel"
-#define DM_ACTION_FACTORYRESET      "iotdm-1/mgmt/initiate/device/factory_reset"
-#define DM_ACTION_REBOOT            "iotdm-1/mgmt/initiate/device/reboot"
-#define DM_ACTION_FIRMWAREDOWNLOAD  "iotdm-1/mgmt/initiate/firmware/download"
-#define DM_ACTION_FIRMWAREUPDATE    "iotdm-1/mgmt/initiate/firmware/update"
-#define DM_ACTION_ALL               "iotdm-1/#"
+#define DM_ACTION_RESPONSE          "response"
+#define DM_ACTION_UPDATE            "device/update"
+#define DM_ACTION_OBSERVE           "observe"
+#define DM_ACTION_CANCEL            "cancel"
+#define DM_ACTION_FACTORYRESET      "mgmt/initiate/device/factory_reset"
+#define DM_ACTION_REBOOT            "mgmt/initiate/device/reboot"
+#define DM_ACTION_FIRMWAREDOWNLOAD  "mgmt/initiate/firmware/download"
+#define DM_ACTION_FIRMWAREUPDATE    "mgmt/initiate/firmware/update"
+#define DM_ACTION_ALL               "#"
 
 #define DM_ACTION_ROOTTOPIC         "iotdm-1/"
 #define DM_ACTION_ROOTTOPIC_LEN     8
