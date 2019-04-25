@@ -79,7 +79,7 @@ define run-test
     @echo ==== Run Test: $(notdir $(1))
     @echo ==== Time: $(shell date +%T)
     @echo ---- Use MQTT Paho asynchronous library
-    LD_LIBRARY_PATH=$(paholibdir):$(iotplibdir) $(blddir)/$(1)
+    LD_LIBRARY_PATH=$(paholibdir):$(iotplibdir) $(blddir)/$(1) | tee -a cunit_tests.log
 endef
 
 else ifeq ($(OSTYPE),Darwin)
@@ -94,7 +94,7 @@ define run-test
     @echo ==== Run Test: $(notdir $(1))
     @echo ==== Time: $(shell date +%T)
     @echo ---- Use MQTT Paho asynchronous library
-    DYLD_LIBRARY_PATH=$(paholibdir):$(iotplibdir) $(blddir)/$(1)
+    DYLD_LIBRARY_PATH=$(paholibdir):$(iotplibdir) $(blddir)/$(1) | tee -a cunit_tests.log
 endef
 
 endif
@@ -110,20 +110,23 @@ VAL_DEVICE_TEST = $(patsubst %.c, $(blddir)/%, $(VAL_DEVICE_TEST_SRCS))
 SYS_DEVICE_TEST_SRCS = systemDevice_tests.c
 SYS_DEVICE_TEST = $(patsubst %.c, $(blddir)/%, $(SYS_DEVICE_TEST_SRCS))
 
+VAL_GATEWAY_TEST_SRCS = validateGateway_tests.c
+VAL_GATEWAY_TEST = $(patsubst %.c, $(blddir)/%, $(VAL_GATEWAY_TEST_SRCS))
 
-TEST_RUN = validateConfig_tests validateDevice_tests systemDevice_tests
+
+TEST_RUN = validateConfig_tests validateDevice_tests systemDevice_tests validateGateway_tests
 
 
-.PHONY: all clean $(VAT_CONFIG_TEST) $(VAL_DEVICE_TEST) $(SYS_DEVICE_TEST)
+.PHONY: all clean $(VAT_CONFIG_TEST) $(VAL_DEVICE_TEST) $(SYS_DEVICE_TEST) $(VAL_GATEWAY_TEST)
 
 all: mkdir build
 
 mkdir:
 	@mkdir -p $(blddir)
 
-build: $(VAL_CONFIG_TEST) $(VAL_DEVICE_TEST) $(SYS_DEVICE_TEST)
+build: $(VAL_CONFIG_TEST) $(VAL_DEVICE_TEST) $(SYS_DEVICE_TEST) $(VAL_GATEWAY_TEST)
 
-run_tests: $(TEST_RUN)
+run_tests: initTestLog $(TEST_RUN) getTestSummary
 
 
 $(VAL_CONFIG_TEST): $(TEST_UTIL_SRCS) $(VAL_CONFIG_TEST_SRCS)
@@ -135,11 +138,27 @@ $(VAL_DEVICE_TEST): $(TEST_UTIL_SRCS) $(VAL_DEVICE_TEST_SRCS)
 $(SYS_DEVICE_TEST): $(TEST_UTIL_SRCS) $(SYS_DEVICE_TEST_SRCS)
 	$(CC) -o $@ $(TEST_UTIL_SRCS) $(SYS_DEVICE_TEST_SRCS) $(INCDIRS) $(LDFLAGS_DEV) $(FLAGS_EXES)
 
+$(VAL_GATEWAY_TEST): $(TEST_UTIL_SRCS) $(VAL_GATEWAY_TEST_SRCS)
+	$(CC) -o $@ $(TEST_UTIL_SRCS) $(VAL_GATEWAY_TEST_SRCS) $(INCDIRS) $(LDFLAGS_GWY) $(FLAGS_EXES)
+
 $(TEST_RUN):
 	$(call run-test,$@)
 
+initTestLog:
+	-$(RM) -f cunit_tests.log
+	@touch cunit_tests.log
+
+getTestSummary:
+	@echo
+	@echo ==== Cunit Test Summary
+	@echo ==== Time: $(shell date +%T)
+	@echo
+	@cat cunit_tests.log | grep "TEST-Summary: "
+	@echo
+
 clean:
 	-$(RM) -r $(blddir)
+	-$(RM) -f test/cunit_tests.log
 
 print-% : ; @echo $* = $($*)
 

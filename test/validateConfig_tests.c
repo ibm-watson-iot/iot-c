@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 IBM Corp.
+ * Copyright (c) 2018-2019 IBM Corp.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -127,7 +127,7 @@ int testConfig_create(void)
     TEST_ASSERT("IoTPConfig_clear: Clear config object", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
 
     config = NULL;
-    rc = IoTPConfig_create(&config, "./wiotpclient.yaml");
+    rc = IoTPConfig_create(&config, "./wiotpdev.yaml");
     TEST_ASSERT("IoTPConfig_create: With valid file", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
     return rc;
 
@@ -325,7 +325,7 @@ int testConfig_readConfigFile(void)
     rc = IoTPConfig_readConfigFile(config, "/usr/sbin/xxxxx");
     TEST_ASSERT("IoTPConfig_readConfigFile: Invalid config file", rc == IOTPRC_FILE_OPEN, "rcE=%d rcA=%d", IOTPRC_FILE_OPEN, rc);
 
-    rc = IoTPConfig_readConfigFile(config, "./wiotpclient.yaml");
+    rc = IoTPConfig_readConfigFile(config, "./wiotpdev.yaml");
     TEST_ASSERT("IoTPConfig_readConfigFile: Valid config file", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
 
     rc = IoTPConfig_readConfigFile(config, "./invalidconfig1.yaml");

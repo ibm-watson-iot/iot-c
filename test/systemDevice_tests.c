@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 IBM Corp.
+ * Copyright (c) 2018-2019 IBM Corp.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -56,7 +56,7 @@ int test_sendEvent(void)
     char *data = "{\"d\" : {\"SensorID\": \"Test\", \"Reading\": 7 }}";
     int i = 0;
 
-    rc = IoTPConfig_create(&config, "./wiotpclient.yaml");
+    rc = IoTPConfig_create(&config, "./wiotpdev.yaml");
     TEST_ASSERT("test_sendEvent: Create config object", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
 
     /* get org id, and device token from environment */

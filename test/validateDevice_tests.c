@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 IBM Corp.
+ * Copyright (c) 2018-2019 IBM Corp.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -72,7 +72,7 @@ int testDevice_create(void)
     TEST_ASSERT("IoTPDevice_create: Destroy NULL device handle", rc == IOTPRC_INVALID_HANDLE, "rcE=%d rcA=%d", IOTPRC_INVALID_HANDLE, rc);
 
     /* success tests */
-    rc = IoTPConfig_create(&config, "./wiotpclient.yaml");
+    rc = IoTPConfig_create(&config, "./wiotpdev.yaml");
     TEST_ASSERT("IoTPDevice_create: Create config object", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
     rc = IoTPDevice_create(&device, config);
     TEST_ASSERT("IoTPDevice_create: Create device with valid config", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
@@ -94,7 +94,7 @@ int testDevice_setMQTTLogHandler(void)
     rc = IoTPDevice_setMQTTLogHandler(NULL, NULL);
     TEST_ASSERT("IoTPDevice_setMQTTLogHandler: Invalid log handler", rc == IOTPRC_INVALID_HANDLE, "rcE=%d rcA=%d", IOTPRC_INVALID_HANDLE, rc);
 
-    rc = IoTPConfig_create(&config, "./wiotpclient.yaml");
+    rc = IoTPConfig_create(&config, "./wiotpdev.yaml");
     TEST_ASSERT("IoTPDevice_setMQTTLogHandler: Create config object", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
     rc = IoTPDevice_create(&device, config);
     TEST_ASSERT("IoTPDevice_setMQTTLogHandler: Create device with valid config", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
@@ -118,7 +118,7 @@ int testDevice_connect(void)
     int rc = IOTPRC_SUCCESS;
     IoTPConfig *config = NULL;
     IoTPDevice *device = NULL;
-    rc = IoTPConfig_create(&config, "./wiotpclient.yaml");
+    rc = IoTPConfig_create(&config, "./wiotpdev.yaml");
     TEST_ASSERT("IoTPDevice_connect: Create config object", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
     IoTPConfig_readEnvironment(config);
     rc = IoTPDevice_create(&device, config);
@@ -145,7 +145,7 @@ int testDevice_sendEvent(void)
 
     rc = IoTPDevice_sendEvent(device, NULL, NULL, NULL, 0, NULL);
     TEST_ASSERT("IoTPDevice_sendEvent: Invalid device object", rc == IOTPRC_PARAM_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_PARAM_NULL_VALUE, rc);
-    rc = IoTPConfig_create(&config, "./wiotpclient.yaml");
+    rc = IoTPConfig_create(&config, "./wiotpdev.yaml");
     TEST_ASSERT("IoTPDevice_sendEvent: Create config object", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
     rc = IoTPDevice_create(&device, config);
     TEST_ASSERT("IoTPDevice_sendEvent: Create device with valid config", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);

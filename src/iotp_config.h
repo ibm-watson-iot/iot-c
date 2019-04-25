@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 IBM Corp.
+ * Copyright (c) 2018-2019 IBM Corp.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -84,35 +84,27 @@
    This option can be used to define configuration of multiple clients in the same configuration
    file. Example of a device configuration: <br>
    <pre>
-       device:
-         identity:
-           orgId: xxxxxx
-           deviceType: devTypeA
-           deviceId: devA
-         auth:
-           token: xxxxxxxx
-         options:
-           logLevel: debug
-           mqtt:
-             port: 443
+       identity:
+         orgId: xxxxxx
+         deviceType: devTypeA
+         deviceId: devA
+       auth:
+         token: xxxxxxxx
+       options:
+         logLevel: debug
+         mqtt:
+           port: 443
    </pre>
   
    To set IoTPConfig objects using environment variable, use the following format: <br>
-       iotp.configuration_category_name.configuration_parameter_name
+       WIOTP_<CONFIG_CATAGORY>_<CONFIG_NAME>
   
        Example: <br>
        <pre>
-           wiotp.identiry.orgid=xxxxxx
-           wiotp.auth.token=xxxxxxxx
-           wiotp.options.mqtt.port=443
+           WIOTP_IDENTITY_ORGID=xxxxxx
+           WIOTP_AUTH_TOKEN=xxxxxxxx
+           WIOTP_OPTIONS_MQTT_PORT=443
        </pre>
-       It can also be defined as:
-       <pre>
-           wiotp.device.identiry.orgid=xxxxxx
-           wiotp.device.auth.token=xxxxxxxx
-           wiotp.device.options.mqtt.port=443
-       </pre>
-   
  */
 
 /* IoTP Client names - defined in iotp_config.c */
