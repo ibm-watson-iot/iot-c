@@ -144,19 +144,19 @@ int testDevice_sendEvent(void)
     IoTPDevice *device = NULL;
 
     rc = IoTPDevice_sendEvent(device, NULL, NULL, NULL, 0, NULL);
-    TEST_ASSERT("IoTPDevice_sendEvent: Invalid device object", rc == IOTPRC_PARAM_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_PARAM_NULL_VALUE, rc);
+    TEST_ASSERT("IoTPDevice_sendEvent: Invalid device object", rc == IOTPRC_ARGS_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
     rc = IoTPConfig_create(&config, "./wiotpdev.yaml");
     TEST_ASSERT("IoTPDevice_sendEvent: Create config object", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
     rc = IoTPDevice_create(&device, config);
     TEST_ASSERT("IoTPDevice_sendEvent: Create device with valid config", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
     rc = IoTPDevice_sendEvent(device, NULL, NULL, NULL, 0, NULL);
-    TEST_ASSERT("IoTPDevice_sendEvent: Invalid event ID", rc == IOTPRC_PARAM_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_PARAM_NULL_VALUE, rc);
+    TEST_ASSERT("IoTPDevice_sendEvent: Invalid event ID", rc == IOTPRC_ARGS_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
     rc = IoTPDevice_sendEvent(device, "status", NULL, NULL, 0, NULL);
-    TEST_ASSERT("IoTPDevice_sendEvent: Invalid format", rc == IOTPRC_PARAM_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_PARAM_NULL_VALUE, rc);
+    TEST_ASSERT("IoTPDevice_sendEvent: Invalid format", rc == IOTPRC_ARGS_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
     rc = IoTPDevice_sendEvent(device, "status", NULL, "json", -1, NULL);
-    TEST_ASSERT("IoTPDevice_sendEvent: Invalid QoS -1", rc == IOTPRC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IOTPRC_PARAM_NULL_VALUE, rc);
+    TEST_ASSERT("IoTPDevice_sendEvent: Invalid QoS=-1", rc == IOTPRC_ARGS_INVALID_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_INVALID_VALUE, rc);
     rc = IoTPDevice_sendEvent(device, "status", NULL, "json", 3, NULL);
-    TEST_ASSERT("IoTPDevice_sendEvent: Invalid QoS 3", rc == IOTPRC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IOTPRC_PARAM_NULL_VALUE, rc);
+    TEST_ASSERT("IoTPDevice_sendEvent: Invalid QoS=3", rc == IOTPRC_ARGS_INVALID_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_INVALID_VALUE, rc);
     rc = IoTPDevice_destroy(device);
     TEST_ASSERT("IoTPDevice_sendEvent: Destroy a valid device handle", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
     rc = IoTPConfig_clear(config);

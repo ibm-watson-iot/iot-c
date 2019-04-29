@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2018 IBM Corp.
+ * Copyright (c) 2018-2019 IBM Corp.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -19,39 +19,41 @@
 #include "iotp_application.h"
 #include "iotp_internal.h"
 
-/* Application APIs are essentially wrapper functions of IoTPClient APIs */
 
-/* Creates a application handle */
+/* Creates an application handle */
 IOTPRC IoTPApplication_create(IoTPApplication **application, IoTPConfig *config) 
 {
     IOTPRC rc = IOTPRC_SUCCESS;
 
     rc = iotp_client_create((void **)application, config, IoTPClient_application);
     if ( rc != IOTPRC_SUCCESS ) {
-        LOG(ERROR, "Failed to create IoTPGateway: rc=%d", rc);
+        LOG(ERROR, "Failed to create an application handle. rc: %d | Reason: %s", rc, IOTPRC_toString(rc));
     }
 
     return rc;
 }
 
-/* Set MQTT Trace handler */
+/* Sets MQTT trace handler */
 IOTPRC IoTPApplication_setMQTTLogHandler(IoTPApplication *application, IoTPLogHandler *cb)
 {
     IOTPRC rc = IOTPRC_SUCCESS;
 
     rc = iotp_client_setMQTTLogHandler((void *)application, cb);
+    if ( rc != IOTPRC_SUCCESS ) {
+        LOG(WARN, "Failed to set MQTT log handler. rc: %d | Reason: %s", rc, IOTPRC_toString(rc));
+    }
+
     return rc;
 }
 
-/* Disconnect and destroys a application handle */
+/* Destroys an application handle */
 IOTPRC IoTPApplication_destroy(IoTPApplication *application)
 {
     IOTPRC rc = IOTPRC_SUCCESS;
-    int destroyMQTTClient = 1;
 
-    rc = iotp_client_destroy((void *)application, destroyMQTTClient);
+    rc = iotp_client_destroy((void *)application);
     if ( rc != IOTPRC_SUCCESS ) {
-        LOG(ERROR, "Failed to destroy IoTPGateway: rc=%d", rc);
+        LOG(ERROR, "Failed to destroy an application handle. rc: %d | Reason: %s", rc, IOTPRC_toString(rc));
     }
 
     return rc;
@@ -64,34 +66,39 @@ IOTPRC IoTPApplication_connect(IoTPApplication *application)
 
     rc = iotp_client_connect((void *)application);
     if ( rc != IOTPRC_SUCCESS ) {
-        LOG(ERROR, "Application failed to connect");
+        LOG(ERROR, "Failed to connect. rc: %d | Reason: %s", rc, IOTPRC_toString(rc));
     }
 
     return rc;
 }
 
-/* Disconnect client from WIoTP */
+/* Disconnects from WIoTP */
 IOTPRC IoTPApplication_disconnect(IoTPApplication *application)
 {
     IOTPRC rc = IOTPRC_SUCCESS;
 
     rc = iotp_client_disconnect((void *)application);
     if ( rc != IOTPRC_SUCCESS ) {
-        LOG(ERROR, "Application failed to disconnect");
+        LOG(ERROR, "Faiiled to disconnect, rc: %d | Reason: %s", rc, IOTPRC_toString(rc));
     }
 
     return rc;
 }
 
-/* Sends Event on behalf of a device */
+/* Sends Event on behalf of a device or gateway */
 IOTPRC IoTPApplication_sendEvent(IoTPApplication *application, char *typeId, char *deviceId, char *eventId, char *data, char *formatString, QoS qos, MQTTProperties *props)
 {
     IOTPRC rc = IOTPRC_SUCCESS;
 
     /* Sanity check */
-    if ( !typeId || !deviceId || !eventId || *eventId == '\0' || !formatString || *formatString == '\0' ) {
-        rc = IOTPRC_PARAM_NULL_VALUE;
-        LOG(WARN, "Received invalid or NULL arguments, rc=%d", rc);
+    if ( !application || !typeId || *typeId == '\0' || !deviceId || *deviceId == '\0' || !eventId || *eventId == '\0' || !formatString || *formatString == '\0' ) {
+        rc = IOTPRC_ARGS_NULL_VALUE;
+        LOG(WARN, "Invalid or NULL argument. rc: %d | Reason: %s", rc, IOTPRC_toString(rc));
+        return rc;
+    }
+    if ( qos != QoS0 && qos != QoS1 && qos != QoS2 ) {
+        rc = IOTPRC_ARGS_INVALID_VALUE;
+        LOG(WARN, "Invalid QoS. qos: %d | rc: %d | reason: %s", qos, rc, IOTPRC_toString(rc));
         return rc;
     }
 
@@ -104,9 +111,8 @@ IOTPRC IoTPApplication_sendEvent(IoTPApplication *application, char *typeId, cha
     LOG(DEBUG,"Send event. topic: %s", topic);
 
     rc = iotp_client_publish((void *)application, topic, data, qos, props);
-
     if ( rc != IOTPRC_SUCCESS ) {
-        LOG(ERROR, "Failed to send event: %s rc=%d", topic, rc);
+        LOG(ERROR, "Failed to send event. topic: %s | rc: %d | Reason: %s", topic, rc, IOTPRC_toString(rc));
     }
 
     return rc;
@@ -118,9 +124,14 @@ IOTPRC IoTPApplication_sendCommand(IoTPApplication *application, char *typeId, c
     IOTPRC rc = IOTPRC_SUCCESS;
 
     /* Sanity check */
-    if ( !typeId || !deviceId || !commandId || *commandId == '\0' || !formatString || *formatString == '\0' ) {
-        rc = IOTPRC_PARAM_NULL_VALUE;
-        LOG(WARN, "Received invalid or NULL arguments, rc=%d", rc);
+    if ( !application || !typeId || *typeId == '\0' || !deviceId || *deviceId == '\0' || !commandId || *commandId == '\0' || !formatString || *formatString == '\0' ) {
+        rc = IOTPRC_ARGS_NULL_VALUE;
+        LOG(WARN, "Invalid or NULL argument. rc: %d | Reason: %s", rc, IOTPRC_toString(rc));
+        return rc;
+    }
+    if ( qos != QoS0 && qos != QoS1 && qos != QoS2 ) {
+        rc = IOTPRC_ARGS_INVALID_VALUE;
+        LOG(WARN, "Invalid QoS. qos: %d | rc: %d | reason: %s", qos, rc, IOTPRC_toString(rc));
         return rc;
     }
 
@@ -133,18 +144,24 @@ IOTPRC IoTPApplication_sendCommand(IoTPApplication *application, char *typeId, c
     LOG(DEBUG,"Send command. topic: %s", topic);
 
     rc = iotp_client_publish((void *)application, topic, data, qos, props);
-
     if ( rc != IOTPRC_SUCCESS ) {
-        LOG(ERROR, "Failed to send command: %s rc=%d", topic, rc);
+        LOG(ERROR, "Failed to send. topic: %s | rc: %d | Reason: %s", topic, rc, IOTPRC_toString(rc));
     }
 
     return rc;
 }
 
-/* Set Event Handler */
+/* Sets event handler */
 IOTPRC IoTPApplication_setEventHandler(IoTPApplication *application, IoTPCallbackHandler cb, char *typeId, char *deviceId, char *eventId, char *formatString)
 {
     IOTPRC rc = IOTPRC_SUCCESS;
+
+    /* Sanity check */
+    if ( !application || !cb || !typeId || *typeId == '\0' || !deviceId || *deviceId == '\0' || !eventId || *eventId == '\0' || !formatString || *formatString == '\0' ) {
+        rc = IOTPRC_ARGS_NULL_VALUE;
+        LOG(WARN, "Invalid or NULL argument. rc: %d | Reason: %s", rc, IOTPRC_toString(rc));
+        return rc;
+    }
 
     /* Set topic string */
     char *format = "iot-2/type/%s/id/%s/evt/%s/fmt/%s";
@@ -156,7 +173,7 @@ IOTPRC IoTPApplication_setEventHandler(IoTPApplication *application, IoTPCallbac
 
     rc = iotp_client_setHandler((void *)application, topic, IoTP_Handler_AppEvent, cb);
     if ( rc != IOTPRC_SUCCESS ) {
-        LOG(ERROR, "Failed to set global command handler");
+        LOG(ERROR, "Failed to set handler. topic: %s | rc: %d | Reason: %s", topic, rc, IOTPRC_toString(rc));
     }
 
     return rc;
@@ -167,6 +184,13 @@ IOTPRC IoTPApplication_subscribeToEvents(IoTPApplication *application, char *typ
 {
     IOTPRC rc = IOTPRC_SUCCESS;
 
+    /* Sanity check */
+    if ( !application || !typeId || *typeId == '\0' || !deviceId || *deviceId == '\0' || !eventId || *eventId == '\0' || !formatString || *formatString == '\0' ) {
+        rc = IOTPRC_ARGS_NULL_VALUE;
+        LOG(WARN, "Invalid or NULL argument. rc: %d | Reason: %s", rc, IOTPRC_toString(rc));
+        return rc;
+    }
+ 
     /* Set topic string */
     char *format = "iot-2/type/%s/id/%s/evt/%s/fmt/%s";
     int len = strlen(format) + strlen(typeId) + strlen(deviceId) + strlen(eventId) + strlen(formatString) - 7;
@@ -177,7 +201,7 @@ IOTPRC IoTPApplication_subscribeToEvents(IoTPApplication *application, char *typ
 
     rc = iotp_client_subscribe((void *)application, topic, QoS0);
     if ( rc != IOTPRC_SUCCESS ) {
-        LOG(ERROR, "Failed to subscribe to the event: %s rc=%d", topic, rc);
+        LOG(ERROR, "Failed to subscribe. topic: %s | rc: %d | Reason: %s", topic, rc, IOTPRC_toString(rc));
     }
 
     return rc;
@@ -188,6 +212,13 @@ IOTPRC IoTPApplication_unsubscribeFromEvents(IoTPApplication *application, char 
 {
     IOTPRC rc = IOTPRC_SUCCESS;
 
+    /* Sanity check */
+    if ( !application || !typeId || *typeId == '\0' || !deviceId || *deviceId == '\0' || !eventId || *eventId == '\0' || !formatString || *formatString == '\0' ) {
+        rc = IOTPRC_ARGS_NULL_VALUE;
+        LOG(WARN, "Invalid or NULL argument. rc: %d | Reason: %s", rc, IOTPRC_toString(rc));
+        return rc;
+    }
+ 
     /* Set topic string */
     char *format = "iot-2/type/%s/id/%s/evt/%s/fmt/%s";
     int len = strlen(format) + strlen(typeId) + strlen(deviceId) + strlen(eventId) + strlen(formatString) - 7;
@@ -198,7 +229,7 @@ IOTPRC IoTPApplication_unsubscribeFromEvents(IoTPApplication *application, char 
 
     rc = iotp_client_unsubscribe((void *)application, topic);
     if ( rc != IOTPRC_SUCCESS ) {
-        LOG(ERROR, "Failed to subscribe to the event: %s rc=%d", topic, rc);
+        LOG(ERROR, "Failed to unsubscribe. topic: %s | rc: %d | Reason: %s", topic, rc, IOTPRC_toString(rc));
     }
 
     return rc;
@@ -209,6 +240,13 @@ IOTPRC IoTPApplication_setCommandHandler(IoTPApplication *application, IoTPCallb
 {
     IOTPRC rc = IOTPRC_SUCCESS;
 
+    /* Sanity check */
+    if ( !application || !cb || !typeId || *typeId == '\0' || !deviceId || *deviceId == '\0' || !commandId || *commandId == '\0' || !formatString || *formatString == '\0' ) {
+        rc = IOTPRC_ARGS_NULL_VALUE;
+        LOG(WARN, "Invalid or NULL argument. rc: %d | Reason: %s", rc, IOTPRC_toString(rc));
+        return rc;
+    }
+ 
     /* Set topic string */
     char *format = "iot-2/type/%s/id/%s/cmd/%s/fmt/%s";
     int len = strlen(format) + strlen(typeId) + strlen(deviceId) + strlen(commandId) + strlen(formatString) - 7;
@@ -219,7 +257,7 @@ IOTPRC IoTPApplication_setCommandHandler(IoTPApplication *application, IoTPCallb
 
     rc = iotp_client_setHandler((void *)application, topic, IoTP_Handler_Command, cb);
     if ( rc != IOTPRC_SUCCESS ) {
-        LOG(ERROR, "Failed to set command handler");
+        LOG(ERROR, "Failed to set handler. topic: %s | rc: %d | Reason: %s", topic, rc, IOTPRC_toString(rc));
     }
 
     return rc;
@@ -230,6 +268,13 @@ IOTPRC IoTPApplication_subscribeToCommands(IoTPApplication *application, char *t
 {
     IOTPRC rc = IOTPRC_SUCCESS;
 
+    /* Sanity check */
+    if ( !application || !typeId || *typeId == '\0' || !deviceId || *deviceId == '\0' || !commandId || *commandId == '\0' || !formatString || *formatString == '\0' ) {
+        rc = IOTPRC_ARGS_NULL_VALUE;
+        LOG(WARN, "Invalid or NULL argument. rc: %d | Reason: %s", rc, IOTPRC_toString(rc));
+        return rc;
+    }
+ 
     /* Set topic string */
     char *format = "iot-2/type/%s/id/%s/cmd/%s/fmt/%s";
     int len = strlen(format) + strlen(typeId) + strlen(deviceId) + strlen(commandId) + strlen(formatString) - 7;
@@ -240,7 +285,7 @@ IOTPRC IoTPApplication_subscribeToCommands(IoTPApplication *application, char *t
 
     rc = iotp_client_subscribe((void *)application, topic, QoS0);
     if ( rc != IOTPRC_SUCCESS ) {
-        LOG(ERROR, "Failed to subscribe to the command: %s rc=%d", topic, rc);
+        LOG(ERROR, "Failed to subscribe. topic: %s | rc: %d | Reason: %s", topic, rc, IOTPRC_toString(rc));
     }
 
     return rc;
@@ -251,6 +296,13 @@ IOTPRC IoTPApplication_unsubscribeFromCommands(IoTPApplication *application, cha
 {
     IOTPRC rc = IOTPRC_SUCCESS;
 
+    /* Sanity check */
+    if ( !application || !typeId || *typeId == '\0' || !deviceId || *deviceId == '\0' || !commandId || *commandId == '\0' || !formatString || *formatString == '\0' ) {
+        rc = IOTPRC_ARGS_NULL_VALUE;
+        LOG(WARN, "Invalid or NULL argument. rc: %d | Reason: %s", rc, IOTPRC_toString(rc));
+        return rc;
+    }
+ 
     /* Set topic string */
     char *format = "iot-2/type/%s/id/%s/cmd/%s/fmt/%s";
     int len = strlen(format) + strlen(typeId) + strlen(deviceId) + strlen(commandId) + strlen(formatString) - 7;
@@ -261,7 +313,7 @@ IOTPRC IoTPApplication_unsubscribeFromCommands(IoTPApplication *application, cha
 
     rc = iotp_client_unsubscribe((void *)application, topic);
     if ( rc != IOTPRC_SUCCESS ) {
-        LOG(ERROR, "Failed to unsubscribe from the command: %s rc=%d", topic, rc);
+        LOG(ERROR, "Failed to unsubscribe. topic: %s | rc: %d | Reason: %s", topic, rc, IOTPRC_toString(rc));
     }
 
     return rc;
@@ -273,6 +325,13 @@ IOTPRC IoTPApplication_setDeviceMonitoringHandler(IoTPApplication *application, 
 {
     IOTPRC rc = IOTPRC_SUCCESS;
 
+    /* Sanity check */
+    if ( !application || !cb || !typeId || *typeId == '\0' || !deviceId || *deviceId == '\0' ) {
+        rc = IOTPRC_ARGS_NULL_VALUE;
+        LOG(WARN, "Invalid or NULL argument. rc: %d | Reason: %s", rc, IOTPRC_toString(rc));
+        return rc;
+    }
+ 
     /* Set topic string */
     char *format = "iot-2/type/%s/id/%s/mon";
     int len = strlen(format) + strlen(typeId) + strlen(deviceId) - 3;
@@ -283,7 +342,7 @@ IOTPRC IoTPApplication_setDeviceMonitoringHandler(IoTPApplication *application, 
 
     rc = iotp_client_setHandler((void *)application, topic, IoTP_Handler_DeviceMonitoring, cb);
     if ( rc != IOTPRC_SUCCESS ) {
-        LOG(ERROR, "Failed to set device monitoring message handler");
+        LOG(ERROR, "Failed to set handler. topic: %s | rc: %d | Reason: %s", topic, rc, IOTPRC_toString(rc));
     }
 
     return rc;
@@ -293,7 +352,14 @@ IOTPRC IoTPApplication_setDeviceMonitoringHandler(IoTPApplication *application, 
 IOTPRC IoTPApplication_subscribeToDeviceMonitoringMessages(IoTPApplication *application, char *typeId, char *deviceId)
 {
     IOTPRC rc = IOTPRC_SUCCESS;
-
+ 
+    /* Sanity check */
+    if ( !application || !typeId || *typeId == '\0' || !deviceId || *deviceId == '\0' ) {
+        rc = IOTPRC_ARGS_NULL_VALUE;
+        LOG(WARN, "Invalid or NULL argument. rc: %d | Reason: %s", rc, IOTPRC_toString(rc));
+        return rc;
+    }
+ 
     /* Set topic string */
     char *format = "iot-2/type/%s/id/%s/mon";
     int len = strlen(format) + strlen(typeId) + strlen(deviceId) - 3;
@@ -304,7 +370,7 @@ IOTPRC IoTPApplication_subscribeToDeviceMonitoringMessages(IoTPApplication *appl
 
     rc = iotp_client_subscribe((void *)application, topic, QoS0);
     if ( rc != IOTPRC_SUCCESS ) {
-        LOG(ERROR, "Failed to subscribe to device monitoring messages: %s rc=%d", topic, rc);
+        LOG(ERROR, "Failed to subscribe. topic: %s | rc: %d | Reason: %s", topic, rc, IOTPRC_toString(rc));
     }
 
     return rc;
@@ -315,6 +381,13 @@ IOTPRC IoTPApplication_unsubscribeFromDeviceMonitoringMessages(IoTPApplication *
 {
     IOTPRC rc = IOTPRC_SUCCESS;
 
+    /* Sanity check */
+    if ( !application || !typeId || *typeId == '\0' || !deviceId || *deviceId == '\0' ) {
+        rc = IOTPRC_ARGS_NULL_VALUE;
+        LOG(WARN, "Invalid or NULL argument. rc: %d | Reason: %s", rc, IOTPRC_toString(rc));
+        return rc;
+    }
+ 
     /* Set topic string */
     char *format = "iot-2/type/%s/id/%s/mon";
     int len = strlen(format) + strlen(typeId) + strlen(deviceId) - 3;
@@ -325,7 +398,7 @@ IOTPRC IoTPApplication_unsubscribeFromDeviceMonitoringMessages(IoTPApplication *
 
     rc = iotp_client_unsubscribe((void *)application, topic);
     if ( rc != IOTPRC_SUCCESS ) {
-        LOG(ERROR, "Failed to unsubscribe from device monitoring messages: %s rc=%d", topic, rc);
+        LOG(ERROR, "Failed to unsubscribe. topic: %s | rc: %d | Reason: %s", topic, rc, IOTPRC_toString(rc));
     }
 
     return rc;
@@ -337,6 +410,13 @@ IOTPRC IoTPApplication_setAppMonitoringHandler(IoTPApplication *application, IoT
 {
     IOTPRC rc = IOTPRC_SUCCESS;
 
+    /* Sanity check */
+    if ( !application || !cb || !appId || *appId == '\0' ) {
+        rc = IOTPRC_ARGS_NULL_VALUE;
+        LOG(WARN, "Invalid or NULL argument. rc: %d | Reason: %s", rc, IOTPRC_toString(rc));
+        return rc;
+    }
+ 
     /* Set topic string */
     char *format = "iot-2/app/%s/mon";
     int len = strlen(format) + strlen(appId) - 1;
@@ -347,7 +427,7 @@ IOTPRC IoTPApplication_setAppMonitoringHandler(IoTPApplication *application, IoT
 
     rc = iotp_client_setHandler((void *)application, topic, IoTP_Handler_AppMonitoring, cb);
     if ( rc != IOTPRC_SUCCESS ) {
-        LOG(ERROR, "Failed to set application monitoring message handler");
+        LOG(ERROR, "Failed to set handler. topic: %s | rc: %d | Reason: %s", topic, rc, IOTPRC_toString(rc));
     }
 
     return rc;
@@ -358,6 +438,13 @@ IOTPRC IoTPApplication_subscribeToAppMonitoringMessages(IoTPApplication *applica
 {
     IOTPRC rc = IOTPRC_SUCCESS;
 
+    /* Sanity check */
+    if ( !application || !appId || *appId == '\0' ) {
+        rc = IOTPRC_ARGS_NULL_VALUE;
+        LOG(WARN, "Invalid or NULL argument. rc: %d | Reason: %s", rc, IOTPRC_toString(rc));
+        return rc;
+    }
+ 
     /* Set topic string */
     char *format = "iot-2/app/%s/mon";
     int len = strlen(format) + strlen(appId) - 1;
@@ -368,7 +455,7 @@ IOTPRC IoTPApplication_subscribeToAppMonitoringMessages(IoTPApplication *applica
 
     rc = iotp_client_subscribe((void *)application, topic, QoS0);
     if ( rc != IOTPRC_SUCCESS ) {
-        LOG(ERROR, "Failed to subscribe to application monitoring messages: %s rc=%d", topic, rc);
+        LOG(ERROR, "Failed to subscribe. topic: %s | rc: %d | Reason: %s", topic, rc, IOTPRC_toString(rc));
     }
 
     return rc;
@@ -379,6 +466,13 @@ IOTPRC IoTPApplication_unsubscribeFromAppMonitoringMessages(IoTPApplication *app
 {
     IOTPRC rc = IOTPRC_SUCCESS;
 
+    /* Sanity check */
+    if ( !application || !appId || *appId == '\0' ) {
+        rc = IOTPRC_ARGS_NULL_VALUE;
+        LOG(WARN, "Invalid or NULL argument. rc: %d | Reason: %s", rc, IOTPRC_toString(rc));
+        return rc;
+    }
+ 
     /* Set topic string */
     char *format = "iot-2/app/%s/mon";
     int len = strlen(format) + strlen(appId) - 1;
@@ -389,7 +483,7 @@ IOTPRC IoTPApplication_unsubscribeFromAppMonitoringMessages(IoTPApplication *app
 
     rc = iotp_client_unsubscribe((void *)application, topic);
     if ( rc != IOTPRC_SUCCESS ) {
-        LOG(ERROR, "Failed to unsubscribe from application monitoring messages: %s rc=%d", topic, rc);
+        LOG(ERROR, "Failed to unsubscribe. topic: %s | rc: %d | Reason: %s", topic, rc, IOTPRC_toString(rc));
     }
 
     return rc;

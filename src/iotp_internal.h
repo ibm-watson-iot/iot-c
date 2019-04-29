@@ -318,7 +318,7 @@ typedef struct IoTPClient {
 DLLExport IOTPRC iotp_client_create(void **client, IoTPConfig *config, IoTPClientType type);
 DLLExport char * iotp_client_getDeviceType(void *client);
 DLLExport char * iotp_client_getDeviceId(void *client);
-DLLExport IOTPRC iotp_client_destroy(void *client, int destroyMQTTClient);
+DLLExport IOTPRC iotp_client_destroy(void *client);
 DLLExport IOTPRC iotp_client_connect(void *client);
 DLLExport IOTPRC iotp_client_disconnect(void *client);
 DLLExport IOTPRC iotp_client_setHandler(void *client, char * topic, int type, IoTPCallbackHandler handler);

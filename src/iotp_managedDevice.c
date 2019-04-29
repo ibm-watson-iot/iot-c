@@ -53,10 +53,8 @@ IOTPRC IoTPManagedDevice_setMQTTLogHandler(IoTPManagedDevice *managedDevice, IoT
 IOTPRC IoTPManagedDevice_destroy(IoTPManagedDevice *managedDevice)
 {
     IOTPRC rc = IOTPRC_SUCCESS;
-    int destroyMQTTClient = 1;
 
-    /* disconnect and destroy client */
-    rc = iotp_client_destroy((void *)managedDevice, destroyMQTTClient);
+    rc = iotp_client_destroy((void *)managedDevice);
     if ( rc != IOTPRC_SUCCESS ) {
         LOG(ERROR, "Failed to destroy IoTPManagedDevice: rc=%d", rc);
     }

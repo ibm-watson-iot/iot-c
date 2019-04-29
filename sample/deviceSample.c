@@ -182,6 +182,7 @@ int main(int argc, char *argv[])
     rc = IoTPDevice_connect(device);
     if ( rc != 0 ) {
         fprintf(stderr, "ERROR: Failed to connect to Watson IoT Platform: rc=%d\n", rc);
+        fprintf(stderr, "ERROR: Returned error reason: %s\n", IOTPRC_toString(rc));
         exit(1);
     }
 

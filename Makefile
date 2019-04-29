@@ -283,6 +283,9 @@ tests:
 run-tests:
 	make -C test run_tests
 
+get-test-summary:
+	make -C test get-summary
+
 samples:
 	make -C sample
 

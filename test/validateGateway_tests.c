@@ -144,19 +144,19 @@ int testGateway_sendEvent(void)
     IoTPGateway *gateway = NULL;
 
     rc = IoTPGateway_sendEvent(gateway, NULL, NULL, NULL, 0, NULL);
-    TEST_ASSERT("IoTPGateway_sendEvent: Invalid gateway object", rc == IOTPRC_PARAM_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_PARAM_NULL_VALUE, rc);
+    TEST_ASSERT("IoTPGateway_sendEvent: Invalid gateway object", rc == IOTPRC_ARGS_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
     rc = IoTPConfig_create(&config, "./wiotpgw.yaml");
     TEST_ASSERT("IoTPGateway_sendEvent: Create config object", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
     rc = IoTPGateway_create(&gateway, config);
     TEST_ASSERT("IoTPGateway_sendEvent: Create gateway with valid config", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
     rc = IoTPGateway_sendEvent(gateway, NULL, NULL, NULL, 0, NULL);
-    TEST_ASSERT("IoTPGateway_sendEvent: Invalid event ID", rc == IOTPRC_PARAM_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_PARAM_NULL_VALUE, rc);
+    TEST_ASSERT("IoTPGateway_sendEvent: Invalid event ID", rc == IOTPRC_ARGS_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
     rc = IoTPGateway_sendEvent(gateway, "status", NULL, NULL, 0, NULL);
-    TEST_ASSERT("IoTPGateway_sendEvent: Invalid format", rc == IOTPRC_PARAM_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_PARAM_NULL_VALUE, rc);
+    TEST_ASSERT("IoTPGateway_sendEvent: Invalid format", rc == IOTPRC_ARGS_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
     rc = IoTPGateway_sendEvent(gateway, "status", NULL, "json", -1, NULL);
-    TEST_ASSERT("IoTPGateway_sendEvent: Invalid QoS -1", rc == IOTPRC_NOT_CONNECTED, "rcE=%d rcA=%d", IOTPRC_NOT_CONNECTED, rc);
+    TEST_ASSERT("IoTPGateway_sendEvent: Invalid QoS=-1", rc == IOTPRC_ARGS_INVALID_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_INVALID_VALUE, rc);
     rc = IoTPGateway_sendEvent(gateway, "status", NULL, "json", 3, NULL);
-    TEST_ASSERT("IoTPGateway_sendEvent: Invalid QoS 3", rc == IOTPRC_NOT_CONNECTED, "rcE=%d rcA=%d", IOTPRC_NOT_CONNECTED, rc);
+    TEST_ASSERT("IoTPGateway_sendEvent: Invalid QoS=3", rc == IOTPRC_ARGS_INVALID_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_INVALID_VALUE, rc);
     rc = IoTPGateway_destroy(gateway);
     TEST_ASSERT("IoTPGateway_sendEvent: Destroy a valid gateway handle", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
     rc = IoTPConfig_clear(config);

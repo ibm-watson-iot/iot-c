@@ -53,10 +53,8 @@ IOTPRC IoTPManagedGateway_setMQTTLogHandler(IoTPManagedGateway *managedGateway, 
 IOTPRC IoTPManagedGateway_destroy(IoTPManagedGateway *managedGateway)
 {
     IOTPRC rc = IOTPRC_SUCCESS;
-    int destroyMQTTClient = 1;
 
-    /* disconnect and destroy client */
-    rc = iotp_client_destroy((void *)managedGateway, destroyMQTTClient);
+    rc = iotp_client_destroy((void *)managedGateway);
     if ( rc != IOTPRC_SUCCESS ) {
         LOG(ERROR, "Failed to destroy IoTPManagedGateway: rc=%d", rc);
     }

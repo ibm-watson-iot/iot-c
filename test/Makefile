@@ -1,5 +1,5 @@
 #*******************************************************************************
-#  Copyright (c) 2018 IBM Corp.
+#  Copyright (c) 2018-2019 IBM Corp.
 #
 #  All rights reserved. This program and the accompanying materials
 #  are made available under the terms of the Eclipse Public License v1.0
@@ -58,6 +58,10 @@ ifndef pahomqttdir
   pahomqttdir = $(parent_dir)/paho.mqtt.c
 endif
 
+ifndef logfile
+  logfile = $(testdir)/cunit_tests.log
+endif
+
 CC ?= gcc
 RM = rm -f
 
@@ -113,20 +117,29 @@ SYS_DEVICE_TEST = $(patsubst %.c, $(blddir)/%, $(SYS_DEVICE_TEST_SRCS))
 VAL_GATEWAY_TEST_SRCS = validateGateway_tests.c
 VAL_GATEWAY_TEST = $(patsubst %.c, $(blddir)/%, $(VAL_GATEWAY_TEST_SRCS))
 
+SYS_GATEWAY_TEST_SRCS = systemGateway_tests.c
+SYS_GATEWAY_TEST = $(patsubst %.c, $(blddir)/%, $(SYS_GATEWAY_TEST_SRCS))
 
-TEST_RUN = validateConfig_tests validateDevice_tests systemDevice_tests validateGateway_tests
+VAL_APPLICATION_TEST_SRCS = validateApplication_tests.c
+VAL_APPLICATION_TEST = $(patsubst %.c, $(blddir)/%, $(VAL_APPLICATION_TEST_SRCS))
+
+SYS_APPLICATION_TEST_SRCS = systemApplication_tests.c
+SYS_APPLICATION_TEST = $(patsubst %.c, $(blddir)/%, $(SYS_APPLICATION_TEST_SRCS))
 
 
-.PHONY: all clean $(VAT_CONFIG_TEST) $(VAL_DEVICE_TEST) $(SYS_DEVICE_TEST) $(VAL_GATEWAY_TEST)
+TEST_RUN = validateConfig_tests validateDevice_tests systemDevice_tests validateGateway_tests systemGateway_tests validateApplication_tests systemApplication_tests
+
+
+.PHONY: all clean $(VAT_CONFIG_TEST) $(VAL_DEVICE_TEST) $(SYS_DEVICE_TEST) $(VAL_GATEWAY_TEST) $(SYS_GATEWAY_TEST) $(VAL_APPLICATION_TEST) $(SYS_APPLICATION_TEST)
 
 all: mkdir build
 
 mkdir:
 	@mkdir -p $(blddir)
 
-build: $(VAL_CONFIG_TEST) $(VAL_DEVICE_TEST) $(SYS_DEVICE_TEST) $(VAL_GATEWAY_TEST)
+build: $(VAL_CONFIG_TEST) $(VAL_DEVICE_TEST) $(SYS_DEVICE_TEST) $(VAL_GATEWAY_TEST) $(SYS_GATEWAY_TEST) $(VAL_APPLICATION_TEST) $(SYS_APPLICATION_TEST)
 
-run_tests: initTestLog $(TEST_RUN) getTestSummary
+run_tests: init-log $(TEST_RUN)
 
 
 $(VAL_CONFIG_TEST): $(TEST_UTIL_SRCS) $(VAL_CONFIG_TEST_SRCS)
@@ -141,19 +154,34 @@ $(SYS_DEVICE_TEST): $(TEST_UTIL_SRCS) $(SYS_DEVICE_TEST_SRCS)
 $(VAL_GATEWAY_TEST): $(TEST_UTIL_SRCS) $(VAL_GATEWAY_TEST_SRCS)
 	$(CC) -o $@ $(TEST_UTIL_SRCS) $(VAL_GATEWAY_TEST_SRCS) $(INCDIRS) $(LDFLAGS_GWY) $(FLAGS_EXES)
 
+$(SYS_GATEWAY_TEST): $(TEST_UTIL_SRCS) $(SYS_GATEWAY_TEST_SRCS)
+	$(CC) -o $@ $(TEST_UTIL_SRCS) $(SYS_GATEWAY_TEST_SRCS) $(INCDIRS) $(LDFLAGS_GWY) $(FLAGS_EXES)
+
+$(VAL_APPLICATION_TEST): $(TEST_UTIL_SRCS) $(VAL_APPLICATION_TEST_SRCS)
+	$(CC) -o $@ $(TEST_UTIL_SRCS) $(VAL_APPLICATION_TEST_SRCS) $(INCDIRS) $(LDFLAGS_APP) $(FLAGS_EXES)
+
+$(SYS_APPLICATION_TEST): $(TEST_UTIL_SRCS) $(SYS_APPLICATION_TEST_SRCS)
+	$(CC) -o $@ $(TEST_UTIL_SRCS) $(SYS_APPLICATION_TEST_SRCS) $(INCDIRS) $(LDFLAGS_APP) $(FLAGS_EXES)
+
 $(TEST_RUN):
 	$(call run-test,$@)
 
-initTestLog:
-	-$(RM) -f cunit_tests.log
-	@touch cunit_tests.log
+init-log:
+	-$(RM) -f $(logfile)
+	@touch $(logfile)
 
-getTestSummary:
+get-summary:
 	@echo
 	@echo ==== Cunit Test Summary
 	@echo ==== Time: $(shell date +%T)
 	@echo
-	@cat cunit_tests.log | grep "TEST-Summary: "
+	@echo Failed tests:
+	@echo ------------
+	-cat $(logfile) | grep " | Failed | "
+	@echo
+	@echo Summary:
+	@echo ------- 
+	-cat $(logfile) | grep "TEST-Summary: "
 	@echo
 
 clean:

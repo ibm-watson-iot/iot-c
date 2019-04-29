@@ -75,7 +75,7 @@ typedef enum {
     /** Logging is already initialized. */
     IOTPRC_LOGGING_INITED = 1003,
     
-    /** IoTP client handle is NULL or not initialized. */
+    /** IoTP client configuration handle or client handle, is NULL or not initialized. */
     IOTPRC_INVALID_HANDLE = 1004,
     
     /** A required configuration parameter is not specified. */
@@ -101,7 +101,7 @@ typedef enum {
     
     /** Invalid value of an argument is specified. */
     IOTPRC_ARGS_INVALID_VALUE = 1012,
-    
+   
     /** Error while executing the Client certificate callback */
     IOTPRC_CERT_CALLBACK = 1013,
 
@@ -147,7 +147,7 @@ typedef enum {
 } IOTPRC;
 
 /**
- * IoTPRC_toString() API returns string description of WIoTP client reason codes,
+ * IOTPRC_toString() API returns string description of WIoTP client reason codes,
  * Paho MQTT Async client library error codes and Paho MQTT reason codes.
  *
  * @param rc             - Reason code

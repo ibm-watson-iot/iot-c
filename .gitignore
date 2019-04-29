@@ -4,5 +4,5 @@ paho.mqtt.c
 doc/IoTP_C_Client_Docs
 test.log
 temp
-test/cunit_test.log
+test/cunit_tests.log
 

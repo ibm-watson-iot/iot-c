@@ -76,9 +76,9 @@ static void iotp_init_mutex(void)
     pthread_mutexattr_t attr;
     pthread_mutexattr_init(&attr);
     if ((rc = pthread_mutex_init(iotp_client_mutex, &attr)) != 0)
-        LOG(ERROR, "Initializing iotp_client_mutex. rc=%d", rc);
+        LOG(ERROR, "Faild to initialize iotp_client_mutex. rc: %d", rc);
     if ((rc = pthread_mutex_init(iotp_managed_mutex, &attr)) != 0)
-        LOG(ERROR, "Initializing iotp_managed_mutex. rc=%d", rc);
+        LOG(ERROR, "Faild to initialize iotp_managed_mutex. rc: %d", rc);
     iotp_mutex_inited = 1;
 #endif
 
@@ -94,8 +94,8 @@ static IOTPRC iotp_init_dmActionTopics(IoTPClientType type, char *deviceType, ch
     char *topic = NULL;
 
     if ( type != IoTPClient_managed_device && type != IoTPClient_managed_gateway ) {
-        rc = IOTPRC_INVALID_PARAM;
-        LOG(ERROR, "Invalid type:%d rc=%d", type, rc);
+        rc = IOTPRC_INVALID_ARGS;
+        LOG(ERROR, "Invalid action type is specified. type: %d | rc: %d", type, rc);
         return rc;
     }
 
@@ -105,8 +105,8 @@ static IOTPRC iotp_init_dmActionTopics(IoTPClientType type, char *deviceType, ch
         snprintf(prefix, prefixLen, DM_ACTION_DEVICE_PREFIXFMT);
     } else {
         if ( deviceType == NULL || deviceId == NULL ) {
-            rc = IOTPRC_PARAM_NULL_VALUE;
-            LOG(ERROR, "Invalid device type or id. rc=%d", rc);
+            rc = IOTPRC_ARGS_NULL_VALUE;
+            LOG(ERROR, "Invalid or NULL device type or id. deviceType: %s | deviceId: %s | rc: %d", deviceType?deviceType:"NULL", deviceId?deviceId:"NULL", rc);
             return rc;
         }
 
@@ -295,12 +295,12 @@ static IOTPRC iotp_validate_config(int type, IoTPConfig *config)
     /* domain and org ID can not be NULL */
     if ( config->domain == NULL || *config->domain == '\0' ) {
         rc = IOTPRC_PARAM_INVALID_VALUE;
-        LOG(ERROR, "Configuration item domain is NULL or empty: rc=%d", rc);
+        LOG(ERROR, "domain is NULL or empty");
         return rc;
     } else if ( config->identity->orgId == NULL || *config->identity->orgId == '\0' ) {
         if ( config->auth->apiKey == NULL || *config->auth->apiKey == '\0' ) {
             rc = IOTPRC_PARAM_INVALID_VALUE;
-            LOG(ERROR, "Configuration item orgId or API Key is NULL or empty: rc=%d", rc);
+            LOG(ERROR, "APIKey is NULL or empty");
             return rc;
         } else {
             /* get orgid from API Key and update config */
@@ -310,7 +310,7 @@ static IOTPRC iotp_validate_config(int type, IoTPConfig *config)
                 char *orgId = strtok(NULL, "-");
                 config->identity->orgId = strdup(orgId);
             } else {
-                LOG(ERROR, "Configuration item orgId or APIKey is NULL or empty or invalid: rc=%d", rc);
+                LOG(WARN, "orgId is NULL or empty");
             }
         }
     }
@@ -320,25 +320,25 @@ static IOTPRC iotp_validate_config(int type, IoTPConfig *config)
     if ( strcmp(config->domain, "quickstart") != 0 ) {
         if ( config->mqttopts->caFile == NULL || *config->mqttopts->caFile == '\0' ) {
             rc = IOTPRC_PARAM_INVALID_VALUE;
-            LOG(ERROR, "Configuration item certificatePath is NULL or empty: rc=%d", rc);
+            LOG(WARN, "certificatePath is NULL or empty");
             return rc;
         }
         /* check if caFile is valid */
         if ( (rc = iotp_utils_fileExist(config->mqttopts->caFile)) != IOTPRC_SUCCESS ) {
-            LOG(ERROR, "Invalid caFile (%s) is specified: rc=%d", config->mqttopts->caFile, rc);
+            LOG(WARN, "caFile is NULL or empty");
             return rc;
         }
         /* check port - should be 8883 or 443 */
         if ( config->mqttopts->port != 8883 && config->mqttopts->port != 443 ) {
             rc = IOTPRC_PARAM_INVALID_VALUE;
-            LOG(ERROR, "Configuration item port (%d) is not valid: rc=%d", config->mqttopts->port, rc);
+            LOG(ERROR, "Invalid port. port: %d | rc: %d", config->mqttopts->port, rc);
             return rc;
         }
     } else {
         /* check port for quickstart - should be 1883 */
         if ( config->mqttopts->port != 1883 ) {
             rc = IOTPRC_PARAM_INVALID_VALUE;
-            LOG(ERROR, "Configuration item port (%d) for quickstart domain is not valid: rc=%d", config->mqttopts->port, rc);
+            LOG(ERROR, "Invalid port for quickstart domain. port: %d | rc: %d", config->mqttopts->port, rc);
             return rc;
         }
     }
@@ -348,12 +348,12 @@ static IOTPRC iotp_validate_config(int type, IoTPConfig *config)
         /* device id and type can not be empty */
         if (config->identity->typeId == NULL || ( config->identity->typeId && *config->identity->typeId == '\0')) {
             rc = IOTPRC_PARAM_NULL_VALUE;
-            LOG(ERROR, "Device configuration typeId is NULL or empty: rc=%d", rc);
+            LOG(ERROR, "typeId is NULL or empty");
             return rc;
         }
         if (config->identity->deviceId == NULL || ( config->identity->deviceId && *config->identity->deviceId == '\0')) {
             rc = IOTPRC_PARAM_NULL_VALUE;
-            LOG(ERROR, "Device configuration deviceId is NULL or empty: rc=%d", rc);
+            LOG(ERROR, "deviceId is NULL or empty");
             return rc;
         }
         /* validate device authMethod related config items */
@@ -361,30 +361,30 @@ static IOTPRC iotp_validate_config(int type, IoTPConfig *config)
             /* Should have valid authToken */
             if (config->auth->token == NULL || (config->auth->token && *config->auth->token == '\0')) {
                 rc = IOTPRC_PARAM_NULL_VALUE;
-                LOG(ERROR, "Device configuration authToken is NULL or empty: rc=%d", rc);
+                LOG(ERROR, "authToken is NULL or empty");
                 return rc;
             }
         } else {
             /* should have valid client cert and key */
             if (config->auth->keyStore == NULL || ( config->auth->keyStore && *config->auth->keyStore == '\0')) {
                 rc = IOTPRC_PARAM_NULL_VALUE;
-                LOG(ERROR, "Device configuration keyStore is NULL or empty: rc=%d", rc);
+                LOG(ERROR, "keyStore is NULL or empty");
                 return rc;
             } else {
                 /* check if file exist */
                 if ( (rc = iotp_utils_fileExist(config->auth->keyStore)) != IOTPRC_SUCCESS ) {
-                    LOG(ERROR, "Invalid device keyStore (%s) is specified: rc=%d", config->auth->keyStore, rc);
+                    LOG(ERROR, "Invalid keyStore is specified. keyStore: %s", config->auth->keyStore);
                     return rc;
                 }
             }
             if (config->auth->privateKey == NULL || ( config->auth->privateKey && *config->auth->privateKey == '\0')) {
                 rc = IOTPRC_PARAM_NULL_VALUE;
-                LOG(ERROR, "Device configuration privateKey is NULL or empty: rc=%d", rc);
+                LOG(ERROR, "privateKey is NULL or empty");
                 return rc;
             } else {
                 /* check if file exist */
                 if ( (rc = iotp_utils_fileExist(config->auth->privateKey)) != IOTPRC_SUCCESS ) {
-                    LOG(ERROR, "Invalid device privateKey (%s) is specified: rc=%d", config->auth->privateKey, rc);
+                    LOG(ERROR, "Invalid privateKey is specified. keyStore: %s", config->auth->privateKey);
                     return rc;
                 }
             }
@@ -396,34 +396,25 @@ static IOTPRC iotp_validate_config(int type, IoTPConfig *config)
         /* appiId, authToken and APIKey can not be empty */
         if (config->identity->appId == NULL || ( config->identity->appId && *config->identity->appId == '\0')) {
             rc = IOTPRC_PARAM_NULL_VALUE;
-            LOG(ERROR, "Application configuration appId is NULL or empty: rc=%d", rc);
+            LOG(ERROR, "appId is NULL or empty");
             return rc;
         }
         if (config->auth->token == NULL || ( config->auth->token && *config->auth->token == '\0')) {
             rc = IOTPRC_PARAM_NULL_VALUE;
-            LOG(ERROR, "Application configuration token is NULL or empty: rc=%d", rc);
+            LOG(ERROR, "token is NULL or empty");
             return rc;
         }
         if (config->auth->apiKey == NULL || ( config->auth->apiKey && *config->auth->apiKey == '\0')) {
             rc = IOTPRC_PARAM_NULL_VALUE;
-            LOG(ERROR, "Application configuration APIKey is NULL or empty: rc=%d", rc);
+            LOG(ERROR, "APIKey is NULL or empty");
             return rc;
         }
     }
 
-    return rc;
-}
+    /* set log level */
+    iotp_utils_setLogLevel(config->logLevel);
 
-/* Callback function to process successful disconnection */
-void onDisconnect(void *context, MQTTAsync_successData5 *response)
-{
-    char *clientId = NULL;
-    IoTPClient *client = (IoTPClient *)context;
-    Thread_lock_mutex(iotp_client_mutex);
-    client->connected = 0;
-    clientId = client->clientId;
-    Thread_unlock_mutex(iotp_client_mutex);
-    LOG(INFO, "Client (id=%s) is successfully disconnected.", clientId? clientId:"NULL");
+    return rc;
 }
 
 /* Callback function to process successful connection */
@@ -435,19 +426,55 @@ void onConnect(void *context, MQTTAsync_successData5 *response)
     client->connected = 1;
     clientId = client->clientId;
     Thread_unlock_mutex(iotp_client_mutex);
-    LOG(INFO, "Client (id=%s) is connected successfully.", clientId? clientId:"NULL");
+    LOG(INFO, "Client is connected. clientId: %s", clientId? clientId:"NULL");
 }
 
 /* Callback function to process connection failure */
 void onConnectFailure(void* context, MQTTAsync_failureData5 *response)
 {
     char *clientId = NULL;
+    int rc = 0;
     IoTPClient *client = (IoTPClient *)context;
+    if ( response ) rc = response->code; 
     Thread_lock_mutex(iotp_client_mutex);
-    client->connected = -1;
+    client->connected = (0 - rc);
     clientId = client->clientId;
     Thread_unlock_mutex(iotp_client_mutex);
-    LOG(INFO, "Client (id=%s) connection has failed. rc=%d", clientId? clientId:"NULL", response? response->code:0);
+    if ( response ) {
+        LOG(WARN, "Failed to connect. clientId: %s | rc: %d | respmsg: %s", clientId? clientId:"NULL", response->code, response->message?response->message:"");
+    } else {
+        LOG(WARN, "Failed to connect. clientId: %s | rc: | respmsg: ", clientId? clientId:"NULL");
+    }
+}
+
+/* Callback function to process successful disconnection */
+void onDisconnect(void *context, MQTTAsync_successData5 *response)
+{
+    char *clientId = NULL;
+    IoTPClient *client = (IoTPClient *)context;
+    Thread_lock_mutex(iotp_client_mutex);
+    client->connected = 0;
+    clientId = client->clientId;
+    Thread_unlock_mutex(iotp_client_mutex);
+    LOG(INFO, "Client is disconnected. clientId: %s", clientId? clientId:"NULL");
+}
+
+/* Callback function to process disconnection failure */
+void onDisconnectFailure(void* context, MQTTAsync_failureData5 *response)
+{
+    char *clientId = NULL;
+    int rc = 0;
+    IoTPClient *client = (IoTPClient *)context;
+    if ( response ) rc = response->code; 
+    Thread_lock_mutex(iotp_client_mutex);
+    client->connected = (0 - rc);
+    clientId = client->clientId;
+    Thread_unlock_mutex(iotp_client_mutex);
+    if ( response ) {
+        LOG(WARN, "Failed to disconnect. clientId: %s | rc: %d | respmsg: %s", clientId? clientId:"NULL", response->code, response->message?response->message:"");
+    } else {
+        LOG(WARN, "Failed to disconnect. clientId: %s | rc: | respmsg: ", clientId? clientId:"NULL");
+    }
 }
 
 /* Callback function to process successful send */
@@ -455,7 +482,7 @@ void onSend(void *context, MQTTAsync_successData5 *response)
 {
     IoTPClient *client = (IoTPClient *)context;
     char *clientId = client->clientId;
-    LOG(DEBUG, "Event is sent from client (id=%s).", clientId? clientId:"NULL");
+    LOG(DEBUG, "Event is sent. clientId: %s", clientId? clientId:"NULL");
 }
 
 /* Callback function to process send failure */
@@ -463,7 +490,11 @@ void onSendFailure(void *context, MQTTAsync_failureData5 *response)
 {
     IoTPClient *client = (IoTPClient *)context;
     char *clientId = client->clientId;
-    LOG(WARN, "Failed to send event from client (id=%s). rc=%d", clientId? clientId:"NULL", response? response->code:0);
+    if ( response ) {
+        LOG(WARN, "Failed to send event. clientId: %s | rc: %d | respmsg: %s", clientId? clientId:"NULL", response->code, response->message?response->message:"");
+    } else {
+        LOG(WARN, "Failed to send event. clientId: %s | rc: | respmsg: ", clientId? clientId:"NULL");
+    }
 }
 
 /* Callback function to process successful subscription */
@@ -471,7 +502,7 @@ void onSubscribe(void* context, MQTTAsync_successData5 *response)
 {
     IoTPClient *client = (IoTPClient *)context;
     char *clientId = client->clientId;
-    LOG(DEBUG, "Client (id=%s) has subscribe to the topic.", clientId? clientId:"NULL");
+    LOG(DEBUG, "Subscribe to a topic. clientId: %s", clientId? clientId:"NULL");
 }
 
 /* Callback function to process subscription failure */
@@ -480,9 +511,9 @@ void onSubscribeFailure(void* context, MQTTAsync_failureData5 *response)
     IoTPClient *client = (IoTPClient *)context;
     char *clientId = client->clientId;
     if ( response ) {
-        LOG(WARN, "Client (id=%s) has failed to subscribe. rc=%d errmsg=%s", clientId? clientId:"NULL", response->code, response->message?response->message:"");
+        LOG(WARN, "Failed to subscribe. clientId: %s | rc: %d | respmsg: %s", clientId? clientId:"NULL", response->code, response->message?response->message:"");
     } else {
-        LOG(WARN, "Client (id=%s) has failed to subscribe. rc= errmsg=", clientId? clientId:"NULL");
+        LOG(WARN, "Failed to subscribe. clientId: %s | rc: | respmsg: ", clientId? clientId:"NULL");
     }
 }
 
@@ -491,7 +522,7 @@ void onUnSubscribe(void* context, MQTTAsync_successData5 *response)
 {
     IoTPClient *client = (IoTPClient *)context;
     char *clientId = client->clientId;
-    LOG(INFO, "Client (id=%s) has unsubscribe from the topic", clientId? clientId:"NULL");
+    LOG(INFO, "Unsubscribed from the topic. clientId: %s", clientId? clientId:"NULL");
 }
 
 /* Callback function to process failure from unsubscribe call */
@@ -499,7 +530,11 @@ void onUnSubscribeFailure(void* context, MQTTAsync_failureData5 *response)
 {
     IoTPClient *client = (IoTPClient *)context;
     char *clientId = client->clientId;
-    LOG(WARN, "Client (id=%s) has failed to unsubscribe from the topic: rc=%d", clientId? clientId:"NULL", response? response->code:0);
+    if ( response ) {
+        LOG(WARN, "Failed to unsubscribe. clientId: %s | rc: %d | respmsg: %s", clientId? clientId:"NULL", response->code, response->message?response->message:"");
+    } else {
+        LOG(WARN, "Failed to unsubscribe. clientId: %s | rc: | respmsg: ", clientId? clientId:"NULL");
+    }
 }
 
 /* Creates IoTPClient */
@@ -515,49 +550,47 @@ IOTPRC iotp_client_create(void **iotpClient, IoTPConfig *config, IoTPClientType 
     char *clientId = NULL;
     int len = 0;
 
-    /* Check if client and config handles are valid */
     /* Validate client type */
     if ( type < 1 && type > IoTPClient_total )  {
-        rc = IOTPRC_PARAM_INVALID_VALUE;
-        LOG(ERROR, "Invalid IoTP client type %d is specified: rc=%d", type, rc);
+        rc = IOTPRC_ARGS_INVALID_VALUE;
+        LOG(ERROR, "Invalid client type is specified. type: %s", type);
         return rc;
     }
+
     /* validate handle */
     if ( iotpClient == NULL || config == NULL ) {
         rc = IOTPRC_INVALID_HANDLE;
-        LOG(ERROR, "Invalid (%s) handle (%s) or config handle (%s): rc=%d", IoTPClient_names[type], iotpClient?"Invalid":"Valid", config?"Valid":"Invalid", rc);
+        LOG(ERROR, "Invalid client or config handle. type: %s  | client: %s | config: %s", IoTPClient_names[type], iotpClient?"Valid":"NULL", config?"Valid":"NULL");
         return rc;
     }
+
     /* Make sure handle is not created before */
     if ( *iotpClient != NULL ) {
-        rc = IOTPRC_INVALID_HANDLE;
-        LOG(ERROR, "Client handle (%s) is already created: rc=%d", IoTPClient_names[type], rc);
+        rc = IOTPRC_ARGS_INVALID_VALUE;
+        LOG(ERROR, "Client handle is already created. type: %s", IoTPClient_names[type]);
         return rc;
     }
 
     /* Validate client configuration */
     rc = iotp_validate_config(type, config);
     if ( rc != IOTPRC_SUCCESS ) {
-        LOG(ERROR, "Failed to validate client (type=%d) configuration: rc=%d", type, rc);
+        LOG(ERROR, "Failed to validate configuration.");
         return rc;
     }
 
+    /* Set client */
     char *domain = config->domain;
     int port = config->mqttopts->port;
     char *orgId = config->identity->orgId;
     int orgIdLen = strlen(orgId);
 
-    len = orgIdLen + strlen(domain) + 23;   /* 23 = 6 for ssl:// + 11 for .messaging. + 5 for :port + 1 */
+    len = orgIdLen + strlen(domain) + 24;   /* 24 = 6 for ssl:// + 11 for .messaging. + 6 for :port + 1 */
     connectionURI = (char *)malloc(len);
     if ( port == 1883 ) {
         snprintf(connectionURI, len, "tcp://%s.messaging.%s:%d", orgId, domain, port);
     } else {
         snprintf(connectionURI, len, "ssl://%s.messaging.%s:%d", orgId, domain, port);
     }
-
-    LOG(DEBUG, "OrganizationID: %s", orgId);
-    LOG(DEBUG, "ConnectionURI: %s", connectionURI);
-    LOG(DEBUG, "Port: %d", port);
 
     /* set client id */
     if ( type == IoTPClient_device || type == IoTPClient_managed_device ) {
@@ -572,13 +605,13 @@ IOTPRC iotp_client_create(void **iotpClient, IoTPConfig *config, IoTPClientType 
         len = orgIdLen + strlen(config->identity->appId) + 4;
         clientId = malloc(len);
         snprintf(clientId, len, "a:%s:%s", orgId, config->identity->appId);
-    } else if ( type == IoTPClient_Application ) {
+    } else if ( type == IoTPClient_Application ) {  /* A application - with shared subscription */
         len = orgIdLen + strlen(config->identity->appId) + 4;
         clientId = malloc(len);
         snprintf(clientId, len, "A:%s:%s", orgId, config->identity->appId);
     }
 
-    LOG(DEBUG, "ClientId: %s", clientId);
+    LOG(INFO, "Create client. clientId: %s | connectionURI: %s | port: %d", clientId, connectionURI, port );
 
     IoTPClient *client = (IoTPClient *)calloc(1, sizeof(IoTPClient));
     client->type = type;
@@ -605,14 +638,13 @@ IOTPRC iotp_client_create(void **iotpClient, IoTPConfig *config, IoTPClientType 
 
     rc = MQTTAsync_createWithOptions(&mqttClient, client->connectionURI, client->clientId, MQTTCLIENT_PERSISTENCE_NONE, NULL, &create_opts);
     if ( rc != MQTTASYNC_SUCCESS ) {
-        LOG(ERROR, "MQTTAsync_createWithOptions failed: ClientType=%d ClientId=%s ConnectionURI=%s rc=%d",
-            client->type, client->clientId, client->connectionURI, rc);
-        iotp_client_destroy(client, 0);
+        LOG(ERROR, "MQTTAsync_createWithOptions failed. clientType: %d |  clientId: %s |  connectionURI: %s", client->type, client->clientId, client->connectionURI);
+        iotp_client_destroy(client);
         client = NULL;
         return rc;
     }
 
-    /* add some delay for MQTT Client to get created */
+    /* add some delay for MQTT Async client to get created */
     iotp_utils_delay(50);
 
     client->mqttClient = (void *)mqttClient;
@@ -670,12 +702,16 @@ IOTPRC iotp_client_setMQTTLogHandler(void *iotpClient, IoTPLogHandler *cb)
     /* Check if client handle is valid */
     if ( client == NULL || (client && client->config == NULL)) {
         rc = IOTPRC_INVALID_HANDLE;
+        LOG(ERROR, "Invalid or NULL client handle or configuration");
         return rc;
     } 
 
     IoTPConfig *config = (IoTPConfig *)client->config;
 
     /* set MQTTAsync trace callback */
+    /* Tracing is switched on by setting MQTT_C_CLIENT_TRACE. 
+     * A value of ON, or stdout, prints to stdout, any other value is interpreted as a file name to use. 
+     */
     if ( config->logLevel > 0 ) {
         if ( config->mqttopts->traceLevel == 0 ) {
             if ( config->logLevel == LOGLEVEL_ERROR ) {
@@ -702,7 +738,7 @@ IOTPRC iotp_client_setMQTTLogHandler(void *iotpClient, IoTPLogHandler *cb)
  
 
 /* Destroy IoTP Async client */
-IOTPRC iotp_client_destroy(void *iotpClient, int destroyMQTTClient)
+IOTPRC iotp_client_destroy(void *iotpClient)
 {
     IOTPRC rc = IOTPRC_SUCCESS;
     IoTPClient *client = (IoTPClient *)iotpClient;
@@ -712,6 +748,7 @@ IOTPRC iotp_client_destroy(void *iotpClient, int destroyMQTTClient)
     /* Check if client handle is valid */
     if ( client == NULL || (client && client->mqttClient == NULL)) {
         rc = IOTPRC_INVALID_HANDLE;
+        LOG(ERROR, "Invalid or NULL client handle or configuration");
         return rc;
     } 
 
@@ -744,14 +781,14 @@ IOTPRC iotp_client_connect(void *iotpClient)
     /* Sanity check */
     if ( client == NULL || (client && client->mqttClient == NULL)) {
         rc = IOTPRC_INVALID_HANDLE;
-        LOG(ERROR, "Invalid client handle: rc=%d", rc);
+        LOG(ERROR, "Invalid client handle");
         return rc;
     }
 
     IoTPConfig *config = (IoTPConfig *)client->config;
     if ( config == NULL ) {
         rc = IOTPRC_INVALID_HANDLE;
-        LOG(ERROR, "Invalid client config handle: rc=%d", rc);
+        LOG(ERROR, "NULL config handle");
         return rc;
     }
 
@@ -791,11 +828,13 @@ IOTPRC iotp_client_connect(void *iotpClient)
         if ( client->type == IoTPClient_application || client->type == IoTPClient_Application ) {
             conn_opts.username = config->auth->apiKey;
             conn_opts.password = config->auth->token;
+            LOG(DEBUG, "key: %s | token: %s", config->auth->apiKey, config->auth->token);
         } else if ( client->type == IoTPClient_device || client->type == IoTPClient_managed_device ||
             client->type == IoTPClient_gateway || client->type == IoTPClient_managed_gateway ) {
             if ( config->auth->token ) {
                 conn_opts.username = "use-token-auth";
                 conn_opts.password = config->auth->token;
+                LOG(DEBUG, "key: %s | token: %s", config->auth->apiKey, config->auth->token);
             }
             if ( config->auth->keyStore ) {
                 conn_opts.ssl->enableServerCertAuth = 1;
@@ -809,13 +848,11 @@ IOTPRC iotp_client_connect(void *iotpClient)
     
     /* Set callbacks */
     MQTTAsync_setCallbacks((MQTTAsync *)client->mqttClient, (void *)client, NULL, iotp_client_messageArrived, NULL);
-           
+    
+    /* Invoke MQTTAsync_connect */
+    LOG(INFO, "MQTTAsync_connect. clientId=%s | connectionURI=%s", client->clientId, client->connectionURI);
     if ((rc = MQTTAsync_connect((MQTTAsync *)client->mqttClient, &conn_opts)) == MQTTASYNC_SUCCESS) {
         int cycle = 0;
-        LOG(INFO, "MQTTAsync_connect is called: ClientType=%d ClientId=%s  ConnectionURI=%s", 
-            client->type, client->clientId, client->connectionURI);
-
-        /* wait till client is disconnected */
         int isConnected = 0;
         while ( isConnected == 0 ) {
             iotp_utils_delay(3000);
@@ -825,14 +862,14 @@ IOTPRC iotp_client_connect(void *iotpClient)
             if (isConnected == 1) {
                 break;
             }
-            if ( isConnected == -1 ) {
-                LOG(ERROR, "Connection failed");
+            if ( isConnected < 0 ) {
+                rc = (0 - isConnected);
                 Thread_lock_mutex(iotp_client_mutex);
                 client->connected = 0;
                 Thread_unlock_mutex(iotp_client_mutex);
                 break;
             }
-            LOG(INFO, "Wait for client to connect: cycle=%d", cycle);
+            LOG(INFO, "Wait for client to connect. cycle=%d", cycle);
             if ( cycle > 40 )  {
                 rc = IOTPRC_TIMEOUT;
                 break;
@@ -840,9 +877,6 @@ IOTPRC iotp_client_connect(void *iotpClient)
             cycle++;
         }
 
-    } else {
-        LOG(INFO, "MQTTAsync_connect returned error: ClientType=%d ClientId=%s  ConnectionURI=%s rc=%d", 
-            client->type, client->clientId, client->connectionURI, rc);
     }
 
     return rc;
@@ -858,14 +892,14 @@ IOTPRC iotp_client_publish(void *iotpClient, char *topic, char *payload, int qos
     /* Sanity check */
     if ( !client || !client->config ) {
         rc = IOTPRC_INVALID_HANDLE;
-        LOG(ERROR, "Invalid client handle: rc=%d", rc);
+        LOG(ERROR, "Invalid client handle");
         return rc;
     }
 
     /* if client is not connected, return error */
     if ( client->connected == 0 ) {
         rc = IOTPRC_NOT_CONNECTED;
-        LOG(ERROR, "Failed to publish. Client is not coeecnted: rc=%d", rc);
+        LOG(ERROR, "Not connected");
         return rc;
     }
 
@@ -889,7 +923,7 @@ IOTPRC iotp_client_publish(void *iotpClient, char *topic, char *payload, int qos
     pubmsg.qos = qos;
     pubmsg.retained = 0;
 
-    LOG(DEBUG, "Publish Message: topic=%s qos=%d retained=%d payloadlen=%d payload: %s",
+    LOG(DEBUG, "Publish event. topic: %s | qos: %d | retained: %d | payloadlen: %d | payload: %s",
                     topic, pubmsg.qos, pubmsg.retained, pubmsg.payloadlen, payload);
 
     rc = MQTTAsync_send(mqttClient, topic, payloadlen, payload, qos, 0, &opts);
@@ -897,7 +931,7 @@ IOTPRC iotp_client_publish(void *iotpClient, char *topic, char *payload, int qos
         LOG(ERROR, "MQTTAsync_send returned error: rc=%d", rc);
         IoTPConfig *config = client->config;
         if ( config->automaticReconnect == 1 ) {
-            LOG(WARN, "Connection lost, retry connection and republish message.\n");
+            LOG(WARN, "Connection is lost, retry connection and republish message.");
             iotp_client_retry_connection(mqttClient);
             rc = MQTTAsync_send(mqttClient, topic, payloadlen, payload, qos, 0, &opts);
         }
@@ -915,7 +949,7 @@ IOTPRC iotp_client_subscribe(void *iotpClient, char *topic, int qos)
     /* Sanity check */
     if ( !client || !client->config ) {
         rc = IOTPRC_INVALID_HANDLE;
-        LOG(ERROR, "Invalid client handle: rc=%d", rc);
+        LOG(ERROR, "Invalid client handle");
         return rc;
     }
 
@@ -936,12 +970,12 @@ IOTPRC iotp_client_subscribe(void *iotpClient, char *topic, int qos)
     opts.onFailure5 = onSubscribeFailure;
     opts.context = client;
 
-    LOG(DEBUG,"Subscribe to topic=%s qos=%d", topic, qos);
+    LOG(DEBUG,"Subscribe. topic: %s | qos: %d", topic, qos);
 
     rc = MQTTAsync_subscribe(mqttClient, topic, qos, &opts);
 
     if ( rc != MQTTASYNC_SUCCESS ) {
-        LOG(ERROR, "MQTTAsync_subscribe returned error: rc=%d", rc);
+        LOG(ERROR, "MQTTAsync_subscribe failed");
     }
 
     return rc;
@@ -960,11 +994,11 @@ IOTPRC iotp_client_unsubscribe(void *iotpClient, char *topic)
     opts.onFailure5 = onUnSubscribeFailure;
     opts.context = asyncClient;
 
-    LOG(DEBUG,"UnSubscribe topic=%s", topic);
+    LOG(DEBUG,"UnSubscribe. topic: %s", topic);
 
     rc = MQTTAsync_unsubscribe((MQTTAsync *)client->mqttClient, topic, &opts);
     if ( rc != MQTTASYNC_SUCCESS ) {
-        LOG(ERROR, "MQTTAsync_unsubscribe returned error: rc=%d", rc);
+        LOG(ERROR, "MQTTAsync_unsubscribei failed");
     }
 
     return rc;
@@ -979,7 +1013,7 @@ IOTPRC iotp_client_isConnected(void *iotpClient)
     /* Sanity check */
     if (client == NULL || (client && client->config == NULL)) {
         rc = IOTPRC_INVALID_HANDLE;
-        LOG(ERROR, "Invalid client handle: rc=%d", rc);
+        LOG(ERROR, "Invalid client handle");
         return rc;
     }
 
@@ -993,13 +1027,13 @@ IOTPRC iotp_client_isConnected(void *iotpClient)
 /* Sets the callback handler. This must be set if you want to recieve commands */
 IOTPRC iotp_client_setHandler(void *iotpClient, char *topic, int type, IoTPCallbackHandler cbFunc)
 {
-    IOTPRC rc = 0;
+    IOTPRC rc = IOTPRC_SUCCESS;
     IoTPClient *client = (IoTPClient *)iotpClient;
 
     /* Sanity check */
     if (client == NULL || (client && client->config == NULL)) {
         rc = IOTPRC_INVALID_HANDLE;
-        LOG(ERROR, "Invalid client handle: rc=%d", rc);
+        LOG(ERROR, "Invalid client handle");
         return rc;
     }
 
@@ -1007,27 +1041,6 @@ IOTPRC iotp_client_setHandler(void *iotpClient, char *topic, int type, IoTPCallb
     if ( topic == NULL ) {
         topic = "iot-2/cmd/#";
     }
-
-    /* Add handler to the list. */
-/*
-    if ( client->handlers->count == 0 ) {
-        IoTPHandler * handler = (IoTPHandler *)calloc(1, sizeof(IoTPHandler));
-        handler->type = type;
-        handler->topic = NULL;
-        if ( topic && *topic != '\0' ) {
-            handler->topic = strdup(topic);
-        }
-        handler->cbFunc = cbFunc;
-        rc = iotp_add_handler(client->handlers, handler);
-        if ( rc == IOTPRC_SUCCESS ) {
-            LOG(INFO, "Handler (type=%s) is added. Topic=%s", iotp_client_getHandlerTypeStr(type), topic? topic:"NULL");
-        } else {
-            LOG(INFO, "Failed to add handler (type=%s) for topic=%s rc=%d", iotp_client_getHandlerTypeStr(type), topic? topic:"NULL", rc);
-        }
-
-        return rc;
-    }
-*/
 
     /* Check if command handler is set for all commands */
     if ( client->handlers->allCommandsId != 0 ) {
@@ -1039,7 +1052,7 @@ IOTPRC iotp_client_setHandler(void *iotpClient, char *topic, int type, IoTPCallb
                 return rc;
             } else {
                 rc = IOTPRC_FAILURE;
-                LOG(WARN, "Type of currently set callback for all commands is of incorrect type: %d", handler->type);
+                LOG(WARN, "Incorrect type to set callback for all commands. type: %d", handler->type);
                 return rc;
             }
         } else {
@@ -1101,21 +1114,21 @@ IOTPRC iotp_client_setActionHandler(void *iotpClient, IoTP_DMAction_type_t type,
     /* Sanity check */
     if (client == NULL || (client && client->config == NULL)) {
         rc = IOTPRC_INVALID_HANDLE;
-        LOG(ERROR, "Invalid client handle: rc=%d", rc);
+        LOG(ERROR, "Invalid client handle");
         return rc;
     }
 
     /* Get topic of the DM Action */
     if ( type < IoTP_DMResponse && type > IoTP_DMActions ) {
         rc = IOTPRC_HANDLER_INVALID;
-        LOG(ERROR, "Invalid handle type:%d rc=%d", type, rc);
+        LOG(ERROR, "Invalid handle. type: %d", type);
         return rc;
     }
 
     /* Get topic string for the handle type */
     topic = dmActionTopics[type].topic;
 
-    LOG(DEBUG, "Set DM Action callback for topic: %s", topic);
+    LOG(DEBUG, "Set DM Action callback. topic: %s", topic);
 
     /* Check if action handler is set for all DM actions */
     if ( client->handlers->allDMActionsId != 0 ) {
@@ -1127,12 +1140,12 @@ IOTPRC iotp_client_setActionHandler(void *iotpClient, IoTP_DMAction_type_t type,
                 return rc;
             } else {
                 rc = IOTPRC_FAILURE;
-                LOG(WARN, "Type of currently set callback for all DM actions is of incorrect type: %d", handler->type);
+                LOG(WARN, "Incorrect type to set callback for all DM actions. type: %d", handler->type);
                 return rc;
             }
         } else {
             rc = IOTPRC_FAILURE;
-            LOG(WARN, "Callback for all DM actions is already set. Can not set callback for action topic: %s", topic);
+            LOG(WARN, "Callback for all DM actions is already set. topic: %s", topic);
             return rc;
         }
     }
@@ -1158,20 +1171,19 @@ IOTPRC iotp_client_setActionHandler(void *iotpClient, IoTP_DMAction_type_t type,
         handler->cbFunc = cbFunc;
         rc = iotp_add_handler(client->handlers, handler);
         if ( rc == IOTPRC_SUCCESS ) {
-            LOG(INFO, "Handler (type=%s) is added. DM action topic=%s", iotp_client_getDMActionHandlerTypeStr(type), topic? topic:"NULL");
+            LOG(INFO, "Added handler. type: %s | topic: %s", iotp_client_getDMActionHandlerTypeStr(type), topic? topic:"NULL");
         } else {
-            LOG(INFO, "Failed to add handler (type=%s) for DM action topic=%s rc=%d", iotp_client_getDMActionHandlerTypeStr(type), topic? topic:"NULL", rc);
+            LOG(INFO, "Failed to add handler. type: %s | topic: %s", iotp_client_getDMActionHandlerTypeStr(type), topic? topic:"NULL");
         }
-        return rc;
     } else {
         /* Update handler */
         IoTPHandler * handler = client->handlers->entries[i];
         if ( handler->type == type ) {
             handler->cbFunc = cbFunc;
-            LOG(INFO, "Callback is updated for DM action topic: %s", topic);
+            LOG(INFO, "Callback is updated. topic: %s", topic);
         } else {
             rc = IOTPRC_FAILURE;
-            LOG(INFO, "Callback update is requested for invalid type: %d DM action topic=%s", type, topic);
+            LOG(INFO, "Invalid type for callback update. type: %d | topic: %s", type, topic);
         }
     }
 
@@ -1186,13 +1198,13 @@ static int iotp_client_messageArrived(void *context, char *topicName, int topicL
     IoTPClient *client = (IoTPClient *)context;
 
     if ( topicLen > 0 ) {
-        LOG(DEBUG, "Message Received on topic: %s  topicLen=%d", topicName? topicName:"", topicLen);
+        LOG(DEBUG, "Message Received. topic: %s | topicLen: %d", topicName? topicName:"", topicLen);
     }
 
     /* sanity check */
     if (client == NULL || (client && client->config == NULL)) {
         rc = IOTPRC_INVALID_HANDLE;
-        LOG(ERROR, "Invalid client handle: rc=%d", rc);
+        LOG(ERROR, "Invalid client handle");
         goto msg_processed;
     }
 
@@ -1200,6 +1212,7 @@ static int iotp_client_messageArrived(void *context, char *topicName, int topicL
     if ( client->handlers->count == 0 ) {
         /* no callback is configured */
         rc = IOTPRC_HANDLER_NOT_FOUND;
+        LOG(ERROR, "No callback is found");
         goto msg_processed;
     }
 
@@ -1214,7 +1227,7 @@ static int iotp_client_messageArrived(void *context, char *topicName, int topicL
     if ( sub == NULL ) {
         /* no callback is configured */
         rc = IOTPRC_HANDLER_NOT_FOUND;
-        LOG(ERROR, "Callback not found for topic: %s", topicName? topicName:"");
+        LOG(ERROR, "Callback not found for topic. topic: %s", topicName? topicName:"");
         goto msg_processed;
     }
 
@@ -1240,7 +1253,7 @@ static int iotp_client_messageArrived(void *context, char *topicName, int topicL
 
         snprintf(topic,4096, "%s", topicName);
         pl[payloadlen] = '\0';
-        LOG(INFO, "Context:%x Topic:%s TopicLen=%d PayloadLen=%d Payload:%s", context, topic, topicLen, payloadlen, payload);
+        LOG(INFO, "Context: %x | Topic: %s | TopicLen: %d | PayloadLen: %d | Payload: %s", context, topic, topicLen, payloadlen, payload);
         if ( strncmp(topicName, "iot-2/cmd/", 10) == 0 ) {
 
             strtok(topic, "/");
@@ -1264,10 +1277,10 @@ static int iotp_client_messageArrived(void *context, char *topicName, int topicL
 
         }
 
-        LOG(DEBUG, "Invoke callabck to process message: cmd/evt:%s format:%s", commandName, format);
+        LOG(DEBUG, "Invoke callabck to process message: cmd/evt: %s | format: %s", commandName, format);
         (*cb)(type, id, commandName, format, payload, payloadlen);
     } else {
-        LOG(DEBUG, "No registered callback function to process the arrived message");
+        LOG(DEBUG, "No registered callback function is found to process the arrived message.");
     }
 
 msg_processed:
@@ -1288,31 +1301,50 @@ IOTPRC iotp_client_disconnect(void *iotpClient)
     /* Sanity check */
     if (client == NULL || (client && client->config == NULL)) {
         rc = IOTPRC_INVALID_HANDLE;
-        LOG(ERROR, "Invalid client handle: rc=%d", rc);
+        LOG(ERROR, "Invalid client handle");
         return rc;
     }
 
     MQTTAsync mqttClient = (MQTTAsync *)client->mqttClient;
-    MQTTAsync_disconnectOptions opts = MQTTAsync_disconnectOptions_initializer;
+    MQTTAsync_disconnectOptions disc_opts = MQTTAsync_disconnectOptions_initializer;
 
-    opts.onSuccess5 = onDisconnect;
-    opts.context = client;
+    disc_opts.onSuccess5 = onDisconnect;
+    disc_opts.onFailure5 = onDisconnectFailure;
+    disc_opts.context = client;
 
-    if ( client->connected == 1 ) {
-        LOG(INFO, "Disconnect client");
+    int isConnected = client->connected;
+    if ( isConnected == 1 ) {
+        LOG(INFO, "Disconnect client.");
         int mqttRC = 0;
-        mqttRC = MQTTAsync_disconnect(mqttClient, &opts);
+        mqttRC = MQTTAsync_disconnect(mqttClient, &disc_opts);
         if ( mqttRC == MQTTASYNC_DISCONNECTED ) {
             rc = IOTPRC_SUCCESS;
         } else {
             rc = mqttRC;
-           return rc;
+            return rc;
         }
 
+        Thread_lock_mutex(iotp_client_mutex);
+        isConnected = client->connected;
+        Thread_unlock_mutex(iotp_client_mutex);
+
         /* wait till client is disconnected */
-        while ( client->connected == 1 ) { 
+        while ( isConnected == 1 ) {
             iotp_utils_delay(3000);
-            LOG(INFO, "Wait for client to disconnect: cycle=%d", cycle);
+            Thread_lock_mutex(iotp_client_mutex);
+            isConnected =  client->connected;
+            Thread_unlock_mutex(iotp_client_mutex);
+            if (isConnected == 0) {
+                break;
+            }
+            if ( isConnected < 0 ) {
+                rc = (0 - isConnected);
+                Thread_lock_mutex(iotp_client_mutex);
+                client->connected = 0;
+                Thread_unlock_mutex(iotp_client_mutex);
+                break;
+            }
+            LOG(INFO, "Wait for client to disconnect. cycle=%d", cycle);
             if ( cycle > 40 )  {
                 rc = IOTPRC_TIMEOUT;
                 break;
@@ -1351,15 +1383,14 @@ IOTPRC iotp_client_retry_connection(void *iotpClient)
     /* Sanity check */
     if (client == NULL || (client && client->config == NULL)) {
         rc = IOTPRC_INVALID_HANDLE;
-        LOG(ERROR, "Invalid client handle: rc=%d", rc);
+        LOG(ERROR, "Invalid client handle");
         return rc;
     }
 
     while((rc = iotp_client_connect(iotpClient)) != MQTTASYNC_SUCCESS)
     {
-        LOG(DEBUG, "Retry Attempt #%d ", retry);
         int delay = reconnect_delay(retry++);
-        LOG(DEBUG, " next attempt in %d seconds\n", delay);
+        LOG(DEBUG, "Connect retry. attempt: %d | delay: %d", retry, delay);
         iotp_utils_delay(1000*delay);
     }
 
@@ -1431,12 +1462,13 @@ IOTPRC iotp_client_manage(void *iotpClient)
     /* verify handle */
     if ( !client || client->managedClient == NULL ) {
         rc = IOTPRC_INVALID_HANDLE;
+        LOG(ERROR, "Invalid client handle");
         return rc;
     }
 
     if ( client->managed == 1 ) {
-        LOG(ERROR, "Managed device is already initialized.");
         rc = IOTPRC_INVALID_HANDLE;
+        LOG(ERROR, "Managed device is already initialized");
         return rc;
     }
 
@@ -1485,10 +1517,10 @@ IOTPRC iotp_client_manage(void *iotpClient)
             snprintf(pubtopic, pubtopicLen, "%s%s", prefix, DM_MANAGE); 
             rc = iotp_client_publish(iotpClient, pubtopic, payload, QoS1, props);
             if ( rc == IOTPRC_SUCCESS ) {
-                LOG(INFO, "Managed Gateway: reqId = %s", reqId);
+                LOG(INFO, "Managed Gateway request sent. reqId: %s", reqId);
                 client->managed = 1;
             } else {
-                LOG(INFO, "Failed to send Managed Gateway request: rc=%d", rc);
+                LOG(INFO, "Failed to send Managed Gateway request");
             }
         }
 
@@ -1504,10 +1536,10 @@ IOTPRC iotp_client_manage(void *iotpClient)
             snprintf(pubtopic, pubtopicLen, "%s%s", DM_DEVICE_TOPIC_PREFIXFMT, DM_MANAGE); 
             rc = iotp_client_publish(iotpClient, pubtopic, payload, QoS1, props);
             if ( rc == IOTPRC_SUCCESS ) {
-                LOG(INFO, "Managed Device: reqId = %s", reqId);
+                LOG(INFO, "Managed Device request sent. reqId: %s", reqId);
                 client->managed = 1;
             } else {
-                LOG(INFO, "Failed to send Managed Device request: rc=%d", rc);
+                LOG(INFO, "Failed to send Managed Device request");
             }
         }
     }
@@ -1529,12 +1561,13 @@ IOTPRC iotp_client_unmanage(void *iotpClient, char *reqId)
     /* verify handle */
     if ( !client || client->managedClient == NULL ) {
         rc = IOTPRC_INVALID_HANDLE;
+        LOG(ERROR, "Invalid client handle");
         return rc;
     }
 
     if ( client->managed == 0 ) {
-        LOG(ERROR, "Managed client is not initialized.");
         rc = IOTPRC_INVALID_HANDLE;
+        LOG(ERROR, "Managed client is not initialized");
         return rc;
     }
 
@@ -1582,14 +1615,14 @@ static IoTPDMActionHandler iotp_getActionCallback(IoTPClient *client, char *topi
         sub = iotp_client_getHandler(client->handlers, DM_ACTION_ALL);
         if ( sub == NULL ) {
             /* no callback is configured */
-            LOG(ERROR, "Callback not found for topic: %s", topicName? topicName:"");
+            LOG(ERROR, "Callback not found. topic: %s", topicName? topicName:"");
             return NULL;
         }
     }
 
     /* Callback type for DM actions should be less than IoTP_Handler_Commands */
     if ( sub->type >= IoTP_Handler_Commands ) {
-        LOG(ERROR, "Invalid callback set for device action topic: %s", topicName? topicName:"");
+        LOG(ERROR, "Invalid callback set. topic: %s", topicName? topicName:"");
         return NULL;
     }
 
@@ -1607,7 +1640,7 @@ static int iotp_updateLocationData(IoTPClient *client, char *reqID, int loc, int
     char* measuredDateTime;
     char* updatedDateTime;
 
-    LOG(DEBUG,"Update location data");
+    LOG(DEBUG,"Initiate update location data. reqID: %s", reqID);
 
     while ( loc <= max ) {
         IoTP_json_entry_t * ent = pobj->ent+loc;
@@ -1698,11 +1731,11 @@ static int iotp_client_dmProcessReponse(IoTPClient *client, IoTPManagedClient *m
 
     if ( cb != 0 ) {
         /* Invoke callback if returned request ID matches with request ID of the client */
-        LOG(INFO, "Invoke registered callback. reqID:%s status:%s", reqID, status?status:"");
+        LOG(DEBUG, "Invoke registered callback. reqID: %s | status: %s", reqID, status?status:"");
         (*cb)(IoTP_DMResponse, (char *)reqID, pl, payloadlen);
     } else {
         rc = IOTPRC_DM_ACTION_NO_CALLBACK;
-        LOG(ERROR, "No registered callback found. reqID:%s status:%s", reqID, status?status:"");
+        LOG(WARN, "No registered callback found. reqID: %s | status: %s", reqID, status?status:"");
     }
 
     if ( rc == IOTPRC_SUCCESS )
@@ -1719,14 +1752,14 @@ static int iotp_client_dmProcessFirmwareDownload(IoTPClient *client, IoTPManaged
     /* check firmware state */
     if (managedClient != NULL && managedClient->deviceFirmware.state != FIRMWARESTATE_IDLE) {
         rc = DM_ACTION_RC_BAD_REQUEST;
-        LOG(ERROR,"Cannot download as the device is not in the idle state");
+        LOG(ERROR,"Device is not in the idle state");
         return rc;
     }
 
     /* Get callback */
     IoTPDMActionHandler cb = iotp_getActionCallback(client, topicName);
 
-    LOG(DEBUG,"Initiating Firmware Download. reqID: %s", reqID);
+    LOG(DEBUG,"Initiate Firmware Download. reqID: %s", reqID);
 
     char respmsg[128];
     snprintf(respmsg, 128, "{\"rc\":%d,\"reqId\":%s}", DM_ACTION_RC_RESPONSE_ACCEPTED, reqID);
@@ -1735,7 +1768,7 @@ static int iotp_client_dmProcessFirmwareDownload(IoTPClient *client, IoTPManaged
     if ( cb != 0 ) {
         (*cb)(IoTP_DMFirmwareDownload, reqID, pl, payloadlen);
     } else {
-        LOG(ERROR, "Firmware download callback is not set.");
+        LOG(WARN, "Firmware download callback is not set.");
     }
 
     return rc;
@@ -1751,14 +1784,14 @@ static int iotp_client_dmProcessFirmwareUpdate(IoTPClient *client, IoTPManagedCl
     managedClient = client->managedClient;
     if (managedClient != NULL && managedClient->deviceFirmware.state != FIRMWARESTATE_DOWNLOADED) {
         rc = DM_ACTION_RC_BAD_REQUEST;
-        LOG(ERROR,"The firmware image is not downloaded yet.");
+        LOG(ERROR,"The firmware image is not downloaded yet");
         return rc;
     }
 
     /* Get callback */
     IoTPDMActionHandler cb = iotp_getActionCallback(client, topicName);
 
-    LOG(DEBUG, "Initiating Firmware Update. reqId:%s", reqID);
+    LOG(DEBUG, "Initiate Firmware Update. reqId: %s", reqID);
 
     char respmsg[128];
     snprintf(respmsg, 128, "{\"rc\":%d,\"reqId\":%s}", DM_ACTION_RC_RESPONSE_ACCEPTED, reqID);
@@ -1780,7 +1813,7 @@ static int iotp_client_dmProcessUpdate(IoTPClient *client, IoTPManagedClient *ma
 {
     IOTPRC rc = IOTPRC_SUCCESS;
 
-    LOG(DEBUG, "Initiate update action. reqID=%s", reqID);
+    LOG(DEBUG, "Initiate update. reqID: %s", reqID);
 
     int entnum = 0;
     int max = pobj->ent[entnum].count;
@@ -1809,7 +1842,7 @@ static int iotp_client_dmProcessUpdate(IoTPClient *client, IoTPManagedClient *ma
                     entnum = iotp_updateFirmwareData(client, managedClient, reqID, entnum, max, pobj);
                 }
             } else {
-                LOG(DEBUG,"Update is not supported for %s", ent->value? ent->value:"");
+                LOG(WARN,"Update is not supported. field: %s", ent->value? ent->value:"");
             }
         }
         entnum++;
@@ -1826,7 +1859,7 @@ static int iotp_client_dmProcessRebootReset(IoTPClient *client, char *topicName,
     /* Get callback */
     IoTPDMActionHandler cb = iotp_getActionCallback(client, topicName);
 
-    LOG(DEBUG, "Received reqId:%s", reqID);
+    LOG(DEBUG, "Initiate reboot or reset. reqId: %s", reqID);
 
     if ( cb != 0 ) {
         if ( isReboot ) {
@@ -1837,7 +1870,7 @@ static int iotp_client_dmProcessRebootReset(IoTPClient *client, char *topicName,
             (*cb)(IoTP_DMFactoryReset, reqID, pl, payloadlen);
         }
     } else {
-        LOG(ERROR, "Firmware download callback is not set.");
+        LOG(WARN, "Firmware download callback is not set.");
     }
 
     return rc;
@@ -1848,7 +1881,7 @@ static int iotp_client_dmProcessObserve(IoTPClient *client, char *reqID)
 {
     IOTPRC rc = IOTPRC_SUCCESS;
 
-    LOG(DEBUG, "Process Observ. reqId:%s", reqID);
+    LOG(DEBUG, "Initiate observ. reqId: %s", reqID);
 
     char respmsg[256];
     char *plFormat = "{\"rc\":%d,\"reqId\":\"%s\",\"d\":{\"fields\":[{\"field\":\"mgmt.firmware\",\"value\":{\"state\":0,\"updateStatus\":0}}]}}";
@@ -1863,7 +1896,7 @@ static int iotp_client_dmProcessCancel(IoTPClient *client, IoTPManagedClient *ma
 {
     IOTPRC rc = IOTPRC_SUCCESS;
 
-    LOG(DEBUG, "Process Cancel. reqId:%s", reqID);
+    LOG(DEBUG, "Initiate cancel. reqId: %s", reqID);
 
     int entnum = 0;
     int max = pobj->ent[entnum].count;
@@ -1906,7 +1939,7 @@ static int iotp_client_dmMessageArrived(void *context, char *topicName, int topi
     /* sanity check */
     if (client == NULL || (client && client->config == NULL)) {
         rc = IOTPRC_INVALID_HANDLE;
-        LOG(ERROR, "Invalid client handle: rc=%d", rc);
+        LOG(ERROR, "Invalid client handle");
         Thread_unlock_mutex(iotp_managed_mutex);
         return rc;
     }
@@ -1915,7 +1948,7 @@ static int iotp_client_dmMessageArrived(void *context, char *topicName, int topi
     managedClient = client->managedClient;
     if ( managedClient == NULL ) {
         rc = IOTPRC_INVALID_HANDLE;
-        LOG(ERROR, "Not a managed client: rc=%d", rc);
+        LOG(ERROR, "Not a managed client");
         Thread_unlock_mutex(iotp_managed_mutex);
         return rc;
     }
@@ -1937,13 +1970,13 @@ static int iotp_client_dmMessageArrived(void *context, char *topicName, int topi
     /* Get request ID from payload */
     char *reqID = iotp_json_getString(pobj, "reqId");
 
-    LOG(DEBUG, "Device Management request ID:%s", reqID?reqID:"");
+    LOG(DEBUG, "Device Management request. reqID: %s", reqID?reqID:"");
 
     /* invoke DM action processing functions based on topic name */
     if (strstr(topicName, DM_ACTION_RESPONSE)) {
         if ( reqID == NULL ) {
-            LOG(ERROR, "NULL reqID received in DM Action response");
             rc = IOTPRC_DM_RESPONSE_NULL_REQID;
+            LOG(ERROR, "NULL reqID in response");
             goto endDMAction;
         }
         if ( managedClient && managedClient->reqID == NULL && reqID != NULL ) {
@@ -1956,7 +1989,7 @@ static int iotp_client_dmMessageArrived(void *context, char *topicName, int topi
     /* check if reqID is the current request ID set for this managedClient */
     if (managedClient && managedClient->reqID && !strcmp(managedClient->reqID, reqID)) {
         rc = IOTPRC_DM_RESPONSE_INVALID_REQID;
-        LOG(ERROR, "Received invalid device management reqID: %s. Managed Client reqID: %s", reqID?reqID:"", managedClient->reqID? managedClient->reqID:"");
+        LOG(ERROR, "Invalid request ID. reqID: %s |  expectedReqID: %s", reqID?reqID:"", managedClient->reqID? managedClient->reqID:"");
         goto endDMAction;
     } 
 

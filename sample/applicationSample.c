@@ -162,7 +162,7 @@ int main(int argc, char *argv[])
     /* Invoke connection API IoTPApplication_connect() to connect to WIoTP. */
     rc = IoTPApplication_connect(application);
     if ( rc != 0 ) {
-        fprintf(stderr, "ERROR: Failed to connect to Watson IoT Platform: rc=%d\n", rc);
+        fprintf(stderr, "ERROR: Failed to connect to Watson IoT Platform: rc=%d Reason: %s\n", rc, IOTPRC_toString(rc));
         exit(1);
     }
 
