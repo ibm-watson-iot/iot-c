@@ -95,12 +95,12 @@ IOTPRC IoTPManagedDevice_sendEvent(IoTPManagedDevice *managedDevice, char *event
 
     /* Sanity check */
     if ( !managedDevice || !eventId || *eventId == '\0' || !formatString || *formatString == '\0' ) {
-        rc = IOTPRC_PARAM_NULL_VALUE;
+        rc = IOTPRC_ARGS_NULL_VALUE;
         LOG(WARN, "IoTPManagedDevice_sendEvent received NULL arguments: rc=%d", rc);
         return rc;
     }
     if ( qos != QoS0 && qos != QoS1 && qos != QoS2 ) {
-        rc = IOTPRC_PARAM_INVALID_VALUE;
+        rc = IOTPRC_ARGS_INVALID_VALUE;
         LOG(WARN, "IoTPManagedDevice_sendEvent received invalid arguments: rc=%d", rc);
         return rc;
     }

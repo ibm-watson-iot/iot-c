@@ -71,6 +71,8 @@ CFLAGS = $(INCDIRS) -fPIC -Wall -Wextra -g
 LDFLAGS_DEV = ${START_GROUP} -lpthread -lssl -lcrypto ${END_GROUP} $(LIBDIRS) -lpaho-mqtt3as -liotp-as-device
 LDFLAGS_GWY = ${START_GROUP} -lpthread -lssl -lcrypto ${END_GROUP} $(LIBDIRS) -lpaho-mqtt3as -liotp-as-gateway
 LDFLAGS_APP = ${START_GROUP} -lpthread -lssl -lcrypto ${END_GROUP} $(LIBDIRS) -lpaho-mqtt3as -liotp-as-application
+LDFLAGS_MANAGED_DEV = ${START_GROUP} -lpthread -lssl -lcrypto ${END_GROUP} $(LIBDIRS) -lpaho-mqtt3as -liotp-as-managedDevice
+LDFLAGS_MANAGED_GWY = ${START_GROUP} -lpthread -lssl -lcrypto ${END_GROUP} $(LIBDIRS) -lpaho-mqtt3as -liotp-as-managedGateway
 
 ifeq ($(OSTYPE),Linux)
 
@@ -126,18 +128,30 @@ VAL_APPLICATION_TEST = $(patsubst %.c, $(blddir)/%, $(VAL_APPLICATION_TEST_SRCS)
 SYS_APPLICATION_TEST_SRCS = systemApplication_tests.c
 SYS_APPLICATION_TEST = $(patsubst %.c, $(blddir)/%, $(SYS_APPLICATION_TEST_SRCS))
 
+VAL_MANAGED_DEVICE_TEST_SRCS = validateManagedDevice_tests.c
+VAL_MANAGED_DEVICE_TEST = $(patsubst %.c, $(blddir)/%, $(VAL_MANAGED_DEVICE_TEST_SRCS))
 
-TEST_RUN = validateConfig_tests validateDevice_tests systemDevice_tests validateGateway_tests systemGateway_tests validateApplication_tests systemApplication_tests
+SYS_MANAGED_DEVICE_TEST_SRCS = systemManagedDevice_tests.c
+SYS_MANAGED_DEVICE_TEST = $(patsubst %.c, $(blddir)/%, $(SYS_MANAGED_DEVICE_TEST_SRCS))
+
+VAL_MANAGED_GATEWAY_TEST_SRCS = validateManagedGateway_tests.c
+VAL_MANAGED_GATEWAY_TEST = $(patsubst %.c, $(blddir)/%, $(VAL_MANAGED_GATEWAY_TEST_SRCS))
+
+SYS_MANAGED_GATEWAY_TEST_SRCS = systemManagedGateway_tests.c
+SYS_MANAGED_GATEWAY_TEST = $(patsubst %.c, $(blddir)/%, $(SYS_MANAGED_GATEWAY_TEST_SRCS))
 
 
-.PHONY: all clean $(VAT_CONFIG_TEST) $(VAL_DEVICE_TEST) $(SYS_DEVICE_TEST) $(VAL_GATEWAY_TEST) $(SYS_GATEWAY_TEST) $(VAL_APPLICATION_TEST) $(SYS_APPLICATION_TEST)
+TEST_RUN = validateConfig_tests validateDevice_tests systemDevice_tests validateGateway_tests systemGateway_tests validateApplication_tests systemApplication_tests validateManagedDevice_tests systemManagedDevice_tests validateManagedGateway_tests systemManagedGateway_tests
+
+
+.PHONY: all clean $(VAT_CONFIG_TEST) $(VAL_DEVICE_TEST) $(SYS_DEVICE_TEST) $(VAL_GATEWAY_TEST) $(SYS_GATEWAY_TEST) $(VAL_APPLICATION_TEST) $(SYS_APPLICATION_TEST) $(VAL_MANAGED_DEVICE_TEST) $(SYS_MANAGED_DEVICE_TEST) $(VAL_MANAGED_GATEWAY_TEST) $(SYS_MANAGED_GATEWAY_TEST)
 
 all: mkdir build
 
 mkdir:
 	@mkdir -p $(blddir)
 
-build: $(VAL_CONFIG_TEST) $(VAL_DEVICE_TEST) $(SYS_DEVICE_TEST) $(VAL_GATEWAY_TEST) $(SYS_GATEWAY_TEST) $(VAL_APPLICATION_TEST) $(SYS_APPLICATION_TEST)
+build: $(VAL_CONFIG_TEST) $(VAL_DEVICE_TEST) $(SYS_DEVICE_TEST) $(VAL_GATEWAY_TEST) $(SYS_GATEWAY_TEST) $(VAL_APPLICATION_TEST) $(SYS_APPLICATION_TEST) $(VAL_MANAGED_DEVICE_TEST) $(SYS_MANAGED_DEVICE_TEST) $(VAL_MANAGED_GATEWAY_TEST) $(SYS_MANAGED_GATEWAY_TEST)
 
 run_tests: init-log $(TEST_RUN)
 
@@ -162,6 +176,20 @@ $(VAL_APPLICATION_TEST): $(TEST_UTIL_SRCS) $(VAL_APPLICATION_TEST_SRCS)
 
 $(SYS_APPLICATION_TEST): $(TEST_UTIL_SRCS) $(SYS_APPLICATION_TEST_SRCS)
 	$(CC) -o $@ $(TEST_UTIL_SRCS) $(SYS_APPLICATION_TEST_SRCS) $(INCDIRS) $(LDFLAGS_APP) $(FLAGS_EXES)
+
+$(VAL_MANAGED_DEVICE_TEST): $(TEST_UTIL_SRCS) $(VAL_MANAGED_DEVICE_TEST_SRCS)
+	$(CC) -o $@ $(TEST_UTIL_SRCS) $(VAL_MANAGED_DEVICE_TEST_SRCS) $(INCDIRS) $(LDFLAGS_MANAGED_DEV) $(FLAGS_EXES)
+
+$(SYS_MANAGED_DEVICE_TEST): $(TEST_UTIL_SRCS) $(SYS_MANAGED_DEVICE_TEST_SRCS)
+	$(CC) -o $@ $(TEST_UTIL_SRCS) $(SYS_MANAGED_DEVICE_TEST_SRCS) $(INCDIRS) $(LDFLAGS_MANAGED_DEV) $(FLAGS_EXES)
+
+$(VAL_MANAGED_GATEWAY_TEST): $(TEST_UTIL_SRCS) $(VAL_MANAGED_GATEWAY_TEST_SRCS)
+	$(CC) -o $@ $(TEST_UTIL_SRCS) $(VAL_MANAGED_GATEWAY_TEST_SRCS) $(INCDIRS) $(LDFLAGS_MANAGED_GWY) $(FLAGS_EXES)
+
+$(SYS_MANAGED_GATEWAY_TEST): $(TEST_UTIL_SRCS) $(SYS_MANAGED_GATEWAY_TEST_SRCS)
+	$(CC) -o $@ $(TEST_UTIL_SRCS) $(SYS_MANAGED_GATEWAY_TEST_SRCS) $(INCDIRS) $(LDFLAGS_MANAGED_GWY) $(FLAGS_EXES)
+
+
 
 $(TEST_RUN):
 	$(call run-test,$@)
