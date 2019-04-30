@@ -65,7 +65,7 @@ ifndef docdir
 endif
 
 ifndef docs
-  docs = doc
+  docs = docs
 endif
 
 ifndef prefix
@@ -355,12 +355,13 @@ REGEX_DOXYGEN := \
 
 SED_DOXYGEN := $(foreach sed_exp,$(REGEX_DOXYGEN),-e $(sed_exp))
 define process_doxygen
-	cd $(srcdir); sed $(SED_DOXYGEN) ../doc/$(1).in > ../$(docs)/$(1)
-	cd $(srcdir); $(DOXYGEN_COMMAND) ../$(docs)/$(1)
+	cd $(srcdir); sed $(SED_DOXYGEN) ../doc/$(1).in > ../doc/$(1)
+	cd $(srcdir); $(DOXYGEN_COMMAND) ../doc/$(1)
 endef
 
 html:
-	-mkdir -p $(docs)/IoTP_C_Client_Docs
+	-mkdir -p $(docdir)/IoTP_C_Client_Docs
+	-mkdir -p $(docs)
 	$(call process_doxygen,DoxyfileIOTPClientAPI)
 
 # Print a variable

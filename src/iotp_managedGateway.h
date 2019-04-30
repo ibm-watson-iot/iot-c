@@ -45,7 +45,7 @@
 */
 
 
-/*! \page iotpmanagedgateway IoTP C Managed Gateway Client Library
+/*! \page iotpmanagedgateway Managed Gateway Development
 
    This library exposes functions and declarations to build IoTP managed gateway client.
 

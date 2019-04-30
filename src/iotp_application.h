@@ -45,7 +45,7 @@
 */
 
 
-/*! \page iotpapp IoTP C Application Client Library
+/*! \page iotpapp Application Development
 
    This library exposes functions and declarations to build IoTP application client.
 

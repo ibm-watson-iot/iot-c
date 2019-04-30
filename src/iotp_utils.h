@@ -122,12 +122,6 @@ extern FILE *logger;
 /// @endcond
 */
 
-/*! \page iotputils IoTP C Client Utilities
-
-   TODO: Add details
-
- */
-
 /**
  * IoTP Client log levels.
  * LOGLEVEL_DEBUG will cause all trace entries  at all levels to be returned.
@@ -185,6 +179,39 @@ typedef enum {
     IoTP_DMFirmwareUpdate    = 8,
     IoTP_DMActions           = 9
 } IoTP_DMAction_type_t;
+
+/**
+ * List of device management action response codes 
+ */
+#define DM_ACTION_RC_REBOOT_INITIATED            202
+#define DM_ACTION_RC_REBOOT_FAILED               500
+#define DM_ACTION_RC_REBOOT_NOTSUPPORTED         501
+#define DM_ACTION_RC_FACTORYRESET_INITIATED      202
+#define DM_ACTION_RC_FACTORYRESET_FAILED         500
+#define DM_ACTION_RC_FACTORYRESET_NOTSUPPORTED   501
+#define DM_ACTION_RC_UPDATE_SUCCESS              204
+#define DM_ACTION_RC_RESPONSE_SUCCESS            200
+#define DM_ACTION_RC_RESPONSE_ACCEPTED           202
+#define DM_ACTION_RC_BAD_REQUEST                 400
+#define DM_ACTION_RC_UPDATE_SUCCESS              204
+
+/**
+ * List of device management action states 
+ */
+#define FIRMWARESTATE_IDLE                 0
+#define FIRMWARESTATE_DOWNLOADING          1
+#define FIRMWARESTATE_DOWNLOADED           2
+#define FIRMWAREUPDATE_SUCCESS             0
+#define FIRMWAREUPDATE_INPROGRESS          1
+#define FIRMWAREUPDATE_OUTOFMEMORY         2
+#define FIRMWAREUPDATE_CONNECTIONLOST      3
+#define FIRMWAREUPDATE_VERIFICATIONFAILED  4
+#define FIRMWAREUPDATE_UNSUPPORTEDIMAGE    5
+#define FIRMWAREUPDATE_INVALIDURL          6
+
+/*
+/// @cond EXCLUDE
+*/
 
 /*
  * JSON entry object
@@ -262,6 +289,9 @@ enum IoTP_json_state_e {
     JSTATE_Done,      /* Done processing due to end of message or error */
 };
 
+/*
+/// @endcond
+*/
 
 /**
  * IoTPCallbackHandler: Handler to process callbacks

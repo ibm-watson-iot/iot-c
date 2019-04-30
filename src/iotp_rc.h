@@ -22,13 +22,7 @@
  extern "C" {
 #endif
 
-/*! \page iotpdevclient IoTP C Client Code Development Guide
-
-TODO: Describe Client code development steps (including any best practices).
-
- */
-
-/*! \page iotprc IoTP C Client Return codes
+/*! \page iotprc C Client SDK Return codes
 
    Enumeration of return values from the IoTP_* functions defined in
    IBM Watson IoT Platform C Client SDK.
@@ -36,16 +30,13 @@ TODO: Describe Client code development steps (including any best practices).
    - Value of 0 indicates a success response.
    - Value of 1 indicates a failure response.
    - Values of 1001 to 1500 are error codes returned by IoTP C client library.
-  
-   NOTE: IoTP_* APIs may return the following error codes or reported in the log messages:
-  
-         Values less than -1 are specific error codes returned by Paho MQTT C client. <br>
-         - For details refer to https://www.eclipse.org/paho/files/mqttdoc/MQTTClient/html/_m_q_t_t_client_8h.html
-  
-         Any OS level errors will be reported in the log messages.
+   - Values less than -1 are specific error codes returned by Paho MQTT C client.
 
-   TODO: Provide link to Error codes and messages.
-  
+   Any OS level errors will be reported in the log messages.
+
+   List Error and Return codes:
+
+
  */
 
 
@@ -57,7 +48,9 @@ TODO: Describe Client code development steps (including any best practices).
   #define DLLExport __attribute__ ((visibility ("default")))
 #endif
 
-/* IOTP Client reason and error codes */
+/**
+ * IOTP Client reason and error codes 
+ */
 typedef enum {
 
     /** Indicates successful completion of IoTP Client operation.  */

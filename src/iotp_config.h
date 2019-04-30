@@ -43,68 +43,90 @@
 */
 
 
-/*! \page iotpconfig IoTP C Client Configuration
+/*! \page iotpconfig Configuration
   
-   IoTP Config object defines the configuration parameters to configure IoTP client libraries for:
-     - Device
-     - Gateway 
-     - Application
-     - Managed device
-     - Managed gateway
+IoTP Config object defines the configuration parameters to configure IoTP client libraries for:
+- Device
+- Gateway 
+- Application
+- Managed device
+- Managed gateway
 
-   Configuration is portable between different client libraries.
-  
-   IoTP Config object can be created from configuration parameters defined in an YAML file, or 
-   as environment variables. Users can also use API to set a specific configuration parameter.
-  
-   The configuration parameters are grouped into the following sections:
-     - Identity: Configuration items related to identity of the client.
-     - Auth: Configuration items related to authentication.
-     - Options: Optional configuration items.
+Configuration is portable between different client libraries. The client configuration items i
+are grouped into three categories:
+
+1. Identity: Required items to establish unique identity of the client in WIoTP service.
+2. Auth:     Required items to get authenticated and authorizerd with WIoTP service.
+3. Options:  Optional items required for interacting with WIoTP service.
+
+Identity configuration item for a device or gateway client:
+```
+orgId     The "orgId" is a unique six character identifier assigned to the users
+          when they register with WIoTP service.
+typeId    The "typeId" attribute represents the model of the device or gateway.
+          The "typeId" must be registered with WIoTP service.
+deviceId  The "deviceId" attribute identifies the device or the gateway, e.g. serial number.
+          The "deviceId" must be registered with WIoTP service.
+```
+
+Identity configuration item for an application client:
+```
+appId     The "appId" is a unique identifier of an application in WIoTP organization.
+```
+
+Authentication configuration item for a device or gateway client:
+
+Authentication configuration item for an application client:
+
+Optional configuration items:
+```
+domain    The "domain" specifies the messaging endpoint URL.
+          The default value is "internetofthings.ibmcloud.com"
+logLevel  The "logLevel" specifies the debug logging level used by the client.
+          The valid values are "ERROR", "WARN", "INFO", and "DEBUG".
+          The default value is "ERROR".
+```
+
+Optional configuration items for MQTT protocol:
+```
+port      The "port" specifies the port number to connect to IBM Watson IoT Platform.
+          The valid values are 8883 and 443. The default value is 8883. 
+caFile    The "caFile" specifies platform server certificate to varify host. <br>
+          The default certificate "IoTPlatform.pem" is bundled with the client code. <br>
+          The default value is "./IoTPlatform.pem"
+```
+
+Optional configuration items for HTTP protocol:
+
  
-   Sample YAML file to configure a device: <br>
-   <pre>
-       identity:
-         orgId: xxxxxx
-         deviceType: devTypeA
-         deviceId: devA
-       auth:
-         token: xxxxxxxx
-       options:
-         logLevel: debug
-         mqtt:
-           port: 443
-   </pre>
-
-   The configuration items may be groups into a high level section based on the type of client:
-     - Device: Configuration items to configure a device client.
-     - Gateway: Configuration items to configure a gateway client.
-     - Application: Configuration items to configure an application client.
-
-   This option can be used to define configuration of multiple clients in the same configuration
-   file. Example of a device configuration: <br>
-   <pre>
-       identity:
-         orgId: xxxxxx
-         deviceType: devTypeA
-         deviceId: devA
-       auth:
-         token: xxxxxxxx
-       options:
-         logLevel: debug
-         mqtt:
-           port: 443
-   </pre>
+IoTP Config object can be created from configuration parameters defined in an YAML file, or 
+as environment variables. Users can also use API to set a specific configuration parameter.
   
-   To set IoTPConfig objects using environment variable, use the following format: <br>
-       WIOTP_<CONFIG_CATAGORY>_<CONFIG_NAME>
+YAML file to configure a device:
+```
+identity:
+  orgId: xxxxxx
+  deviceType: devTypeA
+  deviceId: devA
+auth:
+  token: xxxxxxxx
+options:
+  logLevel: debug
+  mqtt:
+    port: 443
+```
+
+To set IoTPConfig objects using environment variable, use the following format:
+
+WIOTP_<CONFIG_CATAGORY>_<CONFIG_NAME>
   
-       Example: <br>
-       <pre>
-           WIOTP_IDENTITY_ORGID=xxxxxx
-           WIOTP_AUTH_TOKEN=xxxxxxxx
-           WIOTP_OPTIONS_MQTT_PORT=443
-       </pre>
+Example:
+```
+WIOTP_IDENTITY_ORGID=xxxxxx
+WIOTP_AUTH_TOKEN=xxxxxxxx
+WIOTP_OPTIONS_MQTT_PORT=443
+```
+
  */
 
 /* IoTP Client names - defined in iotp_config.c */
@@ -158,44 +180,7 @@ typedef enum {
 
 
 /**
- * The Watson IoT Platform (WIoTP) client configuration items are grouped into three categories: <br>
- *
- * 1. Identity: Required items to establish unique identity of the client in WIoTP service. <br>
- * 2. Auth:     Required items to get authenticated and authorizerd with WIoTP service. <bt>
- * 3. Options:  Optional items required for interacting with WIoTP service. <br>
- *
- * Identity configuration item for a device or gateway client: <br>
- * orgId     The "orgId" is a unique six character identifier assigned to the users <br>
- *           when they register with WIoTP service. <br>
- * typeId    The "typeId" attribute represents the model of the device or gateway. <br>
- *           The "typeId" must be registered with WIoTP service. <br>
- * deviceId  The "deviceId" attribute identifies the device or the gateway, e.g. serial number. <br>
- *           The "deviceId" must be registered with WIoTP service. <br>
- *
- * Identity configuration item for an application client: <br>
- * appId     The "appId" is a unique identifier of an application in WIoTP organization. <br>
- *
- *
- * Authentication configuration item for a device or gateway client: <br>
- *
- * Authentication configuration item for an application client: <br>
- *
- * Optional configuration items: <br>
- * domain    The "domain" specifies the messaging endpoint URL. <br>
- *           The default value is "internetofthings.ibmcloud.com" <br>
- * logLevel  The "logLevel" specifies the debug logging level used by the client. <br>
- *           The valid values are "ERROR", "WARN", "INFO", and "DEBUG".
- *           The default value is "ERROR". <br>
- *
- * Optional configuration items for MQTT protocol: <br>
- * port      The "port" specifies the port number to connect to IBM Watson IoT Platform. <br>
- *           The valid values are 8883 and 443. The default value is 8883. 
- * caFile    The "caFile" specifies platform server certificate to varify host. <br>
- *           The default certificate "IoTPlatform.pem" is bundled with the client code. <br>
- *           The default value is "./IoTPlatform.pem"
- *
- * Optional configuration items for HTTP protocol: <br>
- *
+ * The Watson IoT Platform (WIoTP) client configuration.
  */
 #define IoTPConfig_identity_orgId                       "identity.orgId"
 #define IoTPConfig_identity_typeId                      "identity.typeId"

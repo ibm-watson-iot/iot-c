@@ -1,4 +1,4 @@
-# C Client Library for IBM Watson™ IoT Platform
+# C Client Library for IBM Watson™ IoT
 
 NOTE: This is a draft document - for document layout review.
 
@@ -27,28 +27,29 @@ supports asynchronous mode of operations:
 | Auto reconnect | Yes | Auto reconnect |
 | Device Management | Yes | Connect device as managed device to Watson IoT Platform |
 | Gateway Management | Yes | Connect gateway device as managed gateway to Watson IoT Platform |
-| Device Management Extension | No | Device Management Extenstions |
+| Device Management Extension | No | Device Management Extenstions. In a future release |
 | Logging and Tracing | Yes | Supports custom log handler to receive client log and trace messages |
 
 ## Dependencies
 
-1. [Paho MQTT C Client]
-   [Paho MQTT C Client]: https://eclipse.org/paho/clients/c/
-2. OpenSSL development package
-3. Doxygen to build the documentation
+* [Paho MQTT C Client](https://eclipse.org/paho/clients/c/)
+* OpenSSL development package
+* Doxygen to build the documentation
 
 Note:
-Build process automatically downloads the builds the dependent Paho MQTT C library.
-Ensure OpenSSL development package is installed.
+
+IoTP C client SDK build process automatically downloads and builds the dependent Paho MQTT C library.
+Ensure OpenSSL development package and Doxygen (if building documentation) is installed.
 
 
 ## Build instructions
 
-The provided GNU Makefile includes all build steps:
+The provided GNU Makefile includes the following build steps:
 - Download Paho MQTT C source and build
 - Build IoT client libraries
 - Build IoT client samples
 - Build IoT client library tests and run tests
+- Build Documentation
 
 From the client library base directory run:
 ```

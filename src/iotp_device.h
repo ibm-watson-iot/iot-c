@@ -45,7 +45,7 @@
 */
 
 
-/*! \page iotpdevice IoTP C Device Client Library
+/*! \page iotpdevice Device Development
 
    This library exposes functions and declarations to build IoTP device client.
 

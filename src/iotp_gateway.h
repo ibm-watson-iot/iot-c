@@ -45,7 +45,7 @@
 */
 
 
-/*! \page iotpgateway IoTP C Gateway Client Library
+/*! \page iotpgateway Gateway Development
 
    This library exposes functions and declarations to build IoTP gateway client.
 
