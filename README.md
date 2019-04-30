@@ -1,16 +1,17 @@
 # C Client Library for IBM Watson™ IoT Platform
 
-**This project is still under development**
-
 NOTE: This is a draft document - for document layout review.
 
 IoTP C Client SDK provides libraries to build and develop code for integrating and connecting
-devices, and applications to IBM Watson IoT Platform.
+devices, and applications to IBM Watson IoT Platform. This repository contains source code for
+IoTP C client libraries and samples. The IoTP C client comprises five shared libraries that 
+supports asynchronous mode of operations:
 
-## Supported Platforms
-The client libraries are tested on following platforms:
-- Linux
-- OSX
+* libiotp-as-device.so - for device
+* libiotp-as-gateway.so - for gateway
+* libiotp-as-application.so - for application
+* libiotp-as-managedDevice.so - for managed device
+* libiotp-as-managedGateway.so - for managed gateway
 
 ## Supported Features
 
@@ -24,20 +25,70 @@ The client libraries are tested on following platforms:
 | TLS Support | Yes | Enable clients to connect securely using TLS |
 | Client side certificate based authentication | Yes | Connect clients using client certificate |
 | Auto reconnect | Yes | Auto reconnect |
-| Device Management | No | Connect device as managed device to Watson IoT Platform |
-| Gateway Management | No | Connect gateway device as managed gateway to Watson IoT Platform |
+| Device Management | Yes | Connect device as managed device to Watson IoT Platform |
+| Gateway Management | Yes | Connect gateway device as managed gateway to Watson IoT Platform |
 | Device Management Extension | No | Device Management Extenstions |
-| Logging and Tracing | Yes | Supports custom log handler to receive client log and trace  messages |
-
+| Logging and Tracing | Yes | Supports custom log handler to receive client log and trace messages |
 
 ## Dependencies
 
-TODO
+1. [Paho MQTT C Client]
+   [Paho MQTT C Client]: https://eclipse.org/paho/clients/c/
+2. OpenSSL development package
+3. Doxygen to build the documentation
 
-## Build Process
+Note:
+Build process automatically downloads the builds the dependent Paho MQTT C library.
+Ensure OpenSSL development package is installed.
 
-TODO
 
-##  Build and Run Samples
+## Build instructions
 
-TODO
+The provided GNU Makefile includes all build steps:
+- Download Paho MQTT C source and build
+- Build IoT client libraries
+- Build IoT client samples
+- Build IoT client library tests and run tests
+
+From the client library base directory run:
+```
+make
+sudo make -C paho.mqtt.c install
+sudo make install
+```
+
+This will build Paho MQTT C libraries and IoTP client libraries and install the libraries.  
+
+To uninstall:
+```
+sudo make uninstall
+sudo make -C paho.mqtt.c uninstall
+```
+
+To build the samples:
+```
+make samples
+```
+
+To build and run tests, and to get test execution summary:
+```
+make tests
+make run-tests
+make get-test-summary
+```
+
+To build the documentation:
+```
+make html
+```
+
+## Supported Platforms
+The client libraries are built and tested on the following platforms:
+- Linux
+- OSX
+
+
+## Client SDK API
+
+The ``doc``directory contains the detailed API documentation.
+
