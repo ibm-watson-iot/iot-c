@@ -1,0 +1,12 @@
+# Invalid device sample config file
+identity:
+  orgId: xxxxxx
+  typeId: devType1
+  deviceId: dev1
+auth:
+  token: testPassw0rd
+options:
+  mqtt:
+    port: 8883
+  logLevel: 3
+

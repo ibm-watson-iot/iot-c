@@ -1,0 +1,10 @@
+# Invalid device sample config file
+xidentity:
+  orgId: xxxxxx 
+  typeId: devType1
+  deviceId: dev1
+auth:
+  token: testPassw0rd
+options:
+  logLevel: INFO
+

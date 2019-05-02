@@ -1,0 +1,12 @@
+# Device sample config file
+identity:
+  orgId: xxxxxx
+  typeId: iotc_test_devType1
+  deviceId: iotc_test_dev1
+auth:
+  token: xxxxxxxx
+options:
+  logLevel: ERROR
+  mqtt:
+    port: 8883
+

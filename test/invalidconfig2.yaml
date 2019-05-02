@@ -1,0 +1,10 @@
+# Invalid device sample config file
+identity:
+  orgId: xxxxxx
+  xxxx: 92
+  deviceId: dev1
+auth:
+  token: testPassw0rd
+options:
+  logLevel: 3
+

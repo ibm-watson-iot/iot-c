@@ -1,0 +1,12 @@
+# Device sample config file
+identity:
+  orgId: xxxxxx
+  typeId: devType1
+  deviceId: dev1
+auth:
+  token: xxxxxxxx
+options:
+  logLevel: DEBUG
+  mqtt:
+    port: 8883
+
