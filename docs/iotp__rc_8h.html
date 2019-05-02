@@ -95,8 +95,6 @@ $(document).ready(function(){initNavTree('iotp__rc_8h.html','');});
 <div class="title">iotp_rc.h File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
-
-<p><a href="iotp__rc_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
 Macros</h2></td></tr>
@@ -215,61 +213,61 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>IOTP Client reason and error codes </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a79948a3653fcc5254599100b9aabab88"></a>IOTPRC_SUCCESS&#160;</td><td class="fielddoc"><p>Indicates successful completion of IoTP Client operation. </p>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a79948a3653fcc5254599100b9aabab88"></a>IOTPRC_SUCCESS&#160;</td><td class="fielddoc"><p>0: WIoTP client oprration has completed successfully. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a42d8ca666f29d11cb1b79a4d216cd632"></a>IOTPRC_FAILURE&#160;</td><td class="fielddoc"><p>Indicates a generic failure an IoTP Client operation. </p>
+<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a42d8ca666f29d11cb1b79a4d216cd632"></a>IOTPRC_FAILURE&#160;</td><td class="fielddoc"><p>1: WIoTP client oprration has failed to complete. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a6b2307d383ecaed6128afcaa7b2af264"></a>IOTPRC_NOMEM&#160;</td><td class="fielddoc"><p>Memory error </p>
+<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a6b2307d383ecaed6128afcaa7b2af264"></a>IOTPRC_NOMEM&#160;</td><td class="fielddoc"><p>1001: System memory is not available. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9abe3424c6cd131ae868d8d94105def2c2"></a>IOTPRC_FILE_OPEN&#160;</td><td class="fielddoc"><p>Could not open file. </p>
+<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9abe3424c6cd131ae868d8d94105def2c2"></a>IOTPRC_FILE_OPEN&#160;</td><td class="fielddoc"><p>1002: Could not open the specified file. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9ad90e1e27ded1dfc403365ab15dbc1a1e"></a>IOTPRC_LOGGING_INITED&#160;</td><td class="fielddoc"><p>Logging is already initialized. </p>
+<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9ad90e1e27ded1dfc403365ab15dbc1a1e"></a>IOTPRC_LOGGING_INITED&#160;</td><td class="fielddoc"><p>1003: Logging is already initialized. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a6d69202136f5d468fb4475628e36233d"></a>IOTPRC_INVALID_HANDLE&#160;</td><td class="fielddoc"><p>IoTP client configuration handle or client handle, is NULL or not initialized. </p>
+<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a6d69202136f5d468fb4475628e36233d"></a>IOTPRC_INVALID_HANDLE&#160;</td><td class="fielddoc"><p>1004: WIoTP client handle or configuration handle, is NULL or not initialized. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a5f58f9b4bb3f39d279ea3be5a73dd0ab"></a>IOTPRC_MISSING_INPUT_PARAM&#160;</td><td class="fielddoc"><p>A required configuration parameter is not specified. </p>
+<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a5f58f9b4bb3f39d279ea3be5a73dd0ab"></a>IOTPRC_MISSING_INPUT_PARAM&#160;</td><td class="fielddoc"><p>1005: A required configuration item is not specified. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a731d273783784f6824bcfbc4a4c51479"></a>IOTPRC_INVALID_PARAM&#160;</td><td class="fielddoc"><p>Invalid configuration parameter is specified. </p>
+<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a731d273783784f6824bcfbc4a4c51479"></a>IOTPRC_INVALID_PARAM&#160;</td><td class="fielddoc"><p>1006: An invalid configuration item is specified. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9aa3eb35e0c1e80fd4607e829ce1c14cec"></a>IOTPRC_PARAM_NULL_VALUE&#160;</td><td class="fielddoc"><p>NULL or empty value for the configuration parameter is specified. </p>
+<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9aa3eb35e0c1e80fd4607e829ce1c14cec"></a>IOTPRC_PARAM_NULL_VALUE&#160;</td><td class="fielddoc"><p>1007: The value specified for a configuration item is NULL or empty. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a87bfd925f9104b379d8cefab895ec803"></a>IOTPRC_PARAM_INVALID_VALUE&#160;</td><td class="fielddoc"><p>Invalid value for the configuration parameter is specified. </p>
+<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a87bfd925f9104b379d8cefab895ec803"></a>IOTPRC_PARAM_INVALID_VALUE&#160;</td><td class="fielddoc"><p>1008: The value specified for a configuration item is not valid. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a93674875008e47fa33b200fe1d21d7cf"></a>IOTPRC_QUICKSTART_NOT_SUPPORTED&#160;</td><td class="fielddoc"><p>WIoTP quickstart sandbox is not supported for the requested operation. </p>
+<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a93674875008e47fa33b200fe1d21d7cf"></a>IOTPRC_QUICKSTART_NOT_SUPPORTED&#160;</td><td class="fielddoc"><p>1009: WIoTP quickstart sandbox is not supported for the requested operation. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9ac2d043ca7436e299b17bd77a21340adb"></a>IOTPRC_INVALID_ARGS&#160;</td><td class="fielddoc"><p>Invalid argument is specified. </p>
+<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9ac2d043ca7436e299b17bd77a21340adb"></a>IOTPRC_INVALID_ARGS&#160;</td><td class="fielddoc"><p>1010: An invalid argument is specified for the API. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9ace2538f5d1b18dd4164f09a26eb78fb1"></a>IOTPRC_ARGS_NULL_VALUE&#160;</td><td class="fielddoc"><p>NULL or empty value for an argument is specified. </p>
+<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9ace2538f5d1b18dd4164f09a26eb78fb1"></a>IOTPRC_ARGS_NULL_VALUE&#160;</td><td class="fielddoc"><p>1011: The argument value for the API is NULL or empty value. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9aa7ca2e69aa17049151aea41b455a1e65"></a>IOTPRC_ARGS_INVALID_VALUE&#160;</td><td class="fielddoc"><p>Invalid value of an argument is specified. </p>
+<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9aa7ca2e69aa17049151aea41b455a1e65"></a>IOTPRC_ARGS_INVALID_VALUE&#160;</td><td class="fielddoc"><p>1012: The specified argument value for the API is not valid. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a13d1294fe50878989ca6d912624cd85f"></a>IOTPRC_CERT_CALLBACK&#160;</td><td class="fielddoc"><p>Error while executing the Client certificate callback </p>
+<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a13d1294fe50878989ca6d912624cd85f"></a>IOTPRC_CERT_CALLBACK&#160;</td><td class="fielddoc"><p>1013: The client certificate callback failed with an error. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a2513ad1400b1da019f25b4df59f4ff02"></a>IOTPRC_HANDLE_IN_USE&#160;</td><td class="fielddoc"><p>Can not destoy a handle which is in use </p>
+<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a2513ad1400b1da019f25b4df59f4ff02"></a>IOTPRC_HANDLE_IN_USE&#160;</td><td class="fielddoc"><p>1014: The handle is in use. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a9e6fc2e475c8277afc0b715411021054"></a>IOTPRC_NOT_FOUND&#160;</td><td class="fielddoc"><p>File does not exist or can not access </p>
+<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a9e6fc2e475c8277afc0b715411021054"></a>IOTPRC_NOT_FOUND&#160;</td><td class="fielddoc"><p>1015: The file does not exist or is not accessible. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9abf104fe19b91bc59fbb28c7af85d8df7"></a>IOTPRC_NOT_CONNECTED&#160;</td><td class="fielddoc"><p>IoTP Client is not connected to the platform </p>
+<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9abf104fe19b91bc59fbb28c7af85d8df7"></a>IOTPRC_NOT_CONNECTED&#160;</td><td class="fielddoc"><p>1016: WIoTP client is not connected to the platform. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a451899ff1774c5d595cf25a8790332d8"></a>IOTPRC_TIMEOUT&#160;</td><td class="fielddoc"><p>IoTP Client action timed out </p>
+<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a451899ff1774c5d595cf25a8790332d8"></a>IOTPRC_TIMEOUT&#160;</td><td class="fielddoc"><p>1017: WIoTP client action failed to complete in configured time. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a25067e94828cb02f267f61fd07dcf171"></a>IOTPRC_HANDLER_NOT_FOUND&#160;</td><td class="fielddoc"><p>No message callback handler is configured. Can not process the message. </p>
+<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a25067e94828cb02f267f61fd07dcf171"></a>IOTPRC_HANDLER_NOT_FOUND&#160;</td><td class="fielddoc"><p>1018: No message callback handler is configured. Can not process the message. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a498319ea586ea7daebf5d2a53486ca95"></a>IOTPRC_HANDLER_INVALID&#160;</td><td class="fielddoc"><p>No message callback handler is invalid. </p>
+<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a498319ea586ea7daebf5d2a53486ca95"></a>IOTPRC_HANDLER_INVALID&#160;</td><td class="fielddoc"><p>1019: An invalid callback handler is specified. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a9ebba83537e75083e5e911c7e08d7519"></a>IOTPRC_DM_ACTION_STARTED&#160;</td><td class="fielddoc"><p>Device management action is initiated </p>
+<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a9ebba83537e75083e5e911c7e08d7519"></a>IOTPRC_DM_ACTION_STARTED&#160;</td><td class="fielddoc"><p>1020: Device management action has started. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9ad3e23bc22e78668cae9cbe789c13e837"></a>IOTPRC_DM_ACTION_FAILED&#160;</td><td class="fielddoc"><p>Device management action has failed </p>
+<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9ad3e23bc22e78668cae9cbe789c13e837"></a>IOTPRC_DM_ACTION_FAILED&#160;</td><td class="fielddoc"><p>1021: Device management action has failed to start. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a9f419359bfbadeb7f940cbe26f461a2a"></a>IOTPRC_DM_ACTION_NOT_SUPPORTED&#160;</td><td class="fielddoc"><p>Device management action is not supported </p>
+<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a9f419359bfbadeb7f940cbe26f461a2a"></a>IOTPRC_DM_ACTION_NOT_SUPPORTED&#160;</td><td class="fielddoc"><p>1022: Device management action is not supported. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a61496b85f5f73c6bea4b05d2455f61b1"></a>IOTPRC_DM_RESPONSE_PARSE_ERROR&#160;</td><td class="fielddoc"><p>Device management reponse parse error </p>
+<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a61496b85f5f73c6bea4b05d2455f61b1"></a>IOTPRC_DM_RESPONSE_PARSE_ERROR&#160;</td><td class="fielddoc"><p>1023: Could not parse device management response from WIoTP. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9af20d9cb5afd970fe7579791e27089c52"></a>IOTPRC_DM_RESPONSE_NULL_REQID&#160;</td><td class="fielddoc"><p>NULL request ID in device management reponse </p>
+<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9af20d9cb5afd970fe7579791e27089c52"></a>IOTPRC_DM_RESPONSE_NULL_REQID&#160;</td><td class="fielddoc"><p>1024: Received a NULL request ID from WIoTP. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a8121c0a7aabb2e837fee232416e58e75"></a>IOTPRC_DM_RESPONSE_INVALID_REQID&#160;</td><td class="fielddoc"><p>Invalid request ID in device management reponse </p>
+<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9a8121c0a7aabb2e837fee232416e58e75"></a>IOTPRC_DM_RESPONSE_INVALID_REQID&#160;</td><td class="fielddoc"><p>1025: Received request ID does not match with cached requiest ID. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9aab5f684bc0d5dafa61e34f1a54d04628"></a>IOTPRC_DM_ACTION_NO_CALLBACK&#160;</td><td class="fielddoc"><p>Callback is not set for device management action </p>
+<tr><td class="fieldname"><a id="a3687cd953aa67710962875d9196dc2d9aab5f684bc0d5dafa61e34f1a54d04628"></a>IOTPRC_DM_ACTION_NO_CALLBACK&#160;</td><td class="fielddoc"><p>1026: Could not find a call callback for the device management action. </p>
 </td></tr>
 </table>
 
@@ -308,7 +306,7 @@ Functions</h2></td></tr>
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="iotp__rc_8h.html">iotp_rc.h</a></li>
-    <li class="footer">Generated on Tue Apr 30 2019 13:22:10 for C Client SDK for IBM Watson™ IoT by
+    <li class="footer">Generated on Wed May 1 2019 22:54:54 for C Client SDK for IBM Watson™ IoT by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.14 </li>
   </ul>

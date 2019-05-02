@@ -49,7 +49,7 @@
 
    This library exposes functions and declarations to build IoTP application client.
 
-   - Add details on how to develop application clients using APIs exposed by this linrary.
+   ** This page is under construction **
 
  */
 

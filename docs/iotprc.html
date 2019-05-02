@@ -91,21 +91,19 @@ $(document).ready(function(){initNavTree('iotprc.html','');});
 <div class="title">C Client SDK Return codes </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p>Enumeration of return values from the IoTP_* functions defined in IBM Watson IoT Platform C Client SDK.</p>
+<div class="textblock"><p>The IoTP_* functions defined in IBM Watson IoT Platform C Client SDK retrurns the following codes:</p>
 <ul>
 <li>Value of 0 indicates a success response.</li>
 <li>Value of 1 indicates a failure response.</li>
-<li>Values of 1001 to 1500 are error codes returned by IoTP C client library.</li>
-<li>Values less than -1 are specific error codes returned by Paho MQTT C client.</li>
+<li>Values of 1001 to 1500 are <a class="el" href="iotp__rc_8h.html#a3687cd953aa67710962875d9196dc2d9">IOTPRC</a> codes returned by IoTP C Client libraries.</li>
+<li>Values less than -1 are specific error codes returned by Paho MQTT C client. For details on refer to <a href="https://www.eclipse.org/paho/files/mqttdoc/MQTTAsync/html/_m_q_t_t_reason_codes_8h.html" target="_blank">MQTTReasonCodes</a> in Paho Asynchronous MQTT C Client Library. </li>
 </ul>
-<p>Any OS level errors will be reported in the log messages.</p>
-<p>List Error and Return codes: </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Tue Apr 30 2019 13:22:10 for C Client SDK for IBM Watson™ IoT by
+    <li class="footer">Generated on Wed May 1 2019 22:54:54 for C Client SDK for IBM Watson™ IoT by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.14 </li>
   </ul>

@@ -49,7 +49,7 @@
 
    This library exposes functions and declarations to build IoTP managed gateway client.
 
-   - Add details on how to develop managed gateway clients using APIs exposed by this library.
+      ** This page is under construction **
 
  */
 

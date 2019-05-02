@@ -98,24 +98,74 @@ $(document).ready(function(){initNavTree('iotpconfig.html','');});
 <li>Managed device</li>
 <li>Managed gateway</li>
 </ul>
-<p>Configuration is portable between different client libraries. The client configuration items i are grouped into three categories:</p>
+<p>Configuration is portable between different client libraries. The client configuration items are grouped into three categories:</p>
 <ol type="1">
 <li>Identity: Required items to establish unique identity of the client in WIoTP service.</li>
 <li>Auth: Required items to get authenticated and authorizerd with WIoTP service.</li>
 <li>Options: Optional items required for interacting with WIoTP service.</li>
 </ol>
-<p>Identity configuration item for a device or gateway client: </p><div class="fragment"><div class="line">orgId     The <span class="stringliteral">&quot;orgId&quot;</span> is a unique six character identifier assigned to the users</div><div class="line">          when they <span class="keyword">register</span> with WIoTP service.</div><div class="line">typeId    The <span class="stringliteral">&quot;typeId&quot;</span> attribute represents the model of the device or gateway.</div><div class="line">          The <span class="stringliteral">&quot;typeId&quot;</span> must be registered with WIoTP service.</div><div class="line">deviceId  The <span class="stringliteral">&quot;deviceId&quot;</span> attribute identifies the device or the gateway, e.g. serial number.</div><div class="line">          The <span class="stringliteral">&quot;deviceId&quot;</span> must be registered with WIoTP service.</div></div><!-- fragment --><p>Identity configuration item for an application client: </p><div class="fragment"><div class="line">appId     The <span class="stringliteral">&quot;appId&quot;</span> is a unique identifier of an application in WIoTP organization.</div></div><!-- fragment --><p>Authentication configuration item for a device or gateway client:</p>
-<p>Authentication configuration item for an application client:</p>
-<p>Optional configuration items: </p><div class="fragment"><div class="line">domain    The <span class="stringliteral">&quot;domain&quot;</span> specifies the messaging endpoint URL.</div><div class="line">          The <span class="keywordflow">default</span> value is <span class="stringliteral">&quot;internetofthings.ibmcloud.com&quot;</span></div><div class="line">logLevel  The <span class="stringliteral">&quot;logLevel&quot;</span> specifies the debug logging level used by the client.</div><div class="line">          The valid values are <span class="stringliteral">&quot;ERROR&quot;</span>, <span class="stringliteral">&quot;WARN&quot;</span>, <span class="stringliteral">&quot;INFO&quot;</span>, and <span class="stringliteral">&quot;DEBUG&quot;</span>.</div><div class="line">          The <span class="keywordflow">default</span> value is <span class="stringliteral">&quot;ERROR&quot;</span>.</div></div><!-- fragment --><p>Optional configuration items for MQTT protocol: </p><div class="fragment"><div class="line">port      The <span class="stringliteral">&quot;port&quot;</span> specifies the port number to connect to IBM Watson IoT Platform.</div><div class="line">          The valid values are 8883 and 443. The <span class="keywordflow">default</span> value is 8883. </div><div class="line">caFile    The <span class="stringliteral">&quot;caFile&quot;</span> specifies platform server certificate to varify host. &lt;br&gt;</div><div class="line">          The <span class="keywordflow">default</span> certificate <span class="stringliteral">&quot;IoTPlatform.pem&quot;</span> is bundled with the client code. &lt;br&gt;</div><div class="line">          The <span class="keywordflow">default</span> value is <span class="stringliteral">&quot;./IoTPlatform.pem&quot;</span></div></div><!-- fragment --><p>Optional configuration items for HTTP protocol:</p>
-<p>IoTP Config object can be created from configuration parameters defined in an YAML file, or as environment variables. Users can also use API to set a specific configuration parameter.</p>
-<p>YAML file to configure a device: </p><div class="fragment"><div class="line">identity:</div><div class="line">  orgId: xxxxxx</div><div class="line">  deviceType: devTypeA</div><div class="line">  deviceId: devA</div><div class="line">auth:</div><div class="line">  token: xxxxxxxx</div><div class="line">options:</div><div class="line">  logLevel: debug</div><div class="line">  mqtt:</div><div class="line">    port: 443</div></div><!-- fragment --><p>To set IoTPConfig objects using environment variable, use the following format:</p>
-<p>WIOTP_&lt;CONFIG_CATAGORY&gt;_&lt;CONFIG_NAME&gt;</p>
-<p>Example: </p><div class="fragment"><div class="line">WIOTP_IDENTITY_ORGID=xxxxxx</div><div class="line">WIOTP_AUTH_TOKEN=xxxxxxxx</div><div class="line">WIOTP_OPTIONS_MQTT_PORT=443</div></div><!-- fragment --> </div></div><!-- contents -->
+<h3>Identity Configuration Items</h3>
+<p><b>For a device or gateway client:</b></p>
+<ul>
+<li>orgId: A unique six character identifier assigned to the users when they register with WIoTP service.</li>
+<li>typeId: Represents the model of the device or gateway. The <code>typeId</code> must be registered with WIoTP service.</li>
+<li>deviceId: Identifies the device or the gateway, e.g. serial number. The <code>deviceId</code> must be registered with WIoTP service.</li>
+</ul>
+<p><b>For an application client:</b></p>
+<ul>
+<li>appId: A unique identifier of an application in WIoTP organization.</li>
+</ul>
+<h3>Authentication Configuration Items</h3>
+<p><b>For device or gateway client:</b></p>
+<ul>
+<li>token:</li>
+<li>keyStore:</li>
+<li>privateKey:</li>
+<li>privateKeyPassword:</li>
+</ul>
+<p><b>For an application client:</b></p>
+<ul>
+<li>APIKey:</li>
+<li>token:</li>
+<li>keyStore:</li>
+<li>privateKey:</li>
+<li>privateKeyPassword:</li>
+</ul>
+<h3>Optional Configuration Items</h3>
+<ul>
+<li>domain: The <code>domain</code> specifies the messaging endpoint URL. The default value is <code>internetofthings.ibmcloud.com</code>.</li>
+<li>logLevel: The <code>logLevel</code> specifies the debug logging level used by the client. The valid values are "ERROR", "WARN", "INFO", and "DEBUG". The default value is "ERROR".</li>
+</ul>
+<p><b>Optional configuration items for MQTT protocol:</b></p>
+<ul>
+<li>transport:</li>
+<li>port: Specifies the port number to connect to IBM Watson IoT Platform. The valid values are 8883 and 443. The default value is 8883.</li>
+<li>caFile: Specifies platform server certificate to varify host. The default value is "./IoTPlatform.pem". The default certificate <code>IoTPlatform.pem</code> is bundled with the client code.</li>
+<li>transport:</li>
+<li>caFile:</li>
+<li>validateServerCert:</li>
+<li>cleanSession:</li>
+<li>cleanStart:</li>
+<li>sessionExpiry:</li>
+<li>keepalive:</li>
+<li>sharedSubscription:</li>
+<li>traceLevel:</li>
+</ul>
+<h2>Configuration Options</h2>
+<p>There are three options to create or update IoTP Config object <a class="el" href="iotp__config_8h.html#a07c19b2785d306118690c545f79e7df8">IoTPConfig</a>:</p>
+<ol type="1">
+<li>Use <a class="el" href="iotp__config_8h.html#afa887d5deaf76130df8cf6fe429be55f">IoTPConfig_create()</a> to read configuration items defined in an YAML file.</li>
+<li>Use <a class="el" href="iotp__config_8h.html#a86516ef3c44bc07caeed7e0e60bf25d1">IoTPConfig_readEnvironment()</a> to get configuration items defined as an environment variables.</li>
+<li>Use <a class="el" href="iotp__config_8h.html#a42af73c5e2142f28e975ad1a2a731931">IoTPConfig_setProperty()</a> to set a specific configuration item.</li>
+</ol>
+<p><b>Example</b> YAML file to configure a device:</p>
+<div class="fragment"><div class="line">identity:</div><div class="line">  orgId: xxxxxx</div><div class="line">  deviceType: devTypeA</div><div class="line">  deviceId: devA</div><div class="line">auth:</div><div class="line">  token: xxxxxxxx</div><div class="line">options:</div><div class="line">  logLevel: debug</div><div class="line">  mqtt:</div><div class="line">    port: 443</div></div><!-- fragment --><p><b>Example</b> Set <code>IoTPConfig</code> objects using environment variable:</p>
+<div class="fragment"><div class="line">WIOTP_IDENTITY_ORGID=xxxxxx</div><div class="line">WIOTP_AUTH_TOKEN=xxxxxxxx</div><div class="line">WIOTP_OPTIONS_MQTT_PORT=443</div></div><!-- fragment --> </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Tue Apr 30 2019 13:22:10 for C Client SDK for IBM Watson™ IoT by
+    <li class="footer">Generated on Wed May 1 2019 22:54:54 for C Client SDK for IBM Watson™ IoT by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.14 </li>
   </ul>

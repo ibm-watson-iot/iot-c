@@ -52,57 +52,73 @@ IoTP Config object defines the configuration parameters to configure IoTP client
 - Managed device
 - Managed gateway
 
-Configuration is portable between different client libraries. The client configuration items i
+Configuration is portable between different client libraries. The client configuration items 
 are grouped into three categories:
 
 1. Identity: Required items to establish unique identity of the client in WIoTP service.
 2. Auth:     Required items to get authenticated and authorizerd with WIoTP service.
 3. Options:  Optional items required for interacting with WIoTP service.
 
-Identity configuration item for a device or gateway client:
-```
-orgId     The "orgId" is a unique six character identifier assigned to the users
-          when they register with WIoTP service.
-typeId    The "typeId" attribute represents the model of the device or gateway.
-          The "typeId" must be registered with WIoTP service.
-deviceId  The "deviceId" attribute identifies the device or the gateway, e.g. serial number.
-          The "deviceId" must be registered with WIoTP service.
-```
+### Identity Configuration Items
 
-Identity configuration item for an application client:
-```
-appId     The "appId" is a unique identifier of an application in WIoTP organization.
-```
+<b>For a device or gateway client:</b>
 
-Authentication configuration item for a device or gateway client:
+- orgId: A unique six character identifier assigned to the users when they register with WIoTP service.
+- typeId: Represents the model of the device or gateway. The `typeId` must be registered with WIoTP service.
+- deviceId: Identifies the device or the gateway, e.g. serial number. The `deviceId` must be registered with WIoTP service.
 
-Authentication configuration item for an application client:
+<b>For an application client:</b>
 
-Optional configuration items:
-```
-domain    The "domain" specifies the messaging endpoint URL.
-          The default value is "internetofthings.ibmcloud.com"
-logLevel  The "logLevel" specifies the debug logging level used by the client.
-          The valid values are "ERROR", "WARN", "INFO", and "DEBUG".
-          The default value is "ERROR".
-```
+- appId: A unique identifier of an application in WIoTP organization.
 
-Optional configuration items for MQTT protocol:
-```
-port      The "port" specifies the port number to connect to IBM Watson IoT Platform.
-          The valid values are 8883 and 443. The default value is 8883. 
-caFile    The "caFile" specifies platform server certificate to varify host. <br>
-          The default certificate "IoTPlatform.pem" is bundled with the client code. <br>
-          The default value is "./IoTPlatform.pem"
-```
+### Authentication Configuration Items
 
-Optional configuration items for HTTP protocol:
+<b>For device or gateway client:</b>
 
- 
-IoTP Config object can be created from configuration parameters defined in an YAML file, or 
-as environment variables. Users can also use API to set a specific configuration parameter.
+- token: 
+- keyStore:
+- privateKey:
+- privateKeyPassword:
   
-YAML file to configure a device:
+<b>For an application client:</b>
+
+- APIKey:
+- token:
+- keyStore:
+- privateKey:
+- privateKeyPassword:
+
+### Optional Configuration Items
+
+- domain: The `domain` specifies the messaging endpoint URL. The default value is `internetofthings.ibmcloud.com`.
+- logLevel: The `logLevel` specifies the debug logging level used by the client. The valid values are "ERROR", "WARN", "INFO", and "DEBUG". The default value is "ERROR".
+
+<b>Optional configuration items for MQTT protocol:</b>
+
+- transport:
+- port: Specifies the port number to connect to IBM Watson IoT Platform. The valid values are 8883 and 443. The default value is 8883. 
+- caFile: Specifies platform server certificate to varify host. The default value is "./IoTPlatform.pem". The default certificate `IoTPlatform.pem` is bundled with the client code.
+- transport:
+- caFile:
+- validateServerCert:
+- cleanSession:
+- cleanStart:
+- sessionExpiry:
+- keepalive:
+- sharedSubscription:
+- traceLevel:
+
+
+## Configuration Options
+ 
+There are three options to create or update IoTP Config object {@link IoTPConfig}:
+
+1. Use {@link IoTPConfig_create()} to read configuration items defined in an YAML file.
+2. Use {@link IoTPConfig_readEnvironment()} to get configuration items defined as an environment variables. 
+3. Use {@link IoTPConfig_setProperty()} to set a specific configuration item.
+  
+<b>Example</b> YAML file to configure a device:
+
 ```
 identity:
   orgId: xxxxxx
@@ -116,11 +132,8 @@ options:
     port: 443
 ```
 
-To set IoTPConfig objects using environment variable, use the following format:
+<b>Example</b> Set `IoTPConfig` objects using environment variable:
 
-WIOTP_<CONFIG_CATAGORY>_<CONFIG_NAME>
-  
-Example:
 ```
 WIOTP_IDENTITY_ORGID=xxxxxx
 WIOTP_AUTH_TOKEN=xxxxxxxx
@@ -214,11 +227,8 @@ typedef enum {
  * IoTPConfig_setLogHandler: Sets a Log Handler
  *
  * @param type           - Type of handler (IoTPLogHanlderType)
- *
  * @param handler        - Pointer to Log handler
- *
- * @return IOTPRC       - IOTPRC_SUCCESS for success or IOTPRC_*
- *
+ * @return IOTPRC        - IOTPRC_SUCCESS for success or IOTPRC_*
  */
 DLLExport IOTPRC IoTPConfig_setLogHandler(IoTPLogTypes type, void * handler);
 
@@ -230,7 +240,7 @@ DLLExport IOTPRC IoTPConfig_setLogHandler(IoTPLogTypes type, void * handler);
  * @param config         - A pointer to an IoTPConfig handle.
  * @param configFileName - Configuration file path.
  *                         If NULL, the API will return an empty config object.
- * @return IOTPRC       - Returns IOTPRC_SUCCESS onsuccess or IOTPRC_* on error
+ * @return IOTPRC        - Returns IOTPRC_SUCCESS onsuccess or IOTPRC_* on error
  * @remark Use IoTPConfig_clear() API, to clear all properties.
  */
 DLLExport IOTPRC IoTPConfig_create(IoTPConfig **config, const char *configFileName);
@@ -240,7 +250,7 @@ DLLExport IOTPRC IoTPConfig_create(IoTPConfig **config, const char *configFileNa
  *
  * @param config         - A pointer to an IoTPConfig handle.
  * @param configFileName - Configuration file path
- * @return IOTPRC       - Returns IOTPRC_SUCCESS onsuccess or IOTPRC_* on error
+ * @return IOTPRC        - Returns IOTPRC_SUCCESS onsuccess or IOTPRC_* on error
  */
 DLLExport IOTPRC IoTPConfig_readConfigFile(IoTPConfig * config, const char * configFileName);
 
@@ -248,7 +258,7 @@ DLLExport IOTPRC IoTPConfig_readConfigFile(IoTPConfig * config, const char * con
  * IoTPConfig_readEnvironment() API updates the property settings from environment variables.
  *
  * @param config         - A pointer to an IoTPConfig handle.
- * @return IOTPRC       - Returns IOTPRC_SUCCESS onsuccess or IOTPRC_* on error
+ * @return IOTPRC        - Returns IOTPRC_SUCCESS onsuccess or IOTPRC_* on error
  */
 DLLExport IOTPRC IoTPConfig_readEnvironment(IoTPConfig *config);
 
@@ -258,7 +268,7 @@ DLLExport IOTPRC IoTPConfig_readEnvironment(IoTPConfig *config);
  * @param config         - A pointer to an IoTPConfig handle.
  * @param name           - Name of the property
  * @param value          - Value of the property
- * @return IOTPRC       - Returns IOTPRC_SUCCESS onsuccess or IOTPRC_* on error
+ * @return IOTPRC        - Returns IOTPRC_SUCCESS onsuccess or IOTPRC_* on error
  */
 DLLExport IOTPRC IoTPConfig_setProperty(IoTPConfig * config, const char * name, const char * value);
 
@@ -267,7 +277,7 @@ DLLExport IOTPRC IoTPConfig_setProperty(IoTPConfig * config, const char * name, 
  * IOTConfig_create() API.
  * 
  * @param config         - A pointer to an IoTPConfig handle.
- * @return IOTPRC       - Returns IOTPRC_SUCCESS onsuccess or IOTPRC_* on error
+ * @return IOTPRC        - Returns IOTPRC_SUCCESS onsuccess or IOTPRC_* on error
  */
 DLLExport IOTPRC IoTPConfig_clear(IoTPConfig *config);
 
@@ -278,7 +288,7 @@ DLLExport IOTPRC IoTPConfig_clear(IoTPConfig *config);
  * @param name           - Name of the property
  * @param value          - Buffer to return property value
  * @param len            - Length of value buffer
- * @return IOTPRC       - Returns IOTPRC_SUCCESS onsuccess or IOTPRC_* on error
+ * @return IOTPRC        - Returns IOTPRC_SUCCESS onsuccess or IOTPRC_* on error
  */
 DLLExport IOTPRC IoTPConfig_getProperty(IoTPConfig *config, const char * name, char ** value, int len);
 

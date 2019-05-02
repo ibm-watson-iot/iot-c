@@ -31,6 +31,7 @@ var NAVTREE =
     [ "Application Development", "iotpapp.html", null ],
     [ "Managed Device Development", "iotpmanageddevice.html", null ],
     [ "Managed Gateway Development", "iotpmanagedgateway.html", null ],
+    [ "Logging and Tracing", "iotplog.html", null ],
     [ "C Client SDK Return codes", "iotprc.html", null ],
     [ "Files", "files.html", [
       [ "File List", "files.html", "files_dup" ],
