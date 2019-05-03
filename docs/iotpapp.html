@@ -31,7 +31,6 @@
   <td id="projectlogo"><img alt="Logo" src="iotf.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">C Client SDK for IBM Watson™ IoT
-   &#160;<span id="projectnumber">Version 1.0.0</span>
    </div>
   </td>
  </tr>
@@ -91,14 +90,28 @@ $(document).ready(function(){initNavTree('iotpapp.html','');});
 <div class="title">Application Development </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p>This library exposes functions and declarations to build IoTP application client.</p>
-<p>This page is under construction ** </p>
+<div class="textblock"><div class="fragment"><div class="line">This page is still under construction.</div></div><!-- fragment --><p>IoTP C Client SDK includes a shared library <code>libiotp-as-application.so</code> that exposes functions to build an application client that typically runs on a back-end server. The application client connects to the IBM Watson™ IoT Platform (WIoTP) service, and sends events to WIoTP service on behalf of a device or a gateway, or send commands to a device or a gateway client.</p>
+<p>The following sections describe on how to configure, connect, send events, receive commands, disconnect and cleanup, an application client.</p>
+<h3>Configure Application</h3>
+<p>To use the application client, you need to create an application handle or instance of this client. Use the following steps to create an application handle:</p>
+<ul>
+<li>Include <code>iot_application.h</code> header file in the application client code.</li>
+<li><p class="startli">Create a application configuration object <a class="el" href="iotp__config_8h.html#a07c19b2785d306118690c545f79e7df8">IoTPConfig</a>, using one of the following options:</p><ol type="1">
+<li>By reading the configuration items from a file using <a class="el" href="iotp__config_8h.html#afa887d5deaf76130df8cf6fe429be55f">IoTPConfig_create()</a>.</li>
+<li>From environment variables using <a class="el" href="iotp__config_8h.html#a86516ef3c44bc07caeed7e0e60bf25d1">IoTPConfig_readEnvironment()</a>.</li>
+<li>Setting configuration items using <a class="el" href="iotp__config_8h.html#a42af73c5e2142f28e975ad1a2a731931">IoTPConfig_setProperty()</a>.</li>
+</ol>
+<p class="startli">For details on configuration items and options, refer to <a href="./iotpconfig.html">Configuration</a>. If <code>IoTPConfig</code> is created successfully, on exit you must call <a class="el" href="iotp__config_8h.html#a438e8e030e3adae33ea1b4dc7eab9337">IoTPConfig_clear()</a> to clear configuration object.</p>
+</li>
+<li>Create an application handle. A valid application handle <a class="el" href="iotp__application_8h.html#ad6ee6541a9366867c572cc081eac1cee">IoTPApplication</a>, is available following a successful call to <a class="el" href="iotp__application_8h.html#a801b6a2b554c0bc8bafdf4554d996919">IoTPApplication_create()</a>. If <code>IoTPApplication</code> handle is created successfully, on exit you must call <a class="el" href="">IoTPiApplication_destroy()</a> to destroy the handle.</li>
+</ul>
+<p>Sample code to configure a device client: </p><div class="fragment"><div class="line"><span class="preprocessor">#include &lt;<a class="code" href="iotp__application_8h.html">iotp_application.h</a>&gt;</span></div><div class="line"><span class="keywordtype">int</span> main(<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span> *argv[])</div><div class="line">{</div><div class="line">    <a class="code" href="iotp__rc_8h.html#a3687cd953aa67710962875d9196dc2d9">IOTPRC</a> rc = IOTP_SUCCESS;</div><div class="line">    <a class="code" href="iotp__config_8h.html#a07c19b2785d306118690c545f79e7df8">IoTPConfig</a> *config = NULL;</div><div class="line">    <a class="code" href="iotp__application_8h.html#ad6ee6541a9366867c572cc081eac1cee">IoTPApplication</a> *application = NULL;</div><div class="line">    <span class="comment">// Create IoTPConfig object using configuration options defined in the configuration file.</span></div><div class="line">    rc = <a class="code" href="iotp__config_8h.html#afa887d5deaf76130df8cf6fe429be55f">IoTPConfig_create</a>(&amp;config, <span class="stringliteral">&quot;configFilePath&quot;</span>);</div><div class="line">    <span class="keywordflow">if</span> ( rc != <a class="code" href="iotp__rc_8h.html#a3687cd953aa67710962875d9196dc2d9a79948a3653fcc5254599100b9aabab88">IOTPRC_SUCCESS</a> ) {</div><div class="line">        exit(1);</div><div class="line">    }</div><div class="line">    <span class="comment">// Create IoTPApplication object</span></div><div class="line">    rc = <a class="code" href="iotp__application_8h.html#a801b6a2b554c0bc8bafdf4554d996919">IoTPApplication_create</a>(&amp;application, config);</div><div class="line">    <span class="keywordflow">if</span> ( rc != <a class="code" href="iotp__rc_8h.html#a3687cd953aa67710962875d9196dc2d9a79948a3653fcc5254599100b9aabab88">IOTPRC_SUCCESS</a> ) {</div><div class="line">        <a class="code" href="iotp__config_8h.html#a438e8e030e3adae33ea1b4dc7eab9337">IoTPConfig_clear</a>(config);</div><div class="line">        exit(1);</div><div class="line">    }</div><div class="line"></div><div class="line">    <span class="comment">// Add code to connect, send event or receive commands</span></div><div class="line"></div><div class="line">    <span class="comment">// On exit call cleanup APIs</span></div><div class="line">    <a class="code" href="iotp__application_8h.html#afe40982085e2ab5769645b26040bef9d">IoTPApplication_destroy</a>(application);</div><div class="line">    <a class="code" href="iotp__config_8h.html#a438e8e030e3adae33ea1b4dc7eab9337">IoTPConfig_clear</a>(config);</div><div class="line">    <span class="keywordflow">return</span> 0;</div><div class="line">}</div></div><!-- fragment --><h3>Connect Application</h3>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed May 1 2019 22:54:54 for C Client SDK for IBM Watson™ IoT by
+    <li class="footer">Generated on Fri May 3 2019 15:05:06 for C Client SDK for IBM Watson™ IoT by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.14 </li>
   </ul>

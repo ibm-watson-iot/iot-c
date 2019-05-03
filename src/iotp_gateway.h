@@ -50,7 +50,7 @@
 IoTP C Client SDK includes a shared library `libiotp-as-gateway.so` that exposes functions
 to build gateway client that runs on IoT gateways. The gateway client connects to the IBM Watson™ 
 IoT Platform (WIoTP) service, and sends events to WIoTP service or receive commands from WIoTP 
-service.
+service. A gateway client can also send events or receive commands on behalf of a device.
 
 The following sections describe on how to configure, connect, send events,
 receive commands, disconnect and cleanup, a gateway client.
@@ -60,11 +60,14 @@ To use the gateway client, you need to create a gateway handle or instance of th
 Use the following steps to create a gateway handle:
 
 - Include `iot_gateway.h` header file in the gateway client code.
-- Create a gateway configuration object {@link IoTPConfig}, by reading the configuration items from 
-  a file using {@link IoTPConfig_create()}, or from environment variables using
-  {@link IoTPConfig_readEnvironment()}. Refer to [Configuration](./iotpconfig.html) page for details.
+- Create a gateway configuration object {@link IoTPConfig}, using one of the following options:
+  1. By reading the configuration items from a file using {@link IoTPConfig_create()}.
+  2. From environment variables using {@link IoTPConfig_readEnvironment()}.
+  3. Setting configuration items using {@link IoTPConfig_setProperty()}.
+
+  For details on configuration items and options, refer to [Configuration](./iotpconfig.html).
   If `IoTPConfig` is created successfully, on exit you must call {@link IoTPConfig_clear()} to clear
-  configuration object. 
+  configuration object.
 - Create a gateway handle. A valid gateway handle {@link IoTPGateway}, is available following
   a successful call to {@link IoTPGateway_create()}. If `IoTPGateway` handle is created successfully,
   on exit you must call {@link IoTPGateway_destroy()} to destroy the handle.

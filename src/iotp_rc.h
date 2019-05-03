@@ -24,7 +24,10 @@
 
 /*! \page iotplog Logging and Tracing
 
-    ** This page is under construction **
+```
+This page is still under construction.
+```
+
 */
 
 /*! \page iotprc C Client SDK Return codes
