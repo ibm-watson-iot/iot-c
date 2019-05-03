@@ -47,9 +47,11 @@
 
 /*! \page iotpmanageddevice Managed Device Development
 
-   This library exposes functions and declarations to build IoTP managed device client.
+```
+This page is still under construction.
+```
 
-      ** This page is under construction **
+   This library exposes functions and declarations to build IoTP managed device client.
 
  */
 

@@ -31,7 +31,6 @@
   <td id="projectlogo"><img alt="Logo" src="iotf.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">C Client SDK for IBM Watson™ IoT
-   &#160;<span id="projectnumber">Version 1.0.0</span>
    </div>
   </td>
  </tr>
@@ -91,13 +90,19 @@ $(document).ready(function(){initNavTree('iotpgateway.html','');});
 <div class="title">Gateway Development </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p>IoTP C Client SDK includes a shared library <code>libiotp-as-gateway.so</code> that exposes functions to build gateway client that runs on IoT gateways. The gateway client connects to the IBM Watson™ IoT Platform (WIoTP) service, and sends events to WIoTP service or receive commands from WIoTP service.</p>
+<div class="textblock"><p>IoTP C Client SDK includes a shared library <code>libiotp-as-gateway.so</code> that exposes functions to build gateway client that runs on IoT gateways. The gateway client connects to the IBM Watson™ IoT Platform (WIoTP) service, and sends events to WIoTP service or receive commands from WIoTP service. A gateway client can also send events or receive commands on behalf of a device.</p>
 <p>The following sections describe on how to configure, connect, send events, receive commands, disconnect and cleanup, a gateway client.</p>
 <h3>Configure Gateway</h3>
 <p>To use the gateway client, you need to create a gateway handle or instance of this client. Use the following steps to create a gateway handle:</p>
 <ul>
 <li>Include <code>iot_gateway.h</code> header file in the gateway client code.</li>
-<li>Create a gateway configuration object <a class="el" href="iotp__config_8h.html#a07c19b2785d306118690c545f79e7df8">IoTPConfig</a>, by reading the configuration items from a file using <a class="el" href="iotp__config_8h.html#afa887d5deaf76130df8cf6fe429be55f">IoTPConfig_create()</a>, or from environment variables using <a class="el" href="iotp__config_8h.html#a86516ef3c44bc07caeed7e0e60bf25d1">IoTPConfig_readEnvironment()</a>. Refer to <a href="./iotpconfig.html">Configuration</a> page for details. If <code>IoTPConfig</code> is created successfully, on exit you must call <a class="el" href="iotp__config_8h.html#a438e8e030e3adae33ea1b4dc7eab9337">IoTPConfig_clear()</a> to clear configuration object.</li>
+<li><p class="startli">Create a gateway configuration object <a class="el" href="iotp__config_8h.html#a07c19b2785d306118690c545f79e7df8">IoTPConfig</a>, using one of the following options:</p><ol type="1">
+<li>By reading the configuration items from a file using <a class="el" href="iotp__config_8h.html#afa887d5deaf76130df8cf6fe429be55f">IoTPConfig_create()</a>.</li>
+<li>From environment variables using <a class="el" href="iotp__config_8h.html#a86516ef3c44bc07caeed7e0e60bf25d1">IoTPConfig_readEnvironment()</a>.</li>
+<li>Setting configuration items using <a class="el" href="iotp__config_8h.html#a42af73c5e2142f28e975ad1a2a731931">IoTPConfig_setProperty()</a>.</li>
+</ol>
+<p class="startli">For details on configuration items and options, refer to <a href="./iotpconfig.html">Configuration</a>. If <code>IoTPConfig</code> is created successfully, on exit you must call <a class="el" href="iotp__config_8h.html#a438e8e030e3adae33ea1b4dc7eab9337">IoTPConfig_clear()</a> to clear configuration object.</p>
+</li>
 <li>Create a gateway handle. A valid gateway handle <a class="el" href="iotp__gateway_8h.html#aee81025fcaa049a06b1ff2f811b37035">IoTPGateway</a>, is available following a successful call to <a class="el" href="iotp__gateway_8h.html#a0ed28c219bfab055245606eba3fcbb78">IoTPGateway_create()</a>. If <code>IoTPGateway</code> handle is created successfully, on exit you must call <a class="el" href="iotp__gateway_8h.html#a7e63271f43f8147d8f4f788c1d2049ca">IoTPGateway_destroy()</a> to destroy the handle.</li>
 </ul>
 <dl class="section note"><dt>Note</dt><dd>Though there is no restrictions on how many gateway client handles, a gateway application can create, it is a good practice to not to create many client handles to limit the number of connections to WIoTP service, and reduce load on the WIoTP service.</dd></dl>
@@ -119,7 +124,7 @@ $(document).ready(function(){initNavTree('iotpgateway.html','');});
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed May 1 2019 22:54:54 for C Client SDK for IBM Watson™ IoT by
+    <li class="footer">Generated on Fri May 3 2019 15:05:06 for C Client SDK for IBM Watson™ IoT by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.14 </li>
   </ul>

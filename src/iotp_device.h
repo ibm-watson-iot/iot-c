@@ -60,9 +60,12 @@ To use the device client, you need to create a device handle or instance of this
 Use the following steps to create a device handle:
 
 - Include `iot_device.h` header file in the device client code.
-- Create a device configuration object {@link IoTPConfig}, by reading the configuration items from 
-  a file using {@link IoTPConfig_create()}, or from environment variables using
-  {@link IoTPConfig_readEnvironment()}. Refer to [Configuration](./iotpconfig.html) page for details.
+- Create a device configuration object {@link IoTPConfig}, using one of the following options:
+  1. By reading the configuration items from a file using {@link IoTPConfig_create()}.
+  2. From environment variables using {@link IoTPConfig_readEnvironment()}.
+  3. Setting configuration items using {@link IoTPConfig_setProperty()}.
+
+  For details on configuration items and options, refer to [Configuration](./iotpconfig.html).
   If `IoTPConfig` is created successfully, on exit you must call {@link IoTPConfig_clear()} to clear
   configuration object. 
 - Create a device handle. A valid device handle {@link IoTPDevice}, is available following
@@ -107,7 +110,7 @@ int main(int argc, char *argv[])
 
 ### Connect Device
 You can connect a device clienti to WIoTP service using {@link IoTPDevice_connect()}.
-This will allow the device client to send events, or receive and process commands.
+This will allow the device client to send events, or receive commands.
 If device client is connected to WIoTP service successfully, on exit you must call 
 {@link IoTPDevice_disconnect()} to disconnect the device client.
 

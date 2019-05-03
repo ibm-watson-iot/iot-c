@@ -31,7 +31,6 @@
   <td id="projectlogo"><img alt="Logo" src="iotf.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">C Client SDK for IBM Watson™ IoT
-   &#160;<span id="projectnumber">Version 1.0.0</span>
    </div>
   </td>
  </tr>
@@ -91,8 +90,7 @@ $(document).ready(function(){initNavTree('index.html','');});
 <div class="title">C Client Library for IBM Watson™ IoT </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><b>NOTE: This is a draft document. Pages are still under construction.</b></p>
-<p>IoTP C Client SDK provides libraries to build and develop code for integrating and connecting devices, and applications to IBM Watson IoT Platform. This repository contains source code for IoTP C client libraries and samples. The IoTP C client comprises five shared libraries that supports asynchronous mode of operations:</p>
+<div class="textblock"><div class="fragment"><div class="line">The documentation pages are still under construction.</div></div><!-- fragment --><p>IoTP C Client SDK provides libraries to build and develop code for integrating and connecting devices, and applications to IBM Watson IoT Platform. This repository contains source code for IoTP C client libraries and samples. The IoTP C client comprises five shared libraries that supports asynchronous mode of operations:</p>
 <ul>
 <li>libiotp-as-device.so - for device</li>
 <li>libiotp-as-gateway.so - for gateway</li>
@@ -146,7 +144,9 @@ $(document).ready(function(){initNavTree('index.html','');});
 <li>Build Documentation</li>
 </ul>
 <p>From the client library base directory run: </p><div class="fragment"><div class="line">make</div><div class="line">sudo make -C paho.mqtt.c install</div><div class="line">sudo make install</div></div><!-- fragment --><p>This will build Paho MQTT C libraries and IoTP client libraries and install the libraries. <br />
- To uninstall: </p><div class="fragment"><div class="line">sudo make uninstall</div><div class="line">sudo make -C paho.mqtt.c uninstall</div></div><!-- fragment --><p>To build the samples: </p><div class="fragment"><div class="line">make samples</div></div><!-- fragment --><p>To build and run tests, and to get test execution summary: </p><div class="fragment"><div class="line">make tests</div><div class="line">make run-tests</div><div class="line">make get-test-summary</div></div><!-- fragment --><p>To build the documentation: </p><div class="fragment"><div class="line">make html</div></div><!-- fragment --><h2>Supported Platforms</h2>
+ To uninstall: </p><div class="fragment"><div class="line">sudo make uninstall</div><div class="line">sudo make -C paho.mqtt.c uninstall</div></div><!-- fragment --><p>To build the samples: </p><div class="fragment"><div class="line">make samples</div></div><!-- fragment --><p>To build and run tests, and to get test execution summary: </p><div class="fragment"><div class="line">make tests</div><div class="line">make run-tests</div><div class="line">make get-test-summary</div></div><!-- fragment --><p>To build the documentation: </p><div class="fragment"><div class="line">make html</div></div><!-- fragment --><h2>Documentation</h2>
+<p><a href="https://ibm-watson-iot.github.io/iot-c/">https://ibm-watson-iot.github.io/iot-c/</a></p>
+<h2>Supported Platforms</h2>
 <p>The client libraries are built and tested on the following platforms:</p><ul>
 <li>Linux</li>
 <li>OSX </li>
@@ -156,7 +156,7 @@ $(document).ready(function(){initNavTree('index.html','');});
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed May 1 2019 22:54:54 for C Client SDK for IBM Watson™ IoT by
+    <li class="footer">Generated on Fri May 3 2019 15:05:06 for C Client SDK for IBM Watson™ IoT by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.14 </li>
   </ul>

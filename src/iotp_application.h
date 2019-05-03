@@ -47,11 +47,69 @@
 
 /*! \page iotpapp Application Development
 
-   This library exposes functions and declarations to build IoTP application client.
+```
+This page is still under construction.
+```
 
-   ** This page is under construction **
+IoTP C Client SDK includes a shared library `libiotp-as-application.so` that exposes functions
+to build an application client that typically runs on a back-end server. The application client 
+connects to the IBM Watson™ IoT Platform (WIoTP) service, and sends events to WIoTP service on
+behalf of a device or a gateway, or send commands to a device or a gateway client.
 
- */
+The following sections describe on how to configure, connect, send events,
+receive commands, disconnect and cleanup, an application client.
+
+### Configure Application
+To use the application client, you need to create an application handle or instance of this client.
+Use the following steps to create an application handle:
+
+- Include `iot_application.h` header file in the application client code.
+- Create a application configuration object {@link IoTPConfig}, using one of the following options:
+  1. By reading the configuration items from a file using {@link IoTPConfig_create()}.
+  2. From environment variables using {@link IoTPConfig_readEnvironment()}.
+  3. Setting configuration items using {@link IoTPConfig_setProperty()}.
+
+  For details on configuration items and options, refer to [Configuration](./iotpconfig.html).
+  If `IoTPConfig` is created successfully, on exit you must call {@link IoTPConfig_clear()} to clear
+  configuration object.
+- Create an application handle. A valid application handle {@link IoTPApplication}, is available following
+  a successful call to {@link IoTPApplication_create()}. If `IoTPApplication` handle is created successfully,
+  on exit you must call {@link IoTPiApplication_destroy()} to destroy the handle.
+
+Sample code to configure a device client:
+\code
+#include <iotp_application.h>
+int main(int argc, char *argv[])
+{
+    IOTPRC rc = IOTP_SUCCESS;
+    IoTPConfig *config = NULL;
+    IoTPApplication *application = NULL;
+    // Create IoTPConfig object using configuration options defined in the configuration file.
+    rc = IoTPConfig_create(&config, "configFilePath");
+    if ( rc != IOTPRC_SUCCESS ) {
+        exit(1);
+    }
+    // Create IoTPApplication object
+    rc = IoTPApplication_create(&application, config);
+    if ( rc != IOTPRC_SUCCESS ) {
+        IoTPConfig_clear(config);
+        exit(1);
+    }
+
+    // Add code to connect, send event or receive commands
+
+    // On exit call cleanup APIs
+    IoTPApplication_destroy(application);
+    IoTPConfig_clear(config);
+    return 0;
+}
+\endcode
+
+
+### Connect Application
+
+
+*/
 
 
 /**

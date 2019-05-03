@@ -1,6 +1,8 @@
 # C Client Library for IBM Watson™ IoT
 
-<b>NOTE: This is a draft document - for document layout review. Pages are still under construction.</b>
+```
+The documentation pages are still under construction.
+```
 
 IoTP C Client SDK provides libraries to build and develop code for integrating and connecting
 devices, and applications to IBM Watson IoT Platform. This repository contains source code for
@@ -82,6 +84,10 @@ To build the documentation:
 ```
 make html
 ```
+
+## Documentation
+
+https://ibm-watson-iot.github.io/iot-c/
 
 ## Supported Platforms
 The client libraries are built and tested on the following platforms:

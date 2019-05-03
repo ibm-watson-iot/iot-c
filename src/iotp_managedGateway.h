@@ -47,9 +47,11 @@
 
 /*! \page iotpmanagedgateway Managed Gateway Development
 
-   This library exposes functions and declarations to build IoTP managed gateway client.
+```
+This page is still under construction.
+```
 
-      ** This page is under construction **
+   This library exposes functions and declarations to build IoTP managed gateway client.
 
  */
 
