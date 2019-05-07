@@ -298,13 +298,13 @@ static IOTPRC iotp_validate_config(int type, IoTPConfig *config)
         LOG(ERROR, "domain is NULL or empty");
         return rc;
     } else if ( config->identity->orgId == NULL || *config->identity->orgId == '\0' ) {
-        if ( config->auth->apiKey == NULL || *config->auth->apiKey == '\0' ) {
+        if ( config->auth->key == NULL || *config->auth->key == '\0' ) {
             rc = IOTPRC_PARAM_INVALID_VALUE;
-            LOG(ERROR, "APIKey is NULL or empty");
+            LOG(ERROR, "API key is NULL or empty");
             return rc;
         } else {
             /* get orgid from API Key and update config */
-            char *tmpstr = config->auth->apiKey;
+            char *tmpstr = config->auth->key;
             char *tok = strtok(tmpstr, "-");
             if ( tok != NULL ) {
                 char *orgId = strtok(NULL, "-");
@@ -399,7 +399,7 @@ static IOTPRC iotp_validate_config(int type, IoTPConfig *config)
         
     /* Validate application related config items */
     if ( type == IoTPClient_application ) {
-        /* appiId, authToken and APIKey can not be empty */
+        /* appiId, authToken and API key can not be empty */
         if (config->identity->appId == NULL || ( config->identity->appId && *config->identity->appId == '\0')) {
             rc = IOTPRC_PARAM_NULL_VALUE;
             LOG(ERROR, "appId is NULL or empty");
@@ -410,9 +410,9 @@ static IOTPRC iotp_validate_config(int type, IoTPConfig *config)
             LOG(ERROR, "token is NULL or empty");
             return rc;
         }
-        if (config->auth->apiKey == NULL || ( config->auth->apiKey && *config->auth->apiKey == '\0')) {
+        if (config->auth->key == NULL || ( config->auth->key && *config->auth->key == '\0')) {
             rc = IOTPRC_PARAM_NULL_VALUE;
-            LOG(ERROR, "APIKey is NULL or empty");
+            LOG(ERROR, "API key is NULL or empty");
             return rc;
         }
     }
@@ -832,15 +832,15 @@ IOTPRC iotp_client_connect(void *iotpClient)
         conn_opts.ssl = &ssl_opts;
 
         if ( client->type == IoTPClient_application || client->type == IoTPClient_Application ) {
-            conn_opts.username = config->auth->apiKey;
+            conn_opts.username = config->auth->key;
             conn_opts.password = config->auth->token;
-            LOG(DEBUG, "key: %s | token: %s", config->auth->apiKey, config->auth->token);
+            LOG(DEBUG, "key: %s | token: %s", config->auth->key, config->auth->token);
         } else if ( client->type == IoTPClient_device || client->type == IoTPClient_managed_device ||
             client->type == IoTPClient_gateway || client->type == IoTPClient_managed_gateway ) {
             if ( config->auth->token ) {
                 conn_opts.username = "use-token-auth";
                 conn_opts.password = config->auth->token;
-                LOG(DEBUG, "key: %s | token: %s", config->auth->apiKey, config->auth->token);
+                LOG(DEBUG, "key: %s | token: %s", config->auth->key, config->auth->token);
             }
             if ( config->auth->keyStore ) {
                 conn_opts.ssl->enableServerCertAuth = 1;
@@ -1138,7 +1138,7 @@ IOTPRC iotp_client_setActionHandler(void *iotpClient, IoTP_DMAction_type_t type,
 
     /* Check if action handler is set for all DM actions */
     if ( client->handlers->allDMActionsId != 0 ) {
-        if ( type == IoTP_Handler_DMActions ) {
+        if ( type == IoTP_DMActions ) {
             IoTPHandler * handler = client->handlers->entries[client->handlers->allDMActionsId - 1];
             if ( handler->type == IoTP_Handler_DMActions ) {
                 handler->cbFunc = cbFunc;

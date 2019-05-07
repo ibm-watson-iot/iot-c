@@ -3,7 +3,7 @@ identity:
   orgId: xxxxxx
   appId: iotc_test_application
 auth:
-  APIKey: xxxxxxxxxx
+  key: xxxxxxxxxx
   token: xxxxxxxx
 options:
   logLevel: INFO

@@ -3,7 +3,7 @@ identity:
   orgId: xxxxxx
   appId: app1
 auth:
-  APIKey: xxxxxxxx
+  key: xxxxxxxx
   token: xxxxxxxx
 options:
   logLevel: DEBUG

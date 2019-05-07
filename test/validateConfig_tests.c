@@ -285,14 +285,14 @@ int testConfig_setProperty(void)
     rc = IoTPConfig_setProperty(config, "identity.appId", "dev1");
     TEST_ASSERT("IoTPConfig_setProperty: identity.appId is valid", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
 
-    rc = IoTPConfig_setProperty(config, "auth.APIKey", "30");
-    TEST_ASSERT("IoTPConfig_setProperty: auth.APIKey is numeric", rc == IOTPRC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IOTPRC_PARAM_INVALID_VALUE, rc);
+    rc = IoTPConfig_setProperty(config, "auth.key", "30");
+    TEST_ASSERT("IoTPConfig_setProperty: auth.key is numeric", rc == IOTPRC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IOTPRC_PARAM_INVALID_VALUE, rc);
 
-    rc = IoTPConfig_setProperty(config, "auth.APIKey", NULL);
-    TEST_ASSERT("IoTPConfig_setProperty: auth.APIKey is NULL", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+    rc = IoTPConfig_setProperty(config, "auth.key", NULL);
+    TEST_ASSERT("IoTPConfig_setProperty: auth.key is NULL", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
 
-    rc = IoTPConfig_setProperty(config, "auth.APIKey", "dev1");
-    TEST_ASSERT("IoTPConfig_setProperty: auth.APIKey is valid", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+    rc = IoTPConfig_setProperty(config, "auth.key", "dev1");
+    TEST_ASSERT("IoTPConfig_setProperty: auth.key is valid", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
 
     rc = IoTPConfig_setProperty(config, "auth.token", "30");
     TEST_ASSERT("IoTPConfig_setProperty: auth.token is numeric", rc == IOTPRC_PARAM_INVALID_VALUE, "rcE=%d rcA=%d", IOTPRC_PARAM_INVALID_VALUE, rc);

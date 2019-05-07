@@ -195,6 +195,7 @@ $(TEST_RUN):
 	$(call run-test,$@)
 
 init-log:
+	-$mkdir -p $(parent_dir)/temp
 	-$(RM) -f $(logfile)
 	@touch $(logfile)
 

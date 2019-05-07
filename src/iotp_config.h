@@ -82,7 +82,7 @@ are grouped into three categories:
   
 <b>For an application client:</b>
 
-- APIKey:
+- key:
 - token:
 - keyStore:
 - privateKey:
@@ -199,7 +199,7 @@ typedef enum {
 #define IoTPConfig_identity_typeId                      "identity.typeId"
 #define IoTPConfig_identity_deviceId                    "identity.deviceId"
 #define IoTPConfig_identity_appId                       "identity.appId"
-#define IoTPConfig_auth_APIKey                          "auth.APIKey"
+#define IoTPConfig_auth_key                             "auth.key"
 #define IoTPConfig_auth_token                           "auth.token"
 #define IoTPConfig_auth_keyStore                        "auth.keyStore"
 #define IoTPConfig_auth_privateKey                      "auth.privateKey"

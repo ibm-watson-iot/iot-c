@@ -46,7 +46,7 @@ echo "===================================================================="
 echo "    Setup tests: create device types and devices in WIoTP service"
 echo "===================================================================="
 chmod +x ./test/test.sh
-./test/test.sh setup
+./test/test.sh testconnection
 echo
 echo
 
@@ -81,7 +81,7 @@ echo
 echo "===================================================================="
 echo "    Setup tests: delete device types and devices in WIoTP service"
 echo "===================================================================="
-./test/test.sh cleanup
+./test/test.sh testconnection
 echo
 echo
 

@@ -81,7 +81,7 @@ typedef struct identity_t {
 
 /* IoTP auth configuration items */
 typedef struct auth_t {
-    char * apiKey;
+    char * key;
     char * token;
     char * keyStore;
     char * privateKey;

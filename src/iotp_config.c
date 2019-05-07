@@ -158,7 +158,7 @@ IOTPRC IoTPConfig_clear(IoTPConfig *config)
             iotp_utils_freePtr((void *)auth->privateKey);
             iotp_utils_freePtr((void *)auth->privateKeyPassword);
             iotp_utils_freePtr((void *)auth->token);
-            iotp_utils_freePtr((void *)auth->apiKey);
+            iotp_utils_freePtr((void *)auth->key);
             iotp_utils_freePtr((void *)config->auth);
         }
         if ( config->mqttopts != NULL ) {
@@ -335,18 +335,18 @@ IOTPRC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char 
             goto setPropDone;
         }
 
-        /* Process auth.APIKey */
-        if ( !strcasecmp(name, IoTPConfig_auth_APIKey)) {
+        /* Process auth.key */
+        if ( !strcasecmp(name, IoTPConfig_auth_key)) {
             if (argint != 0) {
                 rc = IOTPRC_PARAM_INVALID_VALUE;
             } else if (argptr == NULL || *argptr == '\0') {
-                if ( config->auth->apiKey ) 
-                    iotp_utils_freePtr((void *)config->auth->apiKey);
-                config->auth->apiKey = NULL;
+                if ( config->auth->key ) 
+                    iotp_utils_freePtr((void *)config->auth->key);
+                config->auth->key = NULL;
             } else {
-                if ( config->auth->apiKey ) 
-                    iotp_utils_freePtr((void *)config->auth->apiKey);
-                config->auth->apiKey = strdup(argptr);
+                if ( config->auth->key ) 
+                    iotp_utils_freePtr((void *)config->auth->key);
+                config->auth->key = strdup(argptr);
             }
             goto setPropDone;
         }
@@ -859,9 +859,9 @@ IOTPRC IoTPConfig_getProperty(IoTPConfig *config, const char * name, char ** val
             goto getPropDone;
         }
 
-        /* Process auth.APIKey */
-        if ( !strcasecmp(name, IoTPConfig_auth_APIKey)) {
-            snprintf(*value, len, "%s", config->auth->apiKey? config->auth->apiKey : "");
+        /* Process auth.key */
+        if ( !strcasecmp(name, IoTPConfig_auth_key)) {
+            snprintf(*value, len, "%s", config->auth->key? config->auth->key : "");
             goto getPropDone;
         }
     }
@@ -986,7 +986,7 @@ IOTPRC IoTPConfig_getProperty(IoTPConfig *config, const char * name, char ** val
         /* Process internal options.authMethod */
         if ( !strcasecmp(name, IoTPInternal_options_authMethod)) {
             if (config->authMethod == 0) {
-                snprintf(*value, len, "");
+                *value = "";
             } else if (config->authMethod == 1) {
                 snprintf(*value, len, "token");
             } else if (config->authMethod == 2) {

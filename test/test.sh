@@ -31,23 +31,14 @@ fi
 # Script action - valid actions are create and delete
 ACTION=$1
 
-# Organization ID, API Key and Token are from encrypted environment variables in travis.
+# Organization ID, key and token are from encrypted environment variables in travis.
 #
-# ORG="${WIOTP_IDENTITY_ORGID}"
+echo "WIOTP_IDENTITY_ORGID=${WIOTP_IDENTITY_ORGID}"
+echo "WIOTP_AUTH_KEY=${WIOTP_AUTH_KEY}"
+echo "WIOTP_AUTH_TOKEN=${WIOTP_AUTH_TOKEN}"
+
 DEVTOKEN="${WIOTP_AUTH_TOKEN}"
-APIKEY="${WIOTP_AUTH_APIKEY}"
-APITOKEN="${WIOTP_AUTH_APITOKEN}"
-
-ORG=${WIOTP_AUTH_APIKEY:2:6}
-
-# 
-# To use the script in your own test environment, logon to Watson IoT platform 
-# dashboard to create API key, uncomment and set the following variables:
-#
-# ORG="xxxxxx"
-# APIKEY="a-xxxxxx-xxxxxxxxxx"
-# APITOKEN="xxxxxxxxxxxxxxxxxx"
-# DEVTOKEN="iotTestPassw0rd"
+ORG=${WIOTP_AUTH_KEY:2:6}
 
 # Specify number of device types.
 # Script will add device types: iot_test_devType1, iot_test_devType2, ...
@@ -62,7 +53,7 @@ echo "Run tests using WiOTP instance ${ORG}"
 echo
 
 # Set for verbose output
-# VERBOSE="-v"
+VERBOSE="-v"
 
 #
 # Test connection to platform
@@ -71,7 +62,7 @@ if [ "${ACTION}" == "testconnection" ]
 then
     echo
     echo "Test WIoTP connectivity"
-    curl -v -u "${APIKEY}:${APITOKEN}" -k --url https://${ORG}.internetofthings.ibmcloud.com/api/v0002/bulk/devices
+    curl -u "${WIOTP_AUTH_KEY}:${WIOTP_AUTH_TOKEN}" -ks -o /dev/null -w "%{http_code}" --url https://${ORG}.internetofthings.ibmcloud.com/api/v0002/bulk/devices
     echo
     exit 0
 fi
@@ -93,7 +84,7 @@ then
         echo "Create device type: ${devType}"
         PAYLOAD="{\"id\":\"${devType}\",\"classId\":\"Device\",\"deviceInfo\":{},\"metadata\":{}}"
         # echo ${PAYLOAD}
-        curl -k -u "${APIKEY}:${APITOKEN}" --request POST \
+        curl -k -u "${WIOTP_AUTH_KEY}:${WIOTP_AUTH_TOKEN}" --request POST \
              --url https://${ORG}.internetofthings.ibmcloud.com/api/v0002/device/types \
              --header 'content-type: application/json' \
              --data "${PAYLOAD}" ${VERBOSE}
@@ -110,7 +101,7 @@ then
             dev="iotc_test_dev${j}"
             echo "Create device: ${dev}"
             PAYLOAD="{\"deviceId\":\"${dev}\",\"authToken\":\"${DEVTOKEN}\",\"deviceInfo\":{},\"location\":{},\"metadata\":{}}"
-            curl -k -u "${APIKEY}:${APITOKEN}" --request POST \
+            curl -k -u "${WIOTP_AUTH_KEY}:${WIOTP_AUTH_TOKEN}" --request POST \
                 --url https://${ORG}.internetofthings.ibmcloud.com/api/v0002/device/types/${devType}/devices \
                 --header 'content-type: application/json' \
                 --data "${PAYLOAD}"  ${VERBOSE}
@@ -120,7 +111,7 @@ then
         echo 
     
         echo "Verify device are created"
-        curl -u "${APIKEY}:${APITOKEN}" -k ${VERBOST} \
+        curl -u "${WIOTP_AUTH_KEY}:${WIOTP_AUTH_TOKEN}" -k ${VERBOST} \
              --url https://${ORG}.internetofthings.ibmcloud.com/api/v0002/bulk/devices?typeId=${devType}
         echo
         echo
@@ -154,7 +145,7 @@ then
         do
             dev="iotc_test_dev${j}"
             echo "Delete device: ${dev}"
-            curl --request DELETE -u "${APIKEY}:${APITOKEN}" -k  ${VERBOSE} \
+            curl --request DELETE -u "${WIOTP_AUTH_KEY}:${WIOTP_AUTH_TOKEN}" -k  ${VERBOSE} \
                 --url https://${ORG}.internetofthings.ibmcloud.com/api/v0002/device/types/${devType}/devices/${dev}
 
             echo
@@ -163,7 +154,7 @@ then
         echo 
 
         echo "Verify device are deleted"
-        curl -u "${APIKEY}:${APITOKEN}" -k ${VERBOST} \
+        curl -u "${WIOTP_AUTH_KEY}:${WIOTP_AUTH_TOKEN}" -k ${VERBOST} \
              --url https://${ORG}.internetofthings.ibmcloud.com/api/v0002/bulk/devices?typeId=${devType}
         echo
         echo
@@ -173,7 +164,7 @@ then
         # Delete Device Type
         #
         echo "Delete device type: ${devType}"
-        curl --request DELETE -u "${APIKEY}:${APITOKEN}" -k \
+        curl --request DELETE -u "${WIOTP_AUTH_KEY}:${WIOTP_AUTH_TOKEN}" -k \
              --url https://${ORG}.internetofthings.ibmcloud.com/api/v0002/device/types/${devType}  ${VERBOSE}
         echo
         echo
