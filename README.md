@@ -29,7 +29,7 @@ supports asynchronous mode of operations:
 | Auto reconnect | Yes | Auto reconnect |
 | Device Management | Yes | Connect device as managed device to Watson IoT Platform |
 | Gateway Management | Yes | Connect gateway device as managed gateway to Watson IoT Platform |
-| Device Management Extension | No | Device Management Extenstions. In a future release |
+| Device Management Extension | No | Device Management Extensions. In a future release |
 | Logging and Tracing | Yes | Supports custom log handler to receive client log and trace messages |
 
 ## Dependencies

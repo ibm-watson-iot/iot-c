@@ -73,8 +73,8 @@ Use the following steps to create a device handle:
   on exit you must call {@link IoTPDevice_destroy()} to destroy the handle.
 
 
-\note Though there is no restrictions on how many device client handles, a device application can create,
-it is a good practice to not to create many client handles to limit the number of connections to 
+\note Though there are no restrictions on how many device clients, a device application can create,
+it is a good practice to not to create many clients to limit the number of connections to 
 WIoTP service, and reduce load on the WIoTP service.
 
 
@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 
 
 ### Connect Device
-You can connect a device clienti to WIoTP service using {@link IoTPDevice_connect()}.
+You can connect a device client to WIoTP service using {@link IoTPDevice_connect()}.
 This will allow the device client to send events, or receive commands.
 If device client is connected to WIoTP service successfully, on exit you must call 
 {@link IoTPDevice_disconnect()} to disconnect the device client.
@@ -143,14 +143,14 @@ int main(int argc, char *argv[])
 
 ### Send Event
 Device can provide various types of information, for example data collected by the device 
-(telemtry data), current status of the device etc. Events are the mechanism by which devices 
+(telemetry data), current status of the device etc. Events are the mechanism by which devices 
 publish data to WIoTP service. Devices control the content of their messages, and assign a name 
 for each event that is sent. WIoTP service uses the credentials that are attached to each event 
 received to determine which device sent the event. This architecture prevents devices from 
 impersonating one another.
 
 Events can be published with any of the three quality of service (QoS) levels that are defined 
-by the MQTT protocol. By default, events are published with a QoS level of 0. Optonally you can
+by the MQTT protocol. By default, events are published with a QoS level of 0. Optionally you can
 send MQTT V5 properties. For details on MQTT V5 properties, refer to <a href="https://www.eclipse.org/paho/files/mqttdoc/MQTTAsync/html/struct_m_q_t_t_properties.html" target="_blank"}MQTTProperties</a>.
 
 To send an event to WIoTP service, you can use {@link IoTPDevice_sendEvent()}.
@@ -228,29 +228,29 @@ int main(int argc, char *argv[])
 which data provides the most value. They can predict this based on impact of data collection, 
 power consumption of the device, and data transmission speed and latency, how the data is consumed 
 by back-end applications. Users will also have to decide on how to represent the event from devices. 
-Sometimes it is difficult to decide what constitues a device. For example a commerical refrigiration
+Sometimes it is difficult to decide what constitutes a device. For example, a commercial refrigeration
 units (used in departmental stores) may have multiple bins or compartments with temperature sensors 
 in each of the compartments. In this case, each compartment can be modeled as a device with its own 
-unique device ID or the whole unit could be one device with temerature data from each compartment. 
-So events could be modeled as different levels of abstraction. Some of the examples could be:
+unique device ID or the whole unit could be one device with temperature data from each compartment. 
+So, events could be modeled as different levels of abstraction. Some of the examples could be:
 
-\note <b>Example 1:</b> Modeled as each temerature sensor as a device:
+\note <b>Example 1:</b> Modeled as each temperature sensor as a device:
 ```
 {"deviceId":"refUnit1_compartment1","temp":18}
 {"deviceId":"refunit1_compartment2","temp":20}
 ```
 
-\note <b>Example 2:</b> Modeled as refrigiration unit as a device:
+\note <b>Example 2:</b> Modeled as refrigeration unit as a device:
 ```
 {"deviceId":"refunit1","compartment1_temp":18, "compartment2_temp":20}
 ```
 
-\note <b>Example 3:</b> Modeled as refrigiration unit as a device and temp data in an array:
+\note <b>Example 3:</b> Modeled as refrigeration unit as a device and temp data in an array:
 ```
 {"deviceId":"refunit1","compartments":[{"temp":18},{"temp":20}]}
 ```
 
-\note Considering the size of event, and consumability by back-end application, 
+\note Considering the size of event, and consumbility by back-end application, 
 Example 3 is a better option to use compared with Example 1 and Example 2.
 
 

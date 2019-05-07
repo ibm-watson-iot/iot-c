@@ -64,7 +64,7 @@ To use the application client, you need to create an application handle or insta
 Use the following steps to create an application handle:
 
 - Include `iot_application.h` header file in the application client code.
-- Create a application configuration object {@link IoTPConfig}, using one of the following options:
+- Create an application configuration object {@link IoTPConfig}, using one of the following options:
   1. By reading the configuration items from a file using {@link IoTPConfig_create()}.
   2. From environment variables using {@link IoTPConfig_readEnvironment()}.
   3. Setting configuration items using {@link IoTPConfig_setProperty()}.

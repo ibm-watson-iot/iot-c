@@ -73,8 +73,8 @@ Use the following steps to create a gateway handle:
   on exit you must call {@link IoTPGateway_destroy()} to destroy the handle.
 
 
-\note Though there is no restrictions on how many gateway client handles, a gateway application can create,
-it is a good practice to not to create many client handles to limit the number of connections to 
+\note Though there are no restrictions on how many gateway clients, a gateway application can create,
+it is a good practice to not to create many clients to limit the number of connections to 
 WIoTP service, and reduce load on the WIoTP service.
 
 
@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 
 
 ### Connect Gateway
-You can connect a gateway clienti to WIoTP service using {@link IoTPGateway_connect()}.
+You can connect a gateway client to WIoTP service using {@link IoTPGateway_connect()}.
 This will allow the gateway client to send events, or receive and process commands.
 If gateway client is connected to WIoTP service successfully, on exit you must call 
 {@link IoTPGateway_disconnect()} to disconnect the gateway client.
@@ -150,7 +150,7 @@ received to determine which gateway sent the event. This architecture prevents g
 impersonating one another.
 
 Events can be published with any of the three quality of service (QoS) levels that are defined 
-by the MQTT protocol. By default, events are published with a QoS level of 0. Optonally you can
+by the MQTT protocol. By default, events are published with a QoS level of 0. Optionally you can
 send MQTT V5 properties. For details on MQTT V5 properties, refer to <a href="https://www.eclipse.org/paho/files/mqttdoc/MQTTAsync/html/struct_m_q_t_t_properties.html" target="_blank"}MQTTProperties</a>.
 
 To send an event to WIoTP service, you can use {@link IoTPGateway_sendEvent()}.
