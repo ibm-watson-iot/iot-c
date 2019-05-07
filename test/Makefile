@@ -59,7 +59,7 @@ ifndef pahomqttdir
 endif
 
 ifndef logfile
-  logfile = $(testdir)/cunit_tests.log
+  logfile = $(parent_dir)/temp/cunit_tests.log
 endif
 
 CC ?= gcc
@@ -85,7 +85,7 @@ define run-test
     @echo ==== Run Test: $(notdir $(1))
     @echo ==== Time: $(shell date +%T)
     @echo ---- Use MQTT Paho asynchronous library
-    LD_LIBRARY_PATH=$(paholibdir):$(iotplibdir) $(blddir)/$(1) | tee -a cunit_tests.log
+    LD_LIBRARY_PATH=$(paholibdir):$(iotplibdir) $(blddir)/$(1) | tee -a $(logfile)
 endef
 
 else ifeq ($(OSTYPE),Darwin)
@@ -100,7 +100,7 @@ define run-test
     @echo ==== Run Test: $(notdir $(1))
     @echo ==== Time: $(shell date +%T)
     @echo ---- Use MQTT Paho asynchronous library
-    DYLD_LIBRARY_PATH=$(paholibdir):$(iotplibdir) $(blddir)/$(1) | tee -a cunit_tests.log
+    DYLD_LIBRARY_PATH=$(paholibdir):$(iotplibdir) $(blddir)/$(1) | tee -a $(logfile)
 endef
 
 endif
@@ -214,7 +214,7 @@ get-summary:
 
 clean:
 	-$(RM) -r $(blddir)
-	-$(RM) -f test/cunit_tests.log
+	-$(RM) -f $(logfile)
 
 print-% : ; @echo $* = $($*)
 

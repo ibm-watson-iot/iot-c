@@ -96,7 +96,7 @@ MANAGED_GWY_SAMPLE_SRCS = $(wildcard managedGateway*.c)
 MANAGED_GWY_SAMPLES = $(patsubst %.c, $(blddir)/%, $(MANAGED_GWY_SAMPLE_SRCS))
 
 
-.PHONY: all clean $(DEV_SAMPLES) $(GWY_SAMPLES) $(APP_SAMPLES) $(MANAGED_DEV_SAMPLES) $(MANAGED_GWY_SAMPLES)
+.PHONY: all clean createCerts $(DEV_SAMPLES) $(GWY_SAMPLES) $(APP_SAMPLES) $(MANAGED_DEV_SAMPLES) $(MANAGED_GWY_SAMPLES)
 
 all: mkdir build
 
@@ -122,8 +122,14 @@ $(MANAGED_GWY_SAMPLES): $(blddir)/%: $(MANAGED_GWY_SAMPLE_SRCS)
 	$(CC) -g -o $@ $< $(INCDIRS) $(LDFLAGS_MANAGED_GWY) $(FLAGS_EXES)
 
 
+createCerts:
+	@echo "Create CA, Intermediate and client certificates"
+	-$(RM) -r $(parent_dir)/temp/clientcerts
+	@mkdir -p $(parent_dir)/temp/clientcerts; $(samplesrcdir)/createCertsForWIoTP.sh $(parent_dir)
+
 clean:
 	-$(RM) -r $(blddir)
+	-$(RM) -r $(parent_dir)/temp/clientcerts
 
 print-% : ; @echo $* = $($*)
 

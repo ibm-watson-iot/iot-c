@@ -1,0 +1,14 @@
+# Device sample config file
+identity:
+  orgId: xxxxxx
+  typeId: iotc_test_devType1
+  deviceId: iotc_test_dev1
+auth:
+  keyStore: ./temp/clientcerts/device_ECC.crt
+  privateKey: ./temp/clientcerts/private.key
+options:
+  logLevel: INFO
+  mqtt:
+    port: 8883
+    caFile: ./sample/IoTFoundation.pem
+

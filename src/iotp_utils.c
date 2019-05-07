@@ -255,8 +255,9 @@ IOTPRC iotp_utils_fileExist(const char * filePath)
     }
 
     if ( access( filePath, R_OK ) != -1 ) {
+        rc = IOTPRC_SUCCESS;
+    } else {
         rc = IOTPRC_NOT_FOUND;
-        return rc;
     }
 
     return rc;

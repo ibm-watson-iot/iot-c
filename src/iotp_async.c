@@ -318,13 +318,9 @@ static IOTPRC iotp_validate_config(int type, IoTPConfig *config)
     /* Check serverCertificatePath */
     /* Could be NULL for quickstart sandbox */
     if ( strcmp(config->domain, "quickstart") != 0 ) {
-        if ( config->mqttopts->caFile == NULL || *config->mqttopts->caFile == '\0' ) {
-            rc = IOTPRC_PARAM_INVALID_VALUE;
-            LOG(WARN, "certificatePath is NULL or empty");
-            return rc;
-        }
         /* check if caFile is valid */
-        if ( (rc = iotp_utils_fileExist(config->mqttopts->caFile)) != IOTPRC_SUCCESS ) {
+        if ( config->mqttopts->caFile == NULL ) {
+            rc = IOTPRC_PARAM_INVALID_VALUE;
             LOG(WARN, "caFile is NULL or empty");
             return rc;
         }
@@ -343,8 +339,18 @@ static IOTPRC iotp_validate_config(int type, IoTPConfig *config)
         }
     }
 
+
+    /* if auth->token is not set but auth->keyStore and privateKey is set,
+     * change authMethod to 2
+     */
+    if ( config->authMethod == 0 && (config->auth->token == NULL || (config->auth->token && *config->auth->token == '\0'))) {
+        if ( config->auth->keyStore != NULL && config->auth->privateKey != NULL ) {
+            config->authMethod = 2;
+        }
+    }
+
     /* Validate device or gateway related config items */
-    if ( type == IoTPClient_device ) {
+    if ( type == IoTPClient_device || type == IoTPClient_gateway ) {
         /* device id and type can not be empty */
         if (config->identity->typeId == NULL || ( config->identity->typeId && *config->identity->typeId == '\0')) {
             rc = IOTPRC_PARAM_NULL_VALUE;
