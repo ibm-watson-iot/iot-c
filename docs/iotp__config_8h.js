@@ -4,7 +4,7 @@ var iotp__config_8h =
     [ "IoTPConfig_identity_typeId", "iotp__config_8h.html#ad19b8ed0a094937a454a9ace96f378bd", null ],
     [ "IoTPConfig_identity_deviceId", "iotp__config_8h.html#affb5ca2bcb1a09b64bd17905146e4f2b", null ],
     [ "IoTPConfig_identity_appId", "iotp__config_8h.html#a350d4e6ed118b0b90e6289fbfebff398", null ],
-    [ "IoTPConfig_auth_APIKey", "iotp__config_8h.html#a27d81c6730480bf05eb349b49c991e48", null ],
+    [ "IoTPConfig_auth_key", "iotp__config_8h.html#a808dd2143216357285cc29f6a3724a37", null ],
     [ "IoTPConfig_auth_token", "iotp__config_8h.html#a09ea0b2d31c16e85ab956f02f78dd6b1", null ],
     [ "IoTPConfig_auth_keyStore", "iotp__config_8h.html#a8e9eac29b2928bbba023f71acaa36875", null ],
     [ "IoTPConfig_auth_privateKey", "iotp__config_8h.html#a3bc543eb3f2db7e51176f23ff8fae971", null ],

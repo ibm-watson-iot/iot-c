@@ -38,7 +38,7 @@ var searchData=
   ['iotpclient_5ftotal',['IoTPClient_total',['../iotp__config_8h.html#a5f6fb3d43187c41466926384dcc272d0a1a937a618d3ec9547536aceda7b8f3a6',1,'iotp_config.h']]],
   ['iotpclienttype',['IoTPClientType',['../iotp__config_8h.html#a5f6fb3d43187c41466926384dcc272d0',1,'iotp_config.h']]],
   ['iotpconfig',['IoTPConfig',['../iotp__config_8h.html#a07c19b2785d306118690c545f79e7df8',1,'iotp_config.h']]],
-  ['iotpconfig_5fauth_5fapikey',['IoTPConfig_auth_APIKey',['../iotp__config_8h.html#a27d81c6730480bf05eb349b49c991e48',1,'iotp_config.h']]],
+  ['iotpconfig_5fauth_5fkey',['IoTPConfig_auth_key',['../iotp__config_8h.html#a808dd2143216357285cc29f6a3724a37',1,'iotp_config.h']]],
   ['iotpconfig_5fauth_5fkeystore',['IoTPConfig_auth_keyStore',['../iotp__config_8h.html#a8e9eac29b2928bbba023f71acaa36875',1,'iotp_config.h']]],
   ['iotpconfig_5fauth_5fprivatekey',['IoTPConfig_auth_privateKey',['../iotp__config_8h.html#a3bc543eb3f2db7e51176f23ff8fae971',1,'iotp_config.h']]],
   ['iotpconfig_5fauth_5fprivatekeypassword',['IoTPConfig_auth_privateKeyPassword',['../iotp__config_8h.html#a578d388bfe474145df191502289c2b05',1,'iotp_config.h']]],

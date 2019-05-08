@@ -24,7 +24,7 @@ for the JavaScript code in this file
 var NAVTREE =
 [
   [ "C Client SDK for IBM Watson™ IoT", "index.html", [
-    [ "C Client Library for IBM Watson™ IoT", "index.html", null ],
+    [ "C Client SDK", "index.html", null ],
     [ "Configuration", "iotpconfig.html", null ],
     [ "Device Development", "iotpdevice.html", null ],
     [ "Gateway Development", "iotpgateway.html", null ],
