@@ -74,7 +74,7 @@ Use the following steps to create an application handle:
   configuration object.
 - Create an application handle. A valid application handle {@link IoTPApplication}, is available following
   a successful call to {@link IoTPApplication_create()}. If `IoTPApplication` handle is created successfully,
-  on exit you must call {@link IoTPiApplication_destroy()} to destroy the handle.
+  on exit you must call {@link IoTPApplication_destroy()} to destroy the handle.
 
 Sample code to configure a device client:
 \code
