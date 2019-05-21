@@ -248,10 +248,10 @@ int main(int argc, char *argv[])
 
 ## Application SDK Reference
 
-For application configuration APIs, refer to <a href="https://https://ibm-watson-iot.github.io/iot-c/reference/iotp_config_8h.html" target="_iotsdkrefernce">Configuration Refernce Documentation</a>
+For application configuration APIs, refer to <a href="https://ibm-watson-iot.github.io/iot-c/reference/iotp_config_8h.html" target="_iotsdkrefernce">Configuration Refernce Documentation</a>
 
-For application client APIs, refer to <a href="https://https://ibm-watson-iot.github.io/iot-c/reference/iotp_application_8h.html" target="_iotsdkrefernce">Application Client Refernce Documentation</a>
+For application client APIs, refer to <a href="https://ibm-watson-iot.github.io/iot-c/reference/iotp_application_8h.html" target="_iotsdkrefernce">Application Client Refernce Documentation</a>
 
-For Return and error codes by C Client SDK, refer to <a href="https://https://ibm-watson-iot.github.io/iot-c/reference/iotp_rc_8h.html" target="_iotsdkrefernce">Return Code Refernce Documentation</a>
+For Return and error codes by C Client SDK, refer to <a href="https://ibm-watson-iot.github.io/iot-c/reference/iotp_rc_8h.html" target="_iotsdkrefernce">Return Code Refernce Documentation</a>
 
 
