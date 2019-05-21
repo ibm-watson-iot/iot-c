@@ -4,9 +4,9 @@ Application configuration can be broken down into required and optional configur
 
 ## Required Configuration
 - `identity.orgId` Your organization ID.
-- `identity.typeId` The type of the application device. Think of the application type is analagous to a model number.
-- `identity.deviceId` A unique ID to identify a application device. Think of the application id as analagous to a serial number.
-- `auth.token` An authentication token to securely connect your application device to Watson IoT Platform.
+- `identity.appId` A unique ID to identify the application.
+- `auth.key` API Key to securely connect your application to Watson IoT Platform.
+- `auth.token` API Token to securely connect your application to Watson IoT Platform.
 
 ## Optional Configuration
 - `options.domain` A boolean value indicating which Watson IoT Platform domain to connect to (e.g. if you have a dedicated platform instance). Defaults to `internetofthings.ibmcloud.com`
@@ -45,9 +45,9 @@ IoTPApplication_create(&application, config);
 ```yaml
 identity:
     orgId: org1id
-    typeId: raspberry-pi
-    deviceId: 00ef08ac05
+    appId: myApp
 auth:
+    key: a-org1id-Ab$76s)asj
     token: Ab$76s)asj8_s5
 ```
 
@@ -58,9 +58,9 @@ This file defines all optional configuration parameters.
 ```yaml
 identity:
     orgId: org1id
-    typeId: raspberry-pi
-    deviceId: 00ef08ac05
+    appId: myApp
 auth:
+    key: a-org1id-Ab$76s)asj
     token: Ab$76s)asj8_s5
 options:
     domain: internetofthings.ibmcloud.com
@@ -92,8 +92,8 @@ IoTPApplication_create(&application, config);
 
 ### Minimal Required Environment Variables
 - `WIOTP_IDENTITY_ORGID`
-- `WIOTP_IDENTITY_TYPEID`
-- `WIOTP_IDENTITY_DEVICEID`
+- `WIOTP_IDENTITY_APPID`
+- `WIOTP_AUTH_KEY`
 - `WIOTP_AUTH_TOKEN`
 
 ### Optional Additional Environment Variables
@@ -119,9 +119,9 @@ IoTPConfig *config = NULL;
 IoTPApplication *application = NULL;
 IoTPConfig_create(&config, NULL);
 IoTPConfig_setProperty(config, "identity.orgId", "a52xin");
-IoTPConfig_setProperty(config, "identity.typeId", "rasberry-pi");
-IoTPConfig_setProperty(config, "identity.deviceId", "00ef08c05");
-IoTPConfig_setProperty(config, "token.deviceId", "Ab$76s)asj8_s5");
+IoTPConfig_setProperty(config, "identity.appId", "rasberry-pi");
+IoTPConfig_setProperty(config, "auth.key", "a-a52xin-Ab$76s)asj");
+IoTPConfig_setProperty(config, "auth.token", "Ab$76s)asj8_s5");
 IoTPApplication_create(&application, config);
 ```
 
