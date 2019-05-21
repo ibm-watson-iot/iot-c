@@ -62,7 +62,8 @@ make get-test-summary
 
 To build the documentation:
 ```
-make html
+make builddocs
+make buildreference
 ```
 
 ## Documentation

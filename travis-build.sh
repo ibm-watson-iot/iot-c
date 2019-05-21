@@ -15,7 +15,8 @@ make tests
 echo "Make samples"
 make samples
 
-echo "Make doxygen docs"
-make html
+echo "Make mkdocs and doxygen docs"
+make builddocs
+make buildreference
 
 
