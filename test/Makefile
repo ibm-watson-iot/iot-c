@@ -65,7 +65,7 @@ endif
 CC ?= gcc
 RM = rm -f
 
-INCDIRS = -I $(srcdir) -I $(pahomqttdir)/src
+INCDIRS = -I $(srcdir)/wiotp/sdk -I $(pahomqttdir)/src
 LIBDIRS = -L $(parent_dir)/build -L $(pahomqttdir)/build/output
 CFLAGS = $(INCDIRS) -fPIC -Wall -Wextra -g
 LDFLAGS_DEV = ${START_GROUP} -lpthread -lssl -lcrypto ${END_GROUP} $(LIBDIRS) -lpaho-mqtt3as -liotp-as-device
