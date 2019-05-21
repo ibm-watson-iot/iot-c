@@ -5,25 +5,25 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="None">
   
-  <link rel="shortcut icon" href="img/favicon.ico">
-  <title>C SDK - IBM Watson IoT Platform</title>
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Return and Error Codes - IBM Watson IoT Platform</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
-  <link rel="stylesheet" href="css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
   <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
   
   <script>
     // Current page data
-    var mkdocs_page_name = "C SDK";
-    var mkdocs_page_input_path = "index.md";
+    var mkdocs_page_name = "Return and Error Codes";
+    var mkdocs_page_input_path = "errors.md";
     var mkdocs_page_url = null;
   </script>
   
-  <script src="js/jquery-2.1.1.min.js" defer></script>
-  <script src="js/modernizr-2.8.3.min.js" defer></script>
+  <script src="../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../js/modernizr-2.8.3.min.js" defer></script>
   <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
   <script>hljs.initHighlightingOnLoad();</script> 
   
@@ -36,9 +36,9 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
       <div class="wy-side-nav-search">
-        <a href="." class="icon icon-home"> IBM Watson IoT Platform</a>
+        <a href=".." class="icon icon-home"> IBM Watson IoT Platform</a>
         <div role="search">
-  <form id ="rtd-search-form" class="wy-form" action="./search.html" method="get">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
   </form>
 </div>
@@ -48,27 +48,9 @@
 	<ul class="current">
 	  
           
-            <li class="toctree-l1 current">
+            <li class="toctree-l1">
 		
-    <a class="current" href=".">C SDK</a>
-    <ul class="subnav">
-            
-    <li class="toctree-l2"><a href="#c-sdk">C SDK</a></li>
-    
-        <ul>
-        
-            <li><a class="toctree-l3" href="#dependencies">Dependencies</a></li>
-        
-            <li><a class="toctree-l3" href="#build">Build</a></li>
-        
-            <li><a class="toctree-l3" href="#installation">Installation</a></li>
-        
-            <li><a class="toctree-l3" href="#uninstall">Uninstall</a></li>
-        
-        </ul>
-    
-
-    </ul>
+    <a class="" href="..">C SDK</a>
 	    </li>
           
             <li class="toctree-l1">
@@ -77,15 +59,29 @@
     <ul class="subnav">
                 <li class="">
                     
-    <a class="" href="concepts/">Basic Concepts</a>
+    <a class="" href="../concepts/">Basic Concepts</a>
                 </li>
                 <li class="">
                     
-    <a class="" href="mqtt/">MQTT Primer</a>
+    <a class="" href="../mqtt/">MQTT Primer</a>
                 </li>
-                <li class="">
+                <li class=" current">
                     
-    <a class="" href="errors/">Return and Error Codes</a>
+    <a class="current" href="./">Return and Error Codes</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l3"><a href="#return-and-error-codes">Return and Error Codes</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l4" href="#codes-returned-by-c-sdk">Codes returned by C SDK</a></li>
+        
+            <li><a class="toctree-l4" href="#codes-returned-by-dependent-paho-mqtt-c-library">Codes returned by dependent Paho MQTT C library</a></li>
+        
+        </ul>
+    
+
+    </ul>
                 </li>
     </ul>
 	    </li>
@@ -96,11 +92,11 @@
     <ul class="subnav">
                 <li class="">
                     
-    <a class="" href="device/">Device SDK</a>
+    <a class="" href="../device/">Device SDK</a>
                 </li>
                 <li class="">
                     
-    <a class="" href="device/config/">Configuration</a>
+    <a class="" href="../device/config/">Configuration</a>
                 </li>
     </ul>
 	    </li>
@@ -111,11 +107,11 @@
     <ul class="subnav">
                 <li class="">
                     
-    <a class="" href="gateway/">Gateway SDK</a>
+    <a class="" href="../gateway/">Gateway SDK</a>
                 </li>
                 <li class="">
                     
-    <a class="" href="gateway/config/">Configuration</a>
+    <a class="" href="../gateway/config/">Configuration</a>
                 </li>
     </ul>
 	    </li>
@@ -126,11 +122,11 @@
     <ul class="subnav">
                 <li class="">
                     
-    <a class="" href="application/">Application SDK</a>
+    <a class="" href="../application/">Application SDK</a>
                 </li>
                 <li class="">
                     
-    <a class="" href="application/config/">Configuration</a>
+    <a class="" href="../application/config/">Configuration</a>
                 </li>
     </ul>
 	    </li>
@@ -141,11 +137,11 @@
     <ul class="subnav">
                 <li class="">
                     
-    <a class="" href="managedDevice/">Managed Device SDK</a>
+    <a class="" href="../managedDevice/">Managed Device SDK</a>
                 </li>
                 <li class="">
                     
-    <a class="" href="managedDevice/config/">Configuration</a>
+    <a class="" href="../managedDevice/config/">Configuration</a>
                 </li>
     </ul>
 	    </li>
@@ -156,11 +152,11 @@
     <ul class="subnav">
                 <li class="">
                     
-    <a class="" href="managedGateway/">Managed Gateway SDK</a>
+    <a class="" href="../managedGateway/">Managed Gateway SDK</a>
                 </li>
                 <li class="">
                     
-    <a class="" href="managedGateway/config/">Configuration</a>
+    <a class="" href="../managedGateway/config/">Configuration</a>
                 </li>
     </ul>
 	    </li>
@@ -175,7 +171,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href=".">IBM Watson IoT Platform</a>
+        <a href="..">IBM Watson IoT Platform</a>
       </nav>
 
       
@@ -183,11 +179,15 @@
         <div class="rst-content">
           <div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
-    <li><a href=".">Docs</a> &raquo;</li>
+    <li><a href="..">Docs</a> &raquo;</li>
     
       
+        
+          <li>Common Topics &raquo;</li>
+        
+      
     
-    <li>C SDK</li>
+    <li>Return and Error Codes</li>
     <li class="wy-breadcrumbs-aside">
       
     </li>
@@ -197,43 +197,18 @@
           <div role="main">
             <div class="section">
               
-                <h1 id="c-sdk">C SDK<a class="headerlink" href="#c-sdk" title="Permanent link"></a></h1>
-<p><a href="https://travis-ci.org/ibm-watson-iot/iot-c"><img alt="Build Status" src="https://travis-ci.org/ibm-watson-iot/iot-c.svg?branch=master" /></a>
-<a href="https://github.com/ibm-watson-iot/iot-c/issues"><img alt="GitHub issues" src="https://img.shields.io/github/issues/ibm-watson-iot/iot-c.svg" /></a>
-<a href="https://github.com/ibm-watson-iot/iot-c/blob/master/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/ibm-watson-iot/iot-c.svg" /></a></p>
-<p>Documentation for this SDK can be broken down into 4 distinct areas:</p>
+                <h1 id="return-and-error-codes">Return and Error Codes<a class="headerlink" href="#return-and-error-codes" title="Permanent link"></a></h1>
+<p>The return and error codes in the SDK are common across all libraries (device, gateway, application, managed device, and managed gateway). Below is a summary of the returned return and error codes used in this SDK.</p>
+<h2 id="codes-returned-by-c-sdk">Codes returned by C SDK<a class="headerlink" href="#codes-returned-by-c-sdk" title="Permanent link"></a></h2>
 <ul>
-<li>Common Topics<ul>
-<li><a href="concepts/">Basic Concepts</a></li>
-<li><a href="mqtt/">MQTT Primer</a></li>
-<li><a href="errors/">Error and Return codes</a></li>
+<li>Retrun code 0 indicates a success reponse</li>
+<li>Return code 1 indicates a generic failure response</li>
+<li>Return codes 1001 to 1500 indicates failure response</li>
 </ul>
-</li>
-<li><a href="application/">Application Development</a></li>
-<li><a href="device/">Device Development</a></li>
-<li><a href="gateway/">Gateway Development</a></li>
-</ul>
-<h2 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Permanent link"></a></h2>
+<h2 id="codes-returned-by-dependent-paho-mqtt-c-library">Codes returned by dependent Paho MQTT C library<a class="headerlink" href="#codes-returned-by-dependent-paho-mqtt-c-library" title="Permanent link"></a></h2>
 <ul>
-<li><a href="https://eclipse.org/paho/clients/c/">Paho MQTT C Client</a></li>
-<li>OpenSSL development package</li>
+<li>Return code less than 0 are specific error codes returned by Paho MQTT C Client library. For details, refer to <a href="https://www.eclipse.org/paho/files/mqttdoc/MQTTAsync/html/_m_q_t_t_reason_codes_8h.html">MQTTReasonCodes</a>{target="_blank"} in Paho Asynchronous MQTT C Client Library.</li>
 </ul>
-<h2 id="build">Build<a class="headerlink" href="#build" title="Permanent link"></a></h2>
-<p>Build using GNU Makefile included in this repository</p>
-<pre><code># make
-</code></pre>
-
-<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link"></a></h2>
-<p>Install the built libraries using make command</p>
-<pre><code># sudo make -C paho.mqtt.c install
-# sudo make install
-</code></pre>
-
-<h2 id="uninstall">Uninstall<a class="headerlink" href="#uninstall" title="Permanent link"></a></h2>
-<p>Uninstalling the libraries using make command</p>
-<pre><code># sudo make uninstall
-# sudo make -C paho.mqtt.c uninstall
-</code></pre>
               
             </div>
           </div>
@@ -241,8 +216,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="concepts/" class="btn btn-neutral float-right" title="Basic Concepts">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../device/" class="btn btn-neutral float-right" title="Device SDK">Next <span class="icon icon-circle-arrow-right"></span></a>
       
+      
+        <a href="../mqtt/" class="btn btn-neutral" title="MQTT Primer"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -268,19 +245,16 @@
     <span class="rst-current-version" data-toggle="rst-current-version">
       
       
+        <span><a href="../mqtt/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
-        <span style="margin-left: 15px"><a href="concepts/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+        <span style="margin-left: 15px"><a href="../device/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>
-    <script>var base_url = '.';</script>
-    <script src="js/theme.js" defer></script>
-      <script src="search/main.js" defer></script>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
 
 </body>
 </html>
-
-<!--
-MkDocs version : 1.0.4
-Build Date UTC : 2019-05-21 03:55:10
--->

@@ -11,22 +11,6 @@ supports asynchronous mode of operations:
 * libiotp-as-managedDevice.so - for managed device
 * libiotp-as-managedGateway.so - for managed gateway
 
-## Supported Features
-
-| Feature  | Supported?    | Description  |
-|----------|:-------------:|:-------------|
-| Device connectivity | Yes | Connect device(s) to Watson IoT Platform |
-| Gateway connectivity | Yes | Connect gateway(s) to Watson IoT Platform |
-| Application connectivity | Yes | Connect application(s) to Watson IoT Platform |
-| MQTT Protocol | Yes | Enable clients to send events and receive commands using MQTT v3.1.1 or MQTT v5 |
-| HTTP Protocol | No | In a future release |
-| TLS Support | Yes | Enable clients to connect securely using TLS |
-| Client side certificate based authentication | Yes | Connect clients using client certificate |
-| Auto reconnect | Yes | Auto reconnect |
-| Device Management | Yes | Connect device as managed device to Watson IoT Platform |
-| Gateway Management | Yes | Connect gateway device as managed gateway to Watson IoT Platform |
-| Device Management Extension | No | Device Management Extensions. In a future release |
-| Logging and Tracing | Yes | Supports custom log handler to receive client log and trace messages |
 
 ## Dependencies
 
@@ -34,8 +18,8 @@ supports asynchronous mode of operations:
 * OpenSSL development package
 * Doxygen to build the documentation
 
-Note:
 
+\Note
 IoTP C client SDK build process automatically downloads and builds the dependent Paho MQTT C library.
 Ensure OpenSSL development package and Doxygen (if building documentation) is installed.
 
@@ -90,5 +74,22 @@ The client libraries are built and tested on the following platforms:
 - Linux
 - OSX
 
+
+## Supported Features
+
+| Feature  | Supported?    | Description  |
+|----------|:-------------:|:-------------|
+| Device connectivity | Yes | Connect device(s) to Watson IoT Platform |
+| Gateway connectivity | Yes | Connect gateway(s) to Watson IoT Platform |
+| Application connectivity | Yes | Connect application(s) to Watson IoT Platform |
+| MQTT Protocol | Yes | Enable clients to send events and receive commands using MQTT v3.1.1 or MQTT v5 |
+| HTTP Protocol | No | In a future release |
+| TLS Support | Yes | Enable clients to connect securely using TLS |
+| Client side certificate based authentication | Yes | Connect clients using client certificate |
+| Auto reconnect | Yes | Auto reconnect |
+| Device Management | Yes | Connect device as managed device to Watson IoT Platform |
+| Gateway Management | Yes | Connect gateway device as managed gateway to Watson IoT Platform |
+| Device Management Extension | No | Device Management Extensions. In a future release |
+| Logging and Tracing | Yes | Supports custom log handler to receive client log and trace messages |
 
 

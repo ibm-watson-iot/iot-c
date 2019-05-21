@@ -16,7 +16,7 @@
 #*******************************************************************************/
 
 SHELL = /bin/sh
-.PHONY: clean, mkdir, install, uninstall, html
+.PHONY: clean, mkdir, install, uninstall, buildreference, builddocs
 
 TOP ?= $(shell pwd)
 
@@ -53,7 +53,7 @@ DOXYGEN_COMMAND = doxygen
 # Project directories
 #
 ifndef srcdir
-  srcdir = src
+  srcdir = src/wiotp/sdk
 endif
 
 ifndef blddir
@@ -349,22 +349,25 @@ uninstall:
 	$(LDCONFIG) $(DESTDIR)$(libdir)
 
 REGEX_DOXYGEN := \
-    's;@PROJECT_SOURCE_DIR@/src/\?;;' \
-    's;@PROJECT_SOURCE_DIR@;..;' \
+    's;@PROJECT_SOURCE_DIR@/src/wiotp/sdk/\?;;' \
+    's;@PROJECT_SOURCE_DIR@;../../..;' \
     's;@CMAKE_CURRENT_BINARY_DIR@;../build;'
 
 SED_DOXYGEN := $(foreach sed_exp,$(REGEX_DOXYGEN),-e $(sed_exp))
 define process_doxygen
-	cd $(srcdir); sed $(SED_DOXYGEN) ../doc/doxygen/$(1).in > ../doc/$(1)
-	cd $(srcdir); $(DOXYGEN_COMMAND) ../doc/$(1)
+	cd $(srcdir); sed $(SED_DOXYGEN) $(TOP)/doc/doxygen/$(1).in > $(TOP)/doc/$(1)
+	cd $(srcdir); $(DOXYGEN_COMMAND) $(TOP)/doc/$(1)
 endef
 
-html:
+buildreference:
 	-mkdir -p $(docdir)/IoTP_C_Client_Docs
-	-mkdir -p $(docs)
+	-mkdir -p $(docs)/reference
 	$(call process_doxygen,DoxyfileIOTPClientAPI)
-	-cp doc/doxygen/navtree.css docs/.
-	-cp doc/doxygen/menu.js docs/.
+	-cp $(docdir)/doxygen/navtree.css $(docs)/reference/.
+
+builddocs:
+	-mkdir -p $(docs)
+	cd mkdocs; mkdocs build -d ../docs
 
 # Print a variable
 print-%  : ; @echo $* = $($*)

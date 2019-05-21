@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Gateway SDK - IBM Watson IoT Platform</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Gateway SDK";
+    var mkdocs_page_input_path = "gateway/index.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> IBM Watson IoT Platform</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="..">C SDK</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Common Topics</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../concepts/">Basic Concepts</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../mqtt/">MQTT Primer</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../errors/">Return and Error Codes</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Device Development</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../device/">Device SDK</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../device/config/">Configuration</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Gateway Development</span>
+    <ul class="subnav">
+                <li class=" current">
+                    
+    <a class="current" href="./">Gateway SDK</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l3"><a href="#gateway-sdk">Gateway SDK</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l4" href="#configuration">Configuration</a></li>
+        
+            <li><a class="toctree-l4" href="#connectivity">Connectivity</a></li>
+        
+            <li><a class="toctree-l4" href="#publishing-events">Publishing Events</a></li>
+        
+            <li><a class="toctree-l4" href="#handling-commands">Handling Commands</a></li>
+        
+            <li><a class="toctree-l4" href="#auto-regiter-devices">Auto-regiter Devices</a></li>
+        
+            <li><a class="toctree-l4" href="#sample">Sample</a></li>
+        
+            <li><a class="toctree-l4" href="#gateway-sdk-reference">Gateway SDK Reference</a></li>
+        
+        </ul>
+    
+
+    </ul>
+                </li>
+                <li class="">
+                    
+    <a class="" href="config/">Configuration</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Application Development</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../application/">Application SDK</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../application/config/">Configuration</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Managed Device Development</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../managedDevice/">Managed Device SDK</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../managedDevice/config/">Configuration</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Managed Gateway Development</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../managedGateway/">Managed Gateway SDK</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../managedGateway/config/">Configuration</a>
+                </li>
+    </ul>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">IBM Watson IoT Platform</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>Gateway Development &raquo;</li>
+        
+      
+    
+    <li>Gateway SDK</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="gateway-sdk">Gateway SDK<a class="headerlink" href="#gateway-sdk" title="Permanent link"></a></h1>
+<p>The gateway SDK includes a shared library that exposes functions to build gateway client that 
+runs on IoT gateways.</p>
+<ul>
+<li><code>libwiotp-sdk-gateway-as.so</code></li>
+</ul>
+<p>Support APIs for creating a gateway client and managing connection to the Watson IoT Platform service:</p>
+<ul>
+<li><code>IoTPConfig_create()</code></li>
+<li><code>IoTPGateway_create()</code></li>
+<li><code>IoTPGateway_connect()</code></li>
+</ul>
+<p>Support APIs for working with events and commands: </p>
+<ul>
+<li><code>IoTPGateway_sendEvent()</code></li>
+<li><code>IoTPGateway_setEventCallback()</code></li>
+<li><code>IoTPGateway_setCommandsHandler()</code></li>
+<li><code>IoTPGateway_subscribeToCommands()</code></li>
+<li><code>IoTPGateway_sendDeviceEvent()</code></li>
+<li><code>IoTPGateway_subscribeToDeviceCommands()</code></li>
+</ul>
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link"></a></h2>
+<p>Gateway configuration is passed to the client via the <code>IoTPConfig</code> object when you create 
+the client instance or handle <code>IoTPGateway</code>. See the <a href="config/">configure gateways</a> section 
+for full details of all available options to configure a client instance.</p>
+<p>The config handle <code>IoTPConfig</code> created using <code>IoTPConfig_create()</code> must be cleared 
+using <code>IoTPConfig_clear()</code> to avoid handle leak. The gateway handle <code>IoTPGateway</code> created 
+using <code>IoTPGateway_create()</code> must be destroyed using <code>IoTPGateway_destory()</code> to avoid handle leak.</p>
+<h2 id="connectivity">Connectivity<a class="headerlink" href="#connectivity" title="Permanent link"></a></h2>
+<p><code>IoTPGateway_connect()</code> &amp; <code>IoTPGateway_disconnect()</code> APIs are used to manage the MQTT connection
+to the Watson IoT Platform service that allows the gateway to handle commands and publish events.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Though there are no restrictions on how many gateway clients, a gateway application can create, it is a good practice to not to create many client handles and connect to the Watson IoT platform service, to limit the number of connections to the Watson IoT Platforrm service, and reduce load on the Watson IoT Platform service.</p>
+</div>
+<h2 id="publishing-events">Publishing Events<a class="headerlink" href="#publishing-events" title="Permanent link"></a></h2>
+<p>Gateway can provide various types of information, for example data collected by the gateway
+(telemetry data), current status of the gateway etc. Events are the mechanism by which gateways 
+publish data to the Watson IoT Platform service. The gateway controls the content of the event 
+and assigns a name for each event that it sends.</p>
+<p>When an event is received by Watson IoT Platform service, the credentials of the received event identify
+the sending gateway, which means that a gateway cannot impersonate another gateway.</p>
+<p>Events can be published with any of the three quality of service (QoS) levels that are defined
+by the MQTT protocol. By default, events are published with a QoS level of 0.</p>
+<p>Optionally you can send MQTT V5 properties. For details on MQTT V5 properties, refer to 
+<a href="https://www.eclipse.org/paho/files/mqttdoc/MQTTAsync/html/struct_m_q_t_t_properties.html" target="_blank">MQTTProperty</a>.</p>
+<p>To send events, you can use <code>IoTPGateway_sendEvent()</code> API. This API takes upto 6 arguments:</p>
+<ul>
+<li><code>gateway</code> Client handle</li>
+<li><code>event</code> Name of this event</li>
+<li><code>msgFormat</code> Format of the data for this event</li>
+<li><code>data</code> Data for this event</li>
+<li><code>qos</code> MQTT quality of service level to use (<code>0</code>, <code>1</code>, or <code>2</code>)</li>
+<li><code>props</code> MQTT V5 properties</li>
+</ul>
+<p>You can set a callback to get send event response using <code>IoTPGateway_setEventCallback()</code> API. 
+The callback returns success and failure responses. The success respose has different implications depending
+on the level of qos used to publish the event:</p>
+<ul>
+<li>qos 0: the client has asynchronously begun to send the event</li>
+<li>qos 1 and 2: the client has confirmation of delivery from the platform</li>
+</ul>
+<h2 id="handling-commands">Handling Commands<a class="headerlink" href="#handling-commands" title="Permanent link"></a></h2>
+<p>A gateway client can susbcribe to a command using <code>IoTPGateway_subscribeToCommands()</code> API.
+To process specific commands, you need to register a command callback method, using <code>IoTPGateway_setCommandHandler()</code>.</p>
+<p>The messages are returned as an instance of the <code>Command</code> class with the following attributes:</p>
+<ul>
+<li><code>type</code>: Client type ID</li>
+<li><code>id</code>: Client ID</li>
+<li><code>command</code>: Identifies the command</li>
+<li><code>format</code>: Format that the command was encoded in, for example <code>json</code></li>
+<li><code>payload</code>: Data for the payload</li>
+<li><code>payloadlen</code>: Size of the payload buffer</li>
+</ul>
+<h2 id="auto-regiter-devices">Auto-regiter Devices<a class="headerlink" href="#auto-regiter-devices" title="Permanent link"></a></h2>
+<p>Gatway devices can automatically register devices that are connected to them. When a gateway publishes a message or subscribes to a topic on behalf of an unregistered device, that device is automatically registered.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Registration requests from gateway devices are throttled to 128 pending requests at a time. Attempting to connect many new devices might cause a delay in the registration of the devices through the gateway.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If the gateway fails to register a device automatically, it does not attempt to register that device again for a short time. Any messages or subscriptions from the failed device are dropped during that time.</p>
+</div>
+<h3 id="publish-device-event-through-gateway">Publish Device Event Through Gateway<a class="headerlink" href="#publish-device-event-through-gateway" title="Permanent link"></a></h3>
+<p>To send device events, you can use <code>IoTPGateway_sendDeviceEvent()</code> API. This API takes upto 8 arguments:</p>
+<ul>
+<li><code>gateway</code> Client handle</li>
+<li><code>typeId</code> Device type Id</li>
+<li><code>deviceId</code> Device Id</li>
+<li><code>event</code> Name of this event</li>
+<li><code>msgFormat</code> Format of the data for this event</li>
+<li><code>data</code> Data for this event</li>
+<li><code>qos</code> MQTT quality of service level to use (<code>0</code>, <code>1</code>, or <code>2</code>)</li>
+<li><code>props</code> MQTT V5 properties</li>
+</ul>
+<h3 id="handling-device-commands">Handling Device Commands<a class="headerlink" href="#handling-device-commands" title="Permanent link"></a></h3>
+<p>A gateway client can susbcribe to device command connecting thrpugh the gateway client
+using <code>IoTPGateway_subscribeToDeviceCommands()</code> API. This API takes 5 arguments:</p>
+<ul>
+<li><code>gateway</code> Client handle</li>
+<li><code>typeId</code> Device type Id</li>
+<li><code>deviceId</code> Device Id</li>
+<li><code>event</code> Name of this event</li>
+<li><code>msgFormat</code> Format of the data for this event</li>
+</ul>
+<p>To process specific commands, you need to register a command callback method, using <code>IoTPGateway_setCommandHandler()</code>.</p>
+<p>The messages are returned as an instance of the <code>Command</code> class with the following attributes:</p>
+<ul>
+<li><code>type</code>: Client type ID</li>
+<li><code>id</code>: Client ID</li>
+<li><code>command</code>: Identifies the command</li>
+<li><code>format</code>: Format that the command was encoded in, for example <code>json</code></li>
+<li><code>payload</code>: Data for the payload</li>
+<li><code>payloadlen</code>: Size of the payload buffer</li>
+</ul>
+<h2 id="sample">Sample<a class="headerlink" href="#sample" title="Permanent link"></a></h2>
+<h3 id="sample-configuration-file">Sample configuration file<a class="headerlink" href="#sample-configuration-file" title="Permanent link"></a></h3>
+<pre><code class="yaml">identity:
+    orgId: org1id
+    typeId: testGatewayType
+    gatewayId: testGateway
+auth:
+    token: testPassword
+</code></pre>
+
+<h3 id="sample-code">Sample code<a class="headerlink" href="#sample-code" title="Permanent link"></a></h3>
+<pre><code>#include &lt;iotp_gateway.h&gt;
+
+/* Gateway command callback function. Gateway developers can customize this function for their use case. */
+void  gatewayCommandCallback (char* type, char* id, char* commandName, char *format, void* payload, size_t payloadSize)
+{
+    fprintf(stdout, &quot;Received gateway command. Type=%s ID=%s CommandName=%s Format=%s Len=%d\n&quot;,
+        type?type:&quot;&quot;, id?id:&quot;&quot;, commandName?commandName:&quot;&quot;, format?format:&quot;&quot;, (int)payloadSize);
+    /* Gateway developers - add your custom code to process gateway command and its payload */
+}
+
+/* Gateway event callback function. */
+void eventCallback(char *id, int rc, void *success void *failure) {
+    fprintf(&quot;Event callback response for client: %s\n&quot;, id?id:&quot;&quot;);
+    if ( rc == IOTPRC_SUCCESS ) {
+        MQTTAsync_successData5 *response = success;
+        if ( response ) {
+            fprintf(&quot;Success response code:%d response_message:%s\n&quot;, response-&gt;code, response-&gt;message);
+        } else {
+            fprintf(&quot;Event is published.\n&quot;);
+        }
+    } else {
+        MQTTAsync_failureData5 *response = failure;
+        if ( response ) {
+            fprintf(&quot;Failure response code:%d response_message:%s\n&quot;, response-&gt;code, response-&gt;message);
+        } else {
+            fprintf(&quot;Failed to publish event.\n&quot;);
+        }
+    }
+}
+
+int main(int argc, char *argv[])
+{
+    int rc = IOTPRC_SUCCESS;
+    IoTPConfig *config = NULL;
+    IoTPGateway *gateway = NULL;
+
+    /*******************************************************/
+    /****** Create gateway client instance and connect ******/
+    /*******************************************************/
+    /* Create IoTPConfig object, use it to create IoTPGateway handle, and connect client */
+    rc = IoTPConfig_create(&amp;config, &quot;configFile.yaml&quot;);
+    if ( rc == IOTPRC_SUCCESS ) {
+        rc = IoTPGateway_create(&amp;gateway, config);
+        if ( rc == IOTPRC_SUCCESS ) {
+            rc = IoTPGateway_connect(gateway);
+        }
+    }
+    if ( rc != IOTPRC_SUCCESS ) {
+        fprintf(stderr, &quot;Failed to create gateway client: rc=%d reason=%s\n&quot;, rc, IOTPRC_toString(rc));
+        exit(1);
+    }
+
+
+    /******************************/
+    /****** Process commands ******/
+    /******************************/
+    /* Set gateway command callback for all commands and subscribe to all commands in any supported format */
+    rc = IoTPGateway_setCommandsHandler(gateway, gatewayCommandCallback);
+    if ( rc == IOTPRC_SUCCESS ) 
+        rc = IoTPGateway_subscribeToCommands(gateway, &quot;+&quot;, &quot;+&quot;);
+    }
+    if ( rc != IOTPRC_SUCCESS ) {
+        fprintf(stderr, &quot;Failed to set command handler or subscribe to commands. rc=%d reason:%s\n&quot;, rc, IOTPRC_toString(rc));
+    }
+
+
+    /****************************/
+    /****** Publish events ******/
+    /****************************/
+    /* Set event callback to process event response and send event */
+    rc = IoTPGateway_setEventCallback(gateway, eventCallback);
+    if ( rc != IOTPRC_SUCCESS ) {
+        fprintf(stderr, &quot;Failed to set event callback. rc=%d reason:%s\n&quot;, rc, IOTPRC_toString(rc));
+    }
+    /* Set MQTT V5 properties */
+    MQTTProperties *properties = (MQTTProperties *)malloc(sizeof MQTTProperties);
+    MQTTProperty   property;
+    property.identifier = MQTTPROPERTY_CODE_USER_PROPERTY;
+    property.value.data.data = &quot;user defined property&quot;;
+    property.value.data.len = (int)strlen(property.value.data.data);
+    property.value.value.data = &quot;user defined property value&quot;;
+    property.value.value.len = (int)strlen(property.value.value.data);
+    rc = MQTTProperties_add(properties, &amp;property);
+    if ( rc != IOTPRC_SUCCESS ) {
+        fprintf(&quot;Failed to set MQTT V5 properties. rc=%d reason:%s\n&quot;, rc, IOTPRC_toString(rc));
+    }
+    /* Set event data */
+    char *data = &quot;{\&quot;d\&quot; : {\&quot;SensorID\&quot;: \&quot;Test\&quot;, \&quot;Reading\&quot;: 7 }}&quot;;
+    rc = IoTPGateway_sendEvent(gateway,&quot;status&quot;, data, &quot;json&quot;, QoS0, properties);
+    if ( rc != IOTPRC_SUCCESS ) {
+        fprintf(&quot;Failed to publish event. rc=%d\n&quot;, rc);
+    } else {
+        /* wait for sometime to publish data */
+        sleep(5);
+    }
+
+
+    /***********************************/
+    /****** Publish device events ******/
+    /***********************************/
+    /* Set device event data */
+    char *devdata = &quot;{\&quot;d\&quot; : {\&quot;TempID\&quot;: \&quot;Test\&quot;, \&quot;Reading\&quot;: 7 }}&quot;;
+    rc = IoTPGateway_sendDeviceEvent(gateway, &quot;testDeviceType&quot;, &quot;testDevice&quot;, &quot;deviceStatus&quot;, data, &quot;json&quot;, QoS0, NULL);
+    if ( rc != IOTPRC_SUCCESS ) {
+        fprintf(&quot;Failed to publish device event. rc=%d\n&quot;, rc);
+    } else {
+        /* wait for sometime to publish data */
+        sleep(5);
+    }
+
+
+    /*********************/
+    /****** Cleanup ******/
+    /*********************/
+    /* Disconnect, and cleaup */
+    rc = IoTPGateway_disconnect(gateway);
+    if ( rc == IOTPRC_SUCCESS ) {
+        /* Destroy client */
+        rc = IoTPGateway_destroy(gateway);
+        if ( rc == IOTPRC_SUCCESS ) {
+            /* Clear configuration */
+            rc = IoTPConfig_clear(config);
+        }
+    }
+    if ( rc != IOTPRC_SUCCESS ) {
+        fprintf(&quot;Failed to disconnect or clean handles. rc=%d reason:%s\n&quot;, rc, IOTPRC_toString(rc));
+    }
+
+    return rc;
+}
+
+</code></pre>
+
+<h2 id="gateway-sdk-reference">Gateway SDK Reference<a class="headerlink" href="#gateway-sdk-reference" title="Permanent link"></a></h2>
+<p>For gateway configuration APIs, refer to <a href="https://https://ibm-watson-iot.github.io/iot-c/reference/iotp_config_8h.html" target="_iotsdkrefernce">Configuration Refernce Documentation</a></p>
+<p>For gateway client APIs, refer to <a href="https://https://ibm-watson-iot.github.io/iot-c/reference/iotp_gateway_8h.html" target="_iotsdkrefernce">Gateway Client Refernce Documentation</a></p>
+<p>For Return and error codes by C Client SDK, refer to <a href="https://https://ibm-watson-iot.github.io/iot-c/reference/iotp_rc_8h.html" target="_iotsdkrefernce">Return Code Refernce Documentation</a></p>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="config/" class="btn btn-neutral float-right" title="Configuration">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../device/config/" class="btn btn-neutral" title="Configuration"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../device/config/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="config/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+
+</body>
+</html>
