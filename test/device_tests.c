@@ -137,37 +137,83 @@ int testDevice_connect(void)
 }
 
 /* Tests: Send event - error cases */
-int testDevice_sendEvent(void)
+int testDevice_sendEventVal(void)
 {
     int rc = IOTPRC_SUCCESS;
     IoTPConfig *config = NULL;
     IoTPDevice *device = NULL;
 
     rc = IoTPDevice_sendEvent(device, NULL, NULL, NULL, 0, NULL);
-    TEST_ASSERT("IoTPDevice_sendEvent: Invalid device object", rc == IOTPRC_ARGS_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
+    TEST_ASSERT("IoTPDevice_sendEventVal: Invalid device object", rc == IOTPRC_ARGS_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
     rc = IoTPConfig_create(&config, "./wiotpdev.yaml");
-    TEST_ASSERT("IoTPDevice_sendEvent: Create config object", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+    TEST_ASSERT("IoTPDevice_sendEventVal: Create config object", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
     rc = IoTPDevice_create(&device, config);
-    TEST_ASSERT("IoTPDevice_sendEvent: Create device with valid config", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+    TEST_ASSERT("IoTPDevice_sendEventVal: Create device with valid config", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
     rc = IoTPDevice_sendEvent(device, NULL, NULL, NULL, 0, NULL);
-    TEST_ASSERT("IoTPDevice_sendEvent: Invalid event ID", rc == IOTPRC_ARGS_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
+    TEST_ASSERT("IoTPDevice_sendEventVal: Invalid event ID", rc == IOTPRC_ARGS_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
     rc = IoTPDevice_sendEvent(device, "status", NULL, NULL, 0, NULL);
-    TEST_ASSERT("IoTPDevice_sendEvent: Invalid format", rc == IOTPRC_ARGS_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
+    TEST_ASSERT("IoTPDevice_sendEventVal: Invalid format", rc == IOTPRC_ARGS_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
     rc = IoTPDevice_sendEvent(device, "status", NULL, "json", -1, NULL);
-    TEST_ASSERT("IoTPDevice_sendEvent: Invalid QoS=-1", rc == IOTPRC_ARGS_INVALID_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_INVALID_VALUE, rc);
+    TEST_ASSERT("IoTPDevice_sendEventVal: Invalid QoS=-1", rc == IOTPRC_ARGS_INVALID_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_INVALID_VALUE, rc);
     rc = IoTPDevice_sendEvent(device, "status", NULL, "json", 3, NULL);
-    TEST_ASSERT("IoTPDevice_sendEvent: Invalid QoS=3", rc == IOTPRC_ARGS_INVALID_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_INVALID_VALUE, rc);
+    TEST_ASSERT("IoTPDevice_sendEventVal: Invalid QoS=3", rc == IOTPRC_ARGS_INVALID_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_INVALID_VALUE, rc);
     rc = IoTPDevice_destroy(device);
-    TEST_ASSERT("IoTPDevice_sendEvent: Destroy a valid device handle", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+    TEST_ASSERT("IoTPDevice_sendEventVal: Destroy a valid device handle", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
     rc = IoTPConfig_clear(config);
-    TEST_ASSERT("IoTPDevice_sendEvent: Clear Config", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+    TEST_ASSERT("IoTPDevice_sendEventVal: Clear Config", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
     return rc;
 }
 
-int main(int argc, char** argv)
+
+/* Tests: Device send event */
+int testDevice_sendEvent(void)
+{
+    int rc = IOTPRC_SUCCESS;
+    IoTPConfig *config = NULL;
+    IoTPDevice *device = NULL;
+    char *data = "{\"d\" : {\"SensorID\": \"Test\", \"Reading\": 7 }}";
+    int i = 0;
+
+    rc = IoTPConfig_create(&config, "./wiotpdev.yaml");
+    TEST_ASSERT("test_sendEvent: Create config object", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+
+    /* get org id, and device token from environment */
+    rc = IoTPConfig_readEnvironment(config);
+    TEST_ASSERT("test_sendEvent: Read config from environment", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+
+    rc = IoTPDevice_create(&device, config);
+    TEST_ASSERT("test_sendEvent: Create device with valid config", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+
+    rc = IoTPDevice_setMQTTLogHandler(device, &MQTTTraceCallback);
+    TEST_ASSERT("test_sendEvent: Set MQTT Trace handler", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+
+    rc = IoTPDevice_connect(device);
+    TEST_ASSERT("test_sendEvent: Connect client", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+    sleep(2);
+
+    for (i=0; i<2; i++) {
+        rc = IoTPDevice_sendEvent(device,"status","json", data , QoS0, NULL);
+        TEST_ASSERT("test_sendEvent: Send event QoS0", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+        sleep(5);
+    }
+
+    rc = IoTPDevice_disconnect(device);
+    TEST_ASSERT("test_sendEvent: Disconnect client", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+
+    sleep(2);
+
+    rc = IoTPDevice_destroy(device);
+    TEST_ASSERT("test_sendEvent: Destroy a valid device handle", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+
+    rc = IoTPConfig_clear(config);
+    TEST_ASSERT("test_sendEvent: Clear Config", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+    return rc;
+}
+
+int main(void)
 {
     int rc = 0;
-    int (*tests[])() = {testDevice_create, testDevice_setMQTTLogHandler, testDevice_sendEvent, testDevice_connect};
+    int (*tests[])() = {testDevice_create, testDevice_setMQTTLogHandler, testDevice_sendEventVal, testDevice_connect, testDevice_sendEvent};
     int i;
     int count = (int)TEST_COUNT(tests);
 

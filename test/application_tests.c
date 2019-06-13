@@ -137,37 +137,90 @@ int testApplication_connect(void)
 }
 
 /* Tests: Send event - error cases */
-int testApplication_sendEvent(void)
+int testApplication_sendEventVal(void)
 {
     int rc = IOTPRC_SUCCESS;
     IoTPConfig *config = NULL;
     IoTPApplication *application = NULL;
 
     rc = IoTPApplication_sendEvent(application, NULL, NULL, NULL, NULL, NULL, 0, NULL);
-    TEST_ASSERT("IoTPApplication_sendEvent: Invalid application object", rc == IOTPRC_ARGS_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
+    TEST_ASSERT("IoTPApplication_sendEventVal Invalid application object", rc == IOTPRC_ARGS_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
     rc = IoTPConfig_create(&config, "./wiotpapp.yaml");
-    TEST_ASSERT("IoTPApplication_sendEvent: Create config object", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+    TEST_ASSERT("IoTPApplication_sendEventVal Create config object", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
     rc = IoTPApplication_create(&application, config);
-    TEST_ASSERT("IoTPApplication_sendEvent: Create application with valid config", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+    TEST_ASSERT("IoTPApplication_sendEventVal Create application with valid config", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
     rc = IoTPApplication_sendEvent(application, "type1", "id1", NULL, NULL, NULL, 0, NULL);
-    TEST_ASSERT("IoTPApplication_sendEvent: Invalid event ID", rc == IOTPRC_ARGS_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
+    TEST_ASSERT("IoTPApplication_sendEventVal Invalid event ID", rc == IOTPRC_ARGS_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
     rc = IoTPApplication_sendEvent(application, "type1", "id1", "status", NULL, NULL, 0, NULL);
-    TEST_ASSERT("IoTPApplication_sendEvent: Invalid format", rc == IOTPRC_ARGS_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
+    TEST_ASSERT("IoTPApplication_sendEventVal Invalid format", rc == IOTPRC_ARGS_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
     rc = IoTPApplication_sendEvent(application, "type1", "id1", "status", NULL, "json", -1, NULL);
-    TEST_ASSERT("IoTPApplication_sendEvent: Invalid QoS=-1", rc == IOTPRC_ARGS_INVALID_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
+    TEST_ASSERT("IoTPApplication_sendEventVal Invalid QoS=-1", rc == IOTPRC_ARGS_INVALID_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
     rc = IoTPApplication_sendEvent(application, "type1", "id1", "status", NULL, "json", 3, NULL);
-    TEST_ASSERT("IoTPApplication_sendEvent: Invalid QoS=3", rc == IOTPRC_ARGS_INVALID_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
+    TEST_ASSERT("IoTPApplication_sendEventVal Invalid QoS=3", rc == IOTPRC_ARGS_INVALID_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
     rc = IoTPApplication_destroy(application);
-    TEST_ASSERT("IoTPApplication_sendEvent: Destroy a valid application handle", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+    TEST_ASSERT("IoTPApplication_sendEventVal Destroy a valid application handle", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
     rc = IoTPConfig_clear(config);
-    TEST_ASSERT("IoTPApplication_sendEvent: Clear Config", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+    TEST_ASSERT("IoTPApplication_sendEventVal Clear Config", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
     return rc;
 }
 
-int main(int argc, char** argv)
+
+/* Tests: Application send event */
+int testApplication_sendEvent(void)
+{
+    int rc = IOTPRC_SUCCESS;
+    IoTPConfig *config = NULL;
+    IoTPApplication *application = NULL;
+    char *data = "{\"d\" : {\"SensorID\": \"Test\", \"Reading\": 7 }}";
+    int i = 0;
+
+    rc = IoTPConfig_create(&config, "./wiotpapp.yaml");
+    TEST_ASSERT("testApplication_sendEvent: Create config object", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+
+    /* get org id, and application token from environment */
+    rc = IoTPConfig_readEnvironment(config);
+    TEST_ASSERT("testApplication_sendEvent: Read config from environment", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+
+    rc = IoTPApplication_create(&application, config);
+    TEST_ASSERT("testApplication_sendEvent: Create application with valid config", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+
+    rc = IoTPApplication_setMQTTLogHandler(application, &MQTTTraceCallback);
+    TEST_ASSERT("testApplication_sendEvent: Set MQTT Trace handler", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+
+    rc = IoTPApplication_connect(application);
+    TEST_ASSERT("testApplication_sendEvent: Connect client", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+    sleep(2);
+
+    for (i=0; i<2; i++) {
+        rc = IoTPApplication_sendEvent(application,"iotc_test_gwType1", "iotc_test_gw1", "status","json", data , QoS0, NULL);
+        TEST_ASSERT("testApplication_sendEvent: Send event QoS0", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+        sleep(5);
+    }
+
+    for (i=0; i<2; i++) {
+        rc = IoTPApplication_sendEvent(application,"iotc_test_devType1", "iotc_test_dev1", "status","json", data , QoS0, NULL);
+        TEST_ASSERT("testApplication_sendEvent: Send event QoS0", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+        sleep(5);
+    }
+
+    rc = IoTPApplication_disconnect(application);
+    TEST_ASSERT("testApplication_sendEvent: Disconnect client", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+
+    sleep(2);
+
+    rc = IoTPApplication_destroy(application);
+    TEST_ASSERT("testApplication_sendEvent: Destroy a valid application handle", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+
+    rc = IoTPConfig_clear(config);
+    TEST_ASSERT("testApplication_sendEvent: Clear Config", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+    return rc;
+}
+
+
+int main(void)
 {
     int rc = 0;
-    int (*tests[])() = {testApplication_create, testApplication_setMQTTLogHandler, testApplication_sendEvent, testApplication_connect};
+    int (*tests[])() = {testApplication_create, testApplication_setMQTTLogHandler, testApplication_sendEventVal, testApplication_connect, testApplication_sendEvent};
     int i;
     int count = (int)TEST_COUNT(tests);
 

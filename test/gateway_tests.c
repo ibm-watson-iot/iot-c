@@ -137,37 +137,89 @@ int testGateway_connect(void)
 }
 
 /* Tests: Send event - error cases */
-int testGateway_sendEvent(void)
+int testGateway_sendEventVal(void)
 {
     int rc = IOTPRC_SUCCESS;
     IoTPConfig *config = NULL;
     IoTPGateway *gateway = NULL;
 
     rc = IoTPGateway_sendEvent(gateway, NULL, NULL, NULL, 0, NULL);
-    TEST_ASSERT("IoTPGateway_sendEvent: Invalid gateway object", rc == IOTPRC_ARGS_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
+    TEST_ASSERT("IoTPGateway_sendEventVal: Invalid gateway object", rc == IOTPRC_ARGS_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
     rc = IoTPConfig_create(&config, "./wiotpgw.yaml");
-    TEST_ASSERT("IoTPGateway_sendEvent: Create config object", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+    TEST_ASSERT("IoTPGateway_sendEventVal: Create config object", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
     rc = IoTPGateway_create(&gateway, config);
-    TEST_ASSERT("IoTPGateway_sendEvent: Create gateway with valid config", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+    TEST_ASSERT("IoTPGateway_sendEventVal: Create gateway with valid config", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
     rc = IoTPGateway_sendEvent(gateway, NULL, NULL, NULL, 0, NULL);
-    TEST_ASSERT("IoTPGateway_sendEvent: Invalid event ID", rc == IOTPRC_ARGS_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
+    TEST_ASSERT("IoTPGateway_sendEventVal: Invalid event ID", rc == IOTPRC_ARGS_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
     rc = IoTPGateway_sendEvent(gateway, "status", NULL, NULL, 0, NULL);
-    TEST_ASSERT("IoTPGateway_sendEvent: Invalid format", rc == IOTPRC_ARGS_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
+    TEST_ASSERT("IoTPGateway_sendEventVal: Invalid format", rc == IOTPRC_ARGS_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
     rc = IoTPGateway_sendEvent(gateway, "status", NULL, "json", -1, NULL);
-    TEST_ASSERT("IoTPGateway_sendEvent: Invalid QoS=-1", rc == IOTPRC_ARGS_INVALID_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_INVALID_VALUE, rc);
+    TEST_ASSERT("IoTPGateway_sendEventVal: Invalid QoS=-1", rc == IOTPRC_ARGS_INVALID_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_INVALID_VALUE, rc);
     rc = IoTPGateway_sendEvent(gateway, "status", NULL, "json", 3, NULL);
-    TEST_ASSERT("IoTPGateway_sendEvent: Invalid QoS=3", rc == IOTPRC_ARGS_INVALID_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_INVALID_VALUE, rc);
+    TEST_ASSERT("IoTPGateway_sendEventVal: Invalid QoS=3", rc == IOTPRC_ARGS_INVALID_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_INVALID_VALUE, rc);
     rc = IoTPGateway_destroy(gateway);
-    TEST_ASSERT("IoTPGateway_sendEvent: Destroy a valid gateway handle", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+    TEST_ASSERT("IoTPGateway_sendEventVal: Destroy a valid gateway handle", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
     rc = IoTPConfig_clear(config);
-    TEST_ASSERT("IoTPGateway_sendEvent: Clear Config", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+    TEST_ASSERT("IoTPGateway_sendEventVal: Clear Config", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
     return rc;
 }
 
-int main(int argc, char** argv)
+
+/* Tests: Gateway send event */
+int testGateway_sendEvent(void)
+{
+    int rc = IOTPRC_SUCCESS;
+    IoTPConfig *config = NULL;
+    IoTPGateway *gateway = NULL;
+    char *data = "{\"d\" : {\"SensorID\": \"Test\", \"Reading\": 7 }}";
+    int i = 0;
+
+    rc = IoTPConfig_create(&config, "./wiotpgw.yaml");
+    TEST_ASSERT("testGateway_sendEvent: Create config object", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+
+    /* get org id, and gateway token from environment */
+    rc = IoTPConfig_readEnvironment(config);
+    TEST_ASSERT("testGateway_sendEvent: Read config from environment", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+
+    rc = IoTPGateway_create(&gateway, config);
+    TEST_ASSERT("testGateway_sendEvent: Create gateway with valid config", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+
+    rc = IoTPGateway_setMQTTLogHandler(gateway, &MQTTTraceCallback);
+    TEST_ASSERT("testGateway_sendEvent: Set MQTT Trace handler", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+
+    rc = IoTPGateway_connect(gateway);
+    TEST_ASSERT("testGateway_sendEvent: Connect client", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+    sleep(2);
+
+    for (i=0; i<2; i++) {
+        rc = IoTPGateway_sendEvent(gateway,"status","json", data , QoS0, NULL);
+        TEST_ASSERT("testGateway_sendEvent: Send event QoS0", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+        sleep(5);
+    }
+
+    for (i=0; i<2; i++) {
+        rc = IoTPGateway_sendDeviceEvent(gateway,"iotc_test_devType1", "iotc_test_dev1", "status","json", data , QoS0, NULL);
+        TEST_ASSERT("testGateway_sendEvent: Send event QoS0", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+        sleep(5);
+    }
+
+    rc = IoTPGateway_disconnect(gateway);
+    TEST_ASSERT("testGateway_sendEvent: Disconnect client", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+
+    sleep(2);
+
+    rc = IoTPGateway_destroy(gateway);
+    TEST_ASSERT("testGateway_sendEvent: Destroy a valid gateway handle", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+
+    rc = IoTPConfig_clear(config);
+    TEST_ASSERT("testGateway_sendEvent: Clear Config", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+    return rc;
+}
+
+int main(void)
 {
     int rc = 0;
-    int (*tests[])() = {testGateway_create, testGateway_setMQTTLogHandler, testGateway_sendEvent, testGateway_connect};
+    int (*tests[])() = {testGateway_create, testGateway_setMQTTLogHandler, testGateway_sendEventVal, testGateway_connect, testGateway_sendEvent};
     int i;
     int count = (int)TEST_COUNT(tests);
 

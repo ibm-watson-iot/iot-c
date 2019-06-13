@@ -38,6 +38,10 @@ ifndef blddir
     blddir = $(parent_dir)/build/test
 endif
 
+ifndef coverdir
+    coverdir = $(parent_dir)/build/coverage
+endif
+
 ifndef testdir
     testdir = $(parent_dir)/test
 endif
@@ -62,18 +66,33 @@ ifndef logfile
   logfile = $(parent_dir)/temp/cunit_tests.log
 endif
 
-CC ?= gcc
+ifndef coverlogfile
+  coverlogfile = $(parent_dir)/temp/cunit_tests_coverage.log
+endif
+
+CC = gcc
 RM = rm -f
 
 INCDIRS = -I $(srcdir)/wiotp/sdk -I $(pahomqttdir)/src
 LIBDIRS = -L $(parent_dir)/build -L $(pahomqttdir)/build/output
 CFLAGS = $(INCDIRS) -fPIC -Wall -Wextra -g
+
+CFLAGS_COVERAGE = $(CFLAGS) -fprofile-arcs -ftest-coverage
+LIBDIRS_COVERAGE = -L $(coverdir) -L $(pahomqttdir)/build/output
+
 LDFLAGS_DEV = ${START_GROUP} -lpthread -lssl -lcrypto ${END_GROUP} $(LIBDIRS) -lpaho-mqtt3as -liotp-as-device
 LDFLAGS_GWY = ${START_GROUP} -lpthread -lssl -lcrypto ${END_GROUP} $(LIBDIRS) -lpaho-mqtt3as -liotp-as-gateway
 LDFLAGS_APP = ${START_GROUP} -lpthread -lssl -lcrypto ${END_GROUP} $(LIBDIRS) -lpaho-mqtt3as -liotp-as-application
-LDFLAGS_MANAGED_DEV = ${START_GROUP} -lpthread -lssl -lcrypto ${END_GROUP} $(LIBDIRS) -lpaho-mqtt3as -liotp-as-managedDevice
-LDFLAGS_MANAGED_GWY = ${START_GROUP} -lpthread -lssl -lcrypto ${END_GROUP} $(LIBDIRS) -lpaho-mqtt3as -liotp-as-managedGateway
+LDFLAGS_MDV = ${START_GROUP} -lpthread -lssl -lcrypto ${END_GROUP} $(LIBDIRS) -lpaho-mqtt3as -liotp-as-managedDevice
+LDFLAGS_MGW = ${START_GROUP} -lpthread -lssl -lcrypto ${END_GROUP} $(LIBDIRS) -lpaho-mqtt3as -liotp-as-managedGateway
 
+LDFLAGS_DEV_COVERAGE = ${START_GROUP} -lpthread -lssl -lcrypto ${END_GROUP} $(LIBDIRS_COVERAGE) -lpaho-mqtt3as -liotp-as-device
+LDFLAGS_GWY_COVERAGE = ${START_GROUP} -lpthread -lssl -lcrypto ${END_GROUP} $(LIBDIRS_COVERAGE) -lpaho-mqtt3as -liotp-as-gateway
+LDFLAGS_APP_COVERAGE = ${START_GROUP} -lpthread -lssl -lcrypto ${END_GROUP} $(LIBDIRS_COVERAGE) -lpaho-mqtt3as -liotp-as-application
+LDFLAGS_MDV_COVERAGE = ${START_GROUP} -lpthread -lssl -lcrypto ${END_GROUP} $(LIBDIRS_COVERAGE) -lpaho-mqtt3as -liotp-as-managedDevice
+LDFLAGS_MGW_COVERAGE = ${START_GROUP} -lpthread -lssl -lcrypto ${END_GROUP} $(LIBDIRS_COVERAGE) -lpaho-mqtt3as -liotp-as-managedGateway
+
+# Defines to run unit tests and tests for code coverage
 ifeq ($(OSTYPE),Linux)
 
 START_GROUP = -Wl,--start-group
@@ -96,108 +115,117 @@ EXTRA_LIB = -ldl
 FLAGS_EXES += -L /usr/local/opt/openssl/lib
 
 define run-test
-    @echo
-    @echo ==== Run Test: $(notdir $(1))
-    @echo ==== Time: $(shell date +%T)
-    @echo ---- Use MQTT Paho asynchronous library
-    DYLD_LIBRARY_PATH=$(paholibdir):$(iotplibdir) $(blddir)/$(1) | tee -a $(logfile)
+	@echo
+	@echo ==== Run Test: $(notdir $(1))
+	@echo ==== Time: $(shell date +%T)
+	@echo ---- Use MQTT Paho asynchronous library
+	DYLD_LIBRARY_PATH=$(paholibdir):$(iotplibdir) $(blddir)/$(1) | tee -a $(logfile)
 endef
 
 endif
 
 TEST_UTIL_SRCS = test_utils.c
 
-VAL_CONFIG_TEST_SRCS = validateConfig_tests.c
-VAL_CONFIG_TEST = $(patsubst %.c, $(blddir)/%, $(VAL_CONFIG_TEST_SRCS))
+CONFIG_TEST_SRCS = config_tests.c
+CONFIG_TEST = $(patsubst %.c, $(blddir)/%, $(CONFIG_TEST_SRCS))
+CONFIG_TEST_COVERAGE = $(patsubst %.c, $(coverdir)/%_coverage, $(CONFIG_TEST_SRCS))
 
-VAL_DEVICE_TEST_SRCS = validateDevice_tests.c
-VAL_DEVICE_TEST = $(patsubst %.c, $(blddir)/%, $(VAL_DEVICE_TEST_SRCS))
+DEVICE_TEST_SRCS = device_tests.c
+DEVICE_TEST = $(patsubst %.c, $(blddir)/%, $(DEVICE_TEST_SRCS))
+DEVICE_TEST_COVERAGE = $(patsubst %.c, $(coverdir)/%_coverage, $(DEVICE_TEST_SRCS))
 
-SYS_DEVICE_TEST_SRCS = systemDevice_tests.c
-SYS_DEVICE_TEST = $(patsubst %.c, $(blddir)/%, $(SYS_DEVICE_TEST_SRCS))
+GATEWAY_TEST_SRCS = gateway_tests.c
+GATEWAY_TEST = $(patsubst %.c, $(blddir)/%, $(GATEWAY_TEST_SRCS))
+GATEWAY_TEST_COVERAGE = $(patsubst %.c, $(coverdir)/%_coverage, $(GATEWAY_TEST_SRCS))
 
-VAL_GATEWAY_TEST_SRCS = validateGateway_tests.c
-VAL_GATEWAY_TEST = $(patsubst %.c, $(blddir)/%, $(VAL_GATEWAY_TEST_SRCS))
+APPLICATION_TEST_SRCS = application_tests.c
+APPLICATION_TEST = $(patsubst %.c, $(blddir)/%, $(APPLICATION_TEST_SRCS))
+APPLICATION_TEST_COVERAGE = $(patsubst %.c, $(coverdir)/%_coverage, $(APPLICATION_TEST_SRCS))
 
-SYS_GATEWAY_TEST_SRCS = systemGateway_tests.c
-SYS_GATEWAY_TEST = $(patsubst %.c, $(blddir)/%, $(SYS_GATEWAY_TEST_SRCS))
+MANAGED_DEVICE_TEST_SRCS = managedDevice_tests.c
+MANAGED_DEVICE_TEST = $(patsubst %.c, $(blddir)/%, $(MANAGED_DEVICE_TEST_SRCS))
+MANAGED_DEVICE_TEST_COVERAGE = $(patsubst %.c, $(coverdir)/%_coverage, $(MANAGED_DEVICE_TEST_SRCS))
 
-VAL_APPLICATION_TEST_SRCS = validateApplication_tests.c
-VAL_APPLICATION_TEST = $(patsubst %.c, $(blddir)/%, $(VAL_APPLICATION_TEST_SRCS))
-
-SYS_APPLICATION_TEST_SRCS = systemApplication_tests.c
-SYS_APPLICATION_TEST = $(patsubst %.c, $(blddir)/%, $(SYS_APPLICATION_TEST_SRCS))
-
-VAL_MANAGED_DEVICE_TEST_SRCS = validateManagedDevice_tests.c
-VAL_MANAGED_DEVICE_TEST = $(patsubst %.c, $(blddir)/%, $(VAL_MANAGED_DEVICE_TEST_SRCS))
-
-SYS_MANAGED_DEVICE_TEST_SRCS = systemManagedDevice_tests.c
-SYS_MANAGED_DEVICE_TEST = $(patsubst %.c, $(blddir)/%, $(SYS_MANAGED_DEVICE_TEST_SRCS))
-
-VAL_MANAGED_GATEWAY_TEST_SRCS = validateManagedGateway_tests.c
-VAL_MANAGED_GATEWAY_TEST = $(patsubst %.c, $(blddir)/%, $(VAL_MANAGED_GATEWAY_TEST_SRCS))
-
-SYS_MANAGED_GATEWAY_TEST_SRCS = systemManagedGateway_tests.c
-SYS_MANAGED_GATEWAY_TEST = $(patsubst %.c, $(blddir)/%, $(SYS_MANAGED_GATEWAY_TEST_SRCS))
+MANAGED_GATEWAY_TEST_SRCS = managedGateway_tests.c
+MANAGED_GATEWAY_TEST = $(patsubst %.c, $(blddir)/%, $(MANAGED_GATEWAY_TEST_SRCS))
+MANAGED_GATEWAY_TEST_COVERAGE = $(patsubst %.c, $(coverdir)/%_coverage, $(MANAGED_GATEWAY_TEST_SRCS))
 
 
-TEST_RUN = validateConfig_tests validateDevice_tests systemDevice_tests validateGateway_tests systemGateway_tests validateApplication_tests systemApplication_tests validateManagedDevice_tests systemManagedDevice_tests validateManagedGateway_tests systemManagedGateway_tests
+TEST_RUN = config_tests device_tests gateway_tests application_tests managedDevice_tests managedGateway_tests
 
 
-.PHONY: all clean $(VAT_CONFIG_TEST) $(VAL_DEVICE_TEST) $(SYS_DEVICE_TEST) $(VAL_GATEWAY_TEST) $(SYS_GATEWAY_TEST) $(VAL_APPLICATION_TEST) $(SYS_APPLICATION_TEST) $(VAL_MANAGED_DEVICE_TEST) $(SYS_MANAGED_DEVICE_TEST) $(VAL_MANAGED_GATEWAY_TEST) $(SYS_MANAGED_GATEWAY_TEST)
+.PHONY: all clean
 
 all: mkdir build
 
 mkdir:
 	@mkdir -p $(blddir)
+	@mkdir -p $(coverdir)
+	@mkdir -p $(coverdir)/bin
+	@mkdir -p $(coverdir)/src
+	@cp -r $(srcdir)/wiotp $(coverdir)/src/.
+	@cp $(testdir)/* $(coverdir)/.
+ 
 
-build: $(VAL_CONFIG_TEST) $(VAL_DEVICE_TEST) $(SYS_DEVICE_TEST) $(VAL_GATEWAY_TEST) $(SYS_GATEWAY_TEST) $(VAL_APPLICATION_TEST) $(SYS_APPLICATION_TEST) $(VAL_MANAGED_DEVICE_TEST) $(SYS_MANAGED_DEVICE_TEST) $(VAL_MANAGED_GATEWAY_TEST) $(SYS_MANAGED_GATEWAY_TEST)
+build: $(CONFIG_TEST) $(DEVICE_TEST) $(GATEWAY_TEST) $(APPLICATION_TEST) $(MANAGED_DEVICE_TEST) $(MANAGED_GATEWAY_TEST)
 
-run_tests: init-log $(TEST_RUN)
+$(CONFIG_TEST): $(TEST_UTIL_SRCS) $(CONFIG_TEST_SRCS)
+	$(CC) $(CFLAGS) -o $@ $(TEST_UTIL_SRCS) $(CONFIG_TEST_SRCS) $(INCDIRS) $(LDFLAGS_DEV) $(FLAGS_EXES)
+
+$(DEVICE_TEST): $(TEST_UTIL_SRCS) $(DEVICE_TEST_SRCS)
+	$(CC) $(CFLAGS) -o $@ $(TEST_UTIL_SRCS) $(DEVICE_TEST_SRCS) $(INCDIRS) $(LDFLAGS_DEV) $(FLAGS_EXES)
+
+$(GATEWAY_TEST): $(TEST_UTIL_SRCS) $(GATEWAY_TEST_SRCS)
+	$(CC) $(CFLAGS) -o $@ $(TEST_UTIL_SRCS) $(GATEWAY_TEST_SRCS) $(INCDIRS) $(LDFLAGS_GWY) $(FLAGS_EXES)
+
+$(APPLICATION_TEST): $(TEST_UTIL_SRCS) $(APPLICATION_TEST_SRCS)
+	$(CC) $(CFLAGS) -o $@ $(TEST_UTIL_SRCS) $(APPLICATION_TEST_SRCS) $(INCDIRS) $(LDFLAGS_APP) $(FLAGS_EXES)
+
+$(MANAGED_DEVICE_TEST): $(TEST_UTIL_SRCS) $(MANAGED_DEVICE_TEST_SRCS)
+	$(CC) $(CFLAGS) -o $@ $(TEST_UTIL_SRCS) $(MANAGED_DEVICE_TEST_SRCS) $(INCDIRS) $(LDFLAGS_MDV) $(FLAGS_EXES)
+
+$(MANAGED_GATEWAY_TEST): $(TEST_UTIL_SRCS) $(MANAGED_GATEWAY_TEST_SRCS)
+	$(CC) $(CFLAGS) -o $@ $(TEST_UTIL_SRCS) $(MANAGED_GATEWAY_TEST_SRCS) $(INCDIRS) $(LDFLAGS_MGW) $(FLAGS_EXES)
 
 
-$(VAL_CONFIG_TEST): $(TEST_UTIL_SRCS) $(VAL_CONFIG_TEST_SRCS)
-	$(CC) -o $@ $(TEST_UTIL_SRCS) $(VAL_CONFIG_TEST_SRCS) $(INCDIRS) $(LDFLAGS_DEV) $(FLAGS_EXES)
+#
+# Coverage tests build rules:
+#
 
-$(VAL_DEVICE_TEST): $(TEST_UTIL_SRCS) $(VAL_DEVICE_TEST_SRCS)
-	$(CC) -o $@ $(TEST_UTIL_SRCS) $(VAL_DEVICE_TEST_SRCS) $(INCDIRS) $(LDFLAGS_DEV) $(FLAGS_EXES)
+config_tests_coverage: $(TEST_UTIL_SRCS) $(CONFIG_TEST_SRCS)
+	cd $(coverdir); $(CC) $(CFLAGS_COVERAGE) -o $(coverdir)/$@ $(TEST_UTIL_SRCS) $(CONFIG_TEST_SRCS) $(INCDIRS) $(LDFLAGS_DEV_COVERAGE) $(FLAGS_EXES)
 
-$(SYS_DEVICE_TEST): $(TEST_UTIL_SRCS) $(SYS_DEVICE_TEST_SRCS)
-	$(CC) -o $@ $(TEST_UTIL_SRCS) $(SYS_DEVICE_TEST_SRCS) $(INCDIRS) $(LDFLAGS_DEV) $(FLAGS_EXES)
+device_tests_coverage: $(TEST_UTIL_SRCS) $(DEVICE_TEST_SRCS)
+	cd $(coverdir); $(CC) $(CFLAGS_COVERAGE) -o $@ $(TEST_UTIL_SRCS) $(DEVICE_TEST_SRCS) $(INCDIRS) $(LDFLAGS_DEV_COVERAGE) $(FLAGS_EXES)
 
-$(VAL_GATEWAY_TEST): $(TEST_UTIL_SRCS) $(VAL_GATEWAY_TEST_SRCS)
-	$(CC) -o $@ $(TEST_UTIL_SRCS) $(VAL_GATEWAY_TEST_SRCS) $(INCDIRS) $(LDFLAGS_GWY) $(FLAGS_EXES)
+gateway_tests_coverage: $(TEST_UTIL_SRCS) $(GATEWAY_TEST_SRCS)
+	cd $(coverdir); $(CC) $(CFLAGS_COVERAGE) -o $@ $(TEST_UTIL_SRCS) $(GATEWAY_TEST_SRCS) $(INCDIRS) $(LDFLAGS_GWY_COVERAGE) $(FLAGS_EXES)
 
-$(SYS_GATEWAY_TEST): $(TEST_UTIL_SRCS) $(SYS_GATEWAY_TEST_SRCS)
-	$(CC) -o $@ $(TEST_UTIL_SRCS) $(SYS_GATEWAY_TEST_SRCS) $(INCDIRS) $(LDFLAGS_GWY) $(FLAGS_EXES)
+application_tests_coverage: $(TEST_UTIL_SRCS) $(APPLICATION_TEST_SRCS)
+	cd $(coverdir); $(CC) $(CFLAGS_COVERAGE) -o $@ $(TEST_UTIL_SRCS) $(APPLICATION_TEST_SRCS) $(INCDIRS) $(LDFLAGS_APP_COVERAGE) $(FLAGS_EXES)
 
-$(VAL_APPLICATION_TEST): $(TEST_UTIL_SRCS) $(VAL_APPLICATION_TEST_SRCS)
-	$(CC) -o $@ $(TEST_UTIL_SRCS) $(VAL_APPLICATION_TEST_SRCS) $(INCDIRS) $(LDFLAGS_APP) $(FLAGS_EXES)
+managedDevice_tests_coverage: $(TEST_UTIL_SRCS) $(MANAGED_DEVICE_TEST_SRCS)
+	cd $(coverdir); $(CC) $(CFLAGS_COVERAGE) -o $@ $(TEST_UTIL_SRCS) $(MANAGED_DEVICE_TEST_SRCS) $(INCDIRS) $(LDFLAGS_MDV_COVERAGE) $(FLAGS_EXES)
 
-$(SYS_APPLICATION_TEST): $(TEST_UTIL_SRCS) $(SYS_APPLICATION_TEST_SRCS)
-	$(CC) -o $@ $(TEST_UTIL_SRCS) $(SYS_APPLICATION_TEST_SRCS) $(INCDIRS) $(LDFLAGS_APP) $(FLAGS_EXES)
-
-$(VAL_MANAGED_DEVICE_TEST): $(TEST_UTIL_SRCS) $(VAL_MANAGED_DEVICE_TEST_SRCS)
-	$(CC) -o $@ $(TEST_UTIL_SRCS) $(VAL_MANAGED_DEVICE_TEST_SRCS) $(INCDIRS) $(LDFLAGS_MANAGED_DEV) $(FLAGS_EXES)
-
-$(SYS_MANAGED_DEVICE_TEST): $(TEST_UTIL_SRCS) $(SYS_MANAGED_DEVICE_TEST_SRCS)
-	$(CC) -o $@ $(TEST_UTIL_SRCS) $(SYS_MANAGED_DEVICE_TEST_SRCS) $(INCDIRS) $(LDFLAGS_MANAGED_DEV) $(FLAGS_EXES)
-
-$(VAL_MANAGED_GATEWAY_TEST): $(TEST_UTIL_SRCS) $(VAL_MANAGED_GATEWAY_TEST_SRCS)
-	$(CC) -o $@ $(TEST_UTIL_SRCS) $(VAL_MANAGED_GATEWAY_TEST_SRCS) $(INCDIRS) $(LDFLAGS_MANAGED_GWY) $(FLAGS_EXES)
-
-$(SYS_MANAGED_GATEWAY_TEST): $(TEST_UTIL_SRCS) $(SYS_MANAGED_GATEWAY_TEST_SRCS)
-	$(CC) -o $@ $(TEST_UTIL_SRCS) $(SYS_MANAGED_GATEWAY_TEST_SRCS) $(INCDIRS) $(LDFLAGS_MANAGED_GWY) $(FLAGS_EXES)
-
+managedGateway_tests_coverage: $(TEST_UTIL_SRCS) $(MANAGED_GATEWAY_TEST_SRCS)
+	cd $(coverdir); $(CC) $(CFLAGS_COVERAGE) -o $@ $(TEST_UTIL_SRCS) $(MANAGED_GATEWAY_TEST_SRCS) $(INCDIRS) $(LDFLAGS_MGW_COVERAGE) $(FLAGS_EXES)
 
 
 $(TEST_RUN):
 	$(call run-test,$@)
 
+
+run_tests: init-log $(TEST_RUN)
+
 init-log:
 	-@mkdir -p $(parent_dir)/temp
-	-$(RM) -f $(logfile)
+	-$(RM) $(logfile)
 	@touch $(logfile)
+
+init-log-coverage:
+	-@mkdir -p $(parent_dir)/temp
+	-$(RM) $(coverlogfile)
+	@touch $(coverlogfile)
 
 get-summary:
 	@echo

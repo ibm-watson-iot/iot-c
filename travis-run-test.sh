@@ -75,6 +75,17 @@ echo
 echo
 
 
+echo "===================================================================="
+echo "    Run code coverage"
+echo "===================================================================="
+( make coverage ) | tee -a test.log
+echo
+
+echo "===================================================================="
+echo "    Code coverage report"
+echo "===================================================================="
+cat ./build/coverage/reports/coverage.log
+
 #
 # Test Cleanup - delete device types and devices in the platform test organization
 #

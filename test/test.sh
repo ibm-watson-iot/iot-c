@@ -110,7 +110,53 @@ then
         done
         echo 
     
-        echo "Verify device are created"
+        echo "Verify devices are created"
+        curl -u "${WIOTP_AUTH_KEY}:${WIOTP_AUTH_TOKEN}" -k ${VERBOST} \
+             --url https://${ORG}.internetofthings.ibmcloud.com/api/v0002/bulk/devices?typeId=${devType}
+        echo
+        echo
+
+    done
+    echo
+
+
+    #
+    # Create Gateway Types
+    #
+    i=1
+    while [ $i -le $NODEVTYPE ]
+    do
+        devType="iotc_test_gwType${i}"
+        echo "Create gateway type: ${devType}"
+        PAYLOAD="{\"id\":\"${devType}\",\"classId\":\"Gateway\",\"deviceInfo\":{},\"metadata\":{}}"
+        # echo ${PAYLOAD}
+        curl -k -u "${WIOTP_AUTH_KEY}:${WIOTP_AUTH_TOKEN}" --request POST \
+             --url https://${ORG}.internetofthings.ibmcloud.com/api/v0002/device/types \
+             --header 'content-type: application/json' \
+             --data "${PAYLOAD}" ${VERBOSE}
+        echo
+        echo
+        ((i = i + 1 ))
+
+        #
+        # Create Devices
+        #
+        j=1
+        while [ $j -le $NODEV ]
+        do
+            dev="iotc_test_gw${j}"
+            echo "Create gateway: ${dev}"
+            PAYLOAD="{\"deviceId\":\"${dev}\",\"authToken\":\"${DEVTOKEN}\",\"deviceInfo\":{},\"location\":{},\"metadata\":{}}"
+            curl -k -u "${WIOTP_AUTH_KEY}:${WIOTP_AUTH_TOKEN}" --request POST \
+                --url https://${ORG}.internetofthings.ibmcloud.com/api/v0002/device/types/${devType}/devices \
+                --header 'content-type: application/json' \
+                --data "${PAYLOAD}"  ${VERBOSE}
+            echo
+            ((j = j + 1 ))
+        done
+        echo
+
+        echo "Verify gateways are created"
         curl -u "${WIOTP_AUTH_KEY}:${WIOTP_AUTH_TOKEN}" -k ${VERBOST} \
              --url https://${ORG}.internetofthings.ibmcloud.com/api/v0002/bulk/devices?typeId=${devType}
         echo
@@ -164,6 +210,47 @@ then
         # Delete Device Type
         #
         echo "Delete device type: ${devType}"
+        curl --request DELETE -u "${WIOTP_AUTH_KEY}:${WIOTP_AUTH_TOKEN}" -k \
+             --url https://${ORG}.internetofthings.ibmcloud.com/api/v0002/device/types/${devType}  ${VERBOSE}
+        echo
+        echo
+        ((i = i + 1 ))
+    done
+    echo
+
+    #
+    # Delete gateway types and devices
+    i=1
+    while [ $i -le $NODEVTYPE ]
+    do
+        devType="iotc_test_gwType${i}"
+
+        #
+        # Delete Gateways
+        #
+        j=1
+        while [ $j -le $NODEV ]
+        do
+            dev="iotc_test_gw${j}"
+            echo "Delete gateway: ${dev}"
+            curl --request DELETE -u "${WIOTP_AUTH_KEY}:${WIOTP_AUTH_TOKEN}" -k  ${VERBOSE} \
+                --url https://${ORG}.internetofthings.ibmcloud.com/api/v0002/device/types/${devType}/devices/${dev}
+
+            echo
+            ((j = j + 1 ))
+        done
+        echo
+
+        echo "Verify gateways are deleted"
+        curl -u "${WIOTP_AUTH_KEY}:${WIOTP_AUTH_TOKEN}" -k ${VERBOST} \
+             --url https://${ORG}.internetofthings.ibmcloud.com/api/v0002/bulk/devices?typeId=${devType}
+        echo
+        echo
+
+        #
+        # Delete gateway Types
+        #
+        echo "Delete gateway type: ${devType}"
         curl --request DELETE -u "${WIOTP_AUTH_KEY}:${WIOTP_AUTH_TOKEN}" -k \
              --url https://${ORG}.internetofthings.ibmcloud.com/api/v0002/device/types/${devType}  ${VERBOSE}
         echo

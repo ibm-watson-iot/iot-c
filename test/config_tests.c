@@ -37,7 +37,7 @@ int logCallbackActiveExp = 1;
 
 void logCallback (int level, char * message)
 {
-    fprintf(stdout, "%s\n", message? message:"NULL");
+    fprintf(stdout, "%d: %s\n", level, message? message:"NULL");
     fflush(stdout);
     logCallbackActive = 1;
 }
@@ -378,7 +378,7 @@ int testConfig_readEnvironment(void)
 
 
 
-int main(int argc, char** argv)
+int main(void)
 {
     int rc = 0;
     int (*tests[])() = {testConfig_setLogHandle, testConfig_create, testConfig_clear, testConfig_setProperty, testConfig_readConfigFile, testConfig_readEnvironment};

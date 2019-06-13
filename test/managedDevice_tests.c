@@ -137,37 +137,84 @@ int testManagedDevice_connect(void)
 }
 
 /* Tests: Send event - error cases */
-int testManagedDevice_sendEvent(void)
+int testManagedDevice_sendEventVal(void)
 {
     int rc = IOTPRC_SUCCESS;
     IoTPConfig *config = NULL;
     IoTPManagedDevice *managedDevice = NULL;
 
     rc = IoTPManagedDevice_sendEvent(managedDevice, NULL, NULL, NULL, 0, NULL);
-    TEST_ASSERT("IoTPManagedDevice_sendEvent: Invalid managedDevice object", rc == IOTPRC_ARGS_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
+    TEST_ASSERT("IoTPManagedDevice_sendEventVal Invalid managedDevice object", rc == IOTPRC_ARGS_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
     rc = IoTPConfig_create(&config, "./wiotpdev.yaml");
-    TEST_ASSERT("IoTPManagedDevice_sendEvent: Create config object", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+    TEST_ASSERT("IoTPManagedDevice_sendEventVal Create config object", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
     rc = IoTPManagedDevice_create(&managedDevice, config);
-    TEST_ASSERT("IoTPManagedDevice_sendEvent: Create managedDevice with valid config", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+    TEST_ASSERT("IoTPManagedDevice_sendEventVal Create managedDevice with valid config", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
     rc = IoTPManagedDevice_sendEvent(managedDevice, NULL, NULL, NULL, 0, NULL);
-    TEST_ASSERT("IoTPManagedDevice_sendEvent: Invalid event ID", rc == IOTPRC_ARGS_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
+    TEST_ASSERT("IoTPManagedDevice_sendEventVal Invalid event ID", rc == IOTPRC_ARGS_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
     rc = IoTPManagedDevice_sendEvent(managedDevice, "status", NULL, NULL, 0, NULL);
-    TEST_ASSERT("IoTPManagedDevice_sendEvent: Invalid format", rc == IOTPRC_ARGS_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
+    TEST_ASSERT("IoTPManagedDevice_sendEventVal Invalid format", rc == IOTPRC_ARGS_NULL_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_NULL_VALUE, rc);
     rc = IoTPManagedDevice_sendEvent(managedDevice, "status", NULL, "json", -1, NULL);
-    TEST_ASSERT("IoTPManagedDevice_sendEvent: Invalid QoS=-1", rc == IOTPRC_ARGS_INVALID_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_INVALID_VALUE, rc);
+    TEST_ASSERT("IoTPManagedDevice_sendEventVal Invalid QoS=-1", rc == IOTPRC_ARGS_INVALID_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_INVALID_VALUE, rc);
     rc = IoTPManagedDevice_sendEvent(managedDevice, "status", NULL, "json", 3, NULL);
-    TEST_ASSERT("IoTPManagedDevice_sendEvent: Invalid QoS=3", rc == IOTPRC_ARGS_INVALID_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_INVALID_VALUE, rc);
+    TEST_ASSERT("IoTPManagedDevice_sendEventVal Invalid QoS=3", rc == IOTPRC_ARGS_INVALID_VALUE, "rcE=%d rcA=%d", IOTPRC_ARGS_INVALID_VALUE, rc);
     rc = IoTPManagedDevice_destroy(managedDevice);
-    TEST_ASSERT("IoTPManagedDevice_sendEvent: Destroy a valid managedDevice handle", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+    TEST_ASSERT("IoTPManagedDevice_sendEventVal Destroy a valid managedDevice handle", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
     rc = IoTPConfig_clear(config);
-    TEST_ASSERT("IoTPManagedDevice_sendEvent: Clear Config", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+    TEST_ASSERT("IoTPManagedDevice_sendEventVal Clear Config", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
     return rc;
 }
 
-int main(int argc, char** argv)
+
+/* Tests: ManagedDevice send event */
+int testManagedDevice_sendEvent(void)
+{
+    int rc = IOTPRC_SUCCESS;
+    IoTPConfig *config = NULL;
+    IoTPManagedDevice *managedDevice = NULL;
+    char *data = "{\"d\" : {\"SensorID\": \"Test\", \"Reading\": 7 }}";
+    int i = 0;
+
+    rc = IoTPConfig_create(&config, "./wiotpdev.yaml");
+    TEST_ASSERT("testManagedDevice_sendEvent: Create config object", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+
+    /* get org id, and managedDevice token from environment */
+    rc = IoTPConfig_readEnvironment(config);
+    TEST_ASSERT("testManagedDevice_sendEvent: Read config from environment", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+
+    rc = IoTPManagedDevice_create(&managedDevice, config);
+    TEST_ASSERT("testManagedDevice_sendEvent: Create managedDevice with valid config", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+
+    rc = IoTPManagedDevice_setMQTTLogHandler(managedDevice, &MQTTTraceCallback);
+    TEST_ASSERT("testManagedDevice_sendEvent: Set MQTT Trace handler", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+
+    rc = IoTPManagedDevice_connect(managedDevice);
+    TEST_ASSERT("testManagedDevice_sendEvent: Connect client", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+    sleep(2);
+
+    for (i=0; i<2; i++) {
+        rc = IoTPManagedDevice_sendEvent(managedDevice,"status","json", data , QoS0, NULL);
+        TEST_ASSERT("testManagedDevice_sendEvent: Send event QoS0", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+        sleep(5);
+    }
+
+    rc = IoTPManagedDevice_disconnect(managedDevice);
+    TEST_ASSERT("testManagedDevice_sendEvent: Disconnect client", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+
+    sleep(2);
+
+    rc = IoTPManagedDevice_destroy(managedDevice);
+    TEST_ASSERT("testManagedDevice_sendEvent: Destroy a valid managedDevice handle", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+
+    rc = IoTPConfig_clear(config);
+    TEST_ASSERT("testManagedDevice_sendEvent: Clear Config", rc == IOTPRC_SUCCESS, "rcE=%d rcA=%d", IOTPRC_SUCCESS, rc);
+    return rc;
+}
+
+
+int main(void)
 {
     int rc = 0;
-    int (*tests[])() = {testManagedDevice_create, testManagedDevice_setMQTTLogHandler, testManagedDevice_sendEvent, testManagedDevice_connect};
+    int (*tests[])() = {testManagedDevice_create, testManagedDevice_setMQTTLogHandler, testManagedDevice_sendEventVal, testManagedDevice_connect, testManagedDevice_sendEvent};
     int i;
     int count = (int)TEST_COUNT(tests);
 
