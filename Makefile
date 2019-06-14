@@ -276,8 +276,7 @@ clean:
 
 mkdir:
 	-mkdir -p $(blddir)
-	-mkdir -p $(blddir)/test/coverage/bin
-	-mkdir -p $(blddir)/test/coverage/src
+	-mkdir -p $(blddir)/test
 	echo OSTYPE is $(OSTYPE)
 
 
@@ -302,7 +301,7 @@ iotp-managed-gateway-coverage-as-lib: paho-mqtt iotp-version $(MANAGED_GATEWAY_A
 
 iotp-coverage-as-libs: iotp-device-coverage-as-lib iotp-gateway-coverage-as-lib iotp-application-coverage-as-lib iotp-managed-device-coverage-as-lib iotp-managed-gateway-coverage-as-lib
 
-iotp-coverage-as-build: $(COVERAGE_AS_OBJS)
+iotp-coverage-as-build:
 
 
 # IoTP asynchrous client library with device, gateway, and application APIs
@@ -332,7 +331,7 @@ tests:
 run-tests:
 	make -C test run_tests
 
-coverage: $(COVERAGE_AS_OBJS)
+coverage:
 	@echo "GCOV_PREFIX = $(GCOV_PREFIX)"
 	@echo "GCOV_PREFIX_STRIP = $(GCOV_PREFIX_STRIP)"
 	make -C test init-log-coverage

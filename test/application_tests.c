@@ -56,7 +56,7 @@ void MQTTTraceCallback (int level, char * message)
 }
 
 
-/* Tests: Device object create and destroy */
+/* Tests: Application object create and destroy */
 int testApplication_create(void)
 {
     int rc = IOTPRC_SUCCESS;

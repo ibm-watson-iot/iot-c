@@ -440,8 +440,8 @@ void onConnect(void *context, MQTTAsync_successData5 *response)
     Thread_lock_mutex(iotp_client_mutex);
     client->connected = 1;
     clientId = client->clientId;
-    Thread_unlock_mutex(iotp_client_mutex);
     LOG(INFO, "Client is connected. clientId: %s", clientId? clientId:"NULL");
+    Thread_unlock_mutex(iotp_client_mutex);
 }
 
 /* Callback function to process connection failure */
@@ -454,12 +454,12 @@ void onConnectFailure(void* context, MQTTAsync_failureData5 *response)
     Thread_lock_mutex(iotp_client_mutex);
     client->connected = (0 - rc);
     clientId = client->clientId;
-    Thread_unlock_mutex(iotp_client_mutex);
-    if ( response ) {
+    if ( clientId != NULL && response != NULL && response->message != NULL ) {
         LOG(WARN, "Failed to connect. clientId: %s | rc: %d | respmsg: %s", clientId? clientId:"NULL", response->code, response->message?response->message:"");
     } else {
         LOG(WARN, "Failed to connect. clientId: %s | rc: | respmsg: ", clientId? clientId:"NULL");
     }
+    Thread_unlock_mutex(iotp_client_mutex);
 }
 
 /* Callback function to process successful disconnection */
@@ -470,8 +470,8 @@ void onDisconnect(void *context, MQTTAsync_successData5 *response)
     Thread_lock_mutex(iotp_client_mutex);
     client->connected = 0;
     clientId = client->clientId;
-    Thread_unlock_mutex(iotp_client_mutex);
     LOG(INFO, "Client is disconnected. clientId: %s", clientId? clientId:"NULL");
+    Thread_unlock_mutex(iotp_client_mutex);
 }
 
 /* Callback function to process disconnection failure */
@@ -484,12 +484,12 @@ void onDisconnectFailure(void* context, MQTTAsync_failureData5 *response)
     Thread_lock_mutex(iotp_client_mutex);
     client->connected = (0 - rc);
     clientId = client->clientId;
-    Thread_unlock_mutex(iotp_client_mutex);
-    if ( response ) {
+    if ( clientId != NULL && response != NULL && response->message != NULL ) {
         LOG(WARN, "Failed to disconnect. clientId: %s | rc: %d | respmsg: %s", clientId? clientId:"NULL", response->code, response->message?response->message:"");
     } else {
         LOG(WARN, "Failed to disconnect. clientId: %s | rc: | respmsg: ", clientId? clientId:"NULL");
     }
+    Thread_unlock_mutex(iotp_client_mutex);
 }
 
 /* Callback function to process successful send */
@@ -1718,9 +1718,12 @@ static IoTPDMActionHandler iotp_getActionCallback(IoTPClient *client, char *topi
 /* Update device location */
 static int iotp_updateLocationData(IoTPClient *client, char *reqID, int loc, int max, IoTP_json_parse_t *pobj)
 {
-    double latitude, longitude, elevation, accuracy;
-    char* measuredDateTime;
-    char* updatedDateTime;
+    double latitude = 0.0;
+    double longitude = 0.0;
+    double elevation = 0.0;
+    double accuracy = 0.0;
+    char * measuredDateTime = NULL;
+    char * updatedDateTime = NULL;
 
     LOG(DEBUG,"Initiate update location data. reqID: %s", reqID);
 
@@ -1746,7 +1749,7 @@ static int iotp_updateLocationData(IoTPClient *client, char *reqID, int loc, int
 
     char data[1024];
     snprintf(data, 1024, "{\"d\":{\"longitude\":%f,\"latitude\":%f,\"elevation\":%f,\"measuredDateTime\":\"%s\",\"updatedDateTime\":\"%s\",\"accuracy\":%f},\"reqId\":\"%s\"}",
-        latitude, longitude, elevation, measuredDateTime, updatedDateTime, accuracy, reqID);
+        latitude, longitude, elevation, measuredDateTime?measuredDateTime:"", updatedDateTime?updatedDateTime:"", accuracy, reqID);
 
     iotp_client_publish(client, DM_UPDATE_LOCATION, data, QoS1, NULL);
     return loc;

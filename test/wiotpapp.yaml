@@ -6,7 +6,7 @@ auth:
   key: xxxxxxxxxx
   token: xxxxxxxx
 options:
-  logLevel: INFO
+  logLevel: ERROR
   mqtt:
     port: 8883
 

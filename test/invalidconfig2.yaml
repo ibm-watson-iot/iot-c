@@ -6,5 +6,5 @@ identity:
 auth:
   token: testPassw0rd
 options:
-  logLevel: 3
+  logLevel: 1
 

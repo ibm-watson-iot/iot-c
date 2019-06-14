@@ -161,9 +161,7 @@ all: mkdir build
 mkdir:
 	@mkdir -p $(blddir)
 	@mkdir -p $(coverdir)
-	@mkdir -p $(coverdir)/bin
-	@mkdir -p $(coverdir)/src
-	@cp -r $(srcdir)/wiotp $(coverdir)/src/.
+	@cp $(srcdir)/wiotp/sdk/* $(coverdir)/.
 	@cp $(testdir)/* $(coverdir)/.
  
 

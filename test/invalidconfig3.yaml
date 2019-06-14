@@ -8,5 +8,5 @@ auth:
 options:
   mqtt:
     port: 8883
-  logLevel: 3
+  logLevel: 1
 
