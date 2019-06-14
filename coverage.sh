@@ -29,7 +29,7 @@ coverlogfile=$5
 # code coverage environment variables
 export GCOV_PREFIX=$coverdir
 export GCOV_PREFIX_STRIP=`echo $topdir | awk '{print gsub(/\//, "")}'`
-export COMPREPORT=YES
+export COMPREPORT=NO
 
 LIBLIST=(iotp-device-coverage-as-lib iotp-gateway-coverage-as-lib iotp-application-coverage-as-lib iotp-managed-device-coverage-as-lib iotp-managed-gateway-coverage-as-lib)
 
@@ -52,6 +52,15 @@ count=0
 slog="${coverdir}/reports/coverage.log"
 rm -f $slog
 touch $slog
+
+if [ "${COMPREPORT}" == "NO" ]; then
+    echo >> $slog
+    echo "Code coverage summary" >> $slog
+    echo >> $slog
+    printf "%s\t\t%s\t%s\t%s\n" "FileName" "Lines" "LinesExecuted" "BranchesExecuted" >> $slog
+    echo "-----------------------------------------------------------------" >> $slog
+fi
+
 
 (
 
@@ -102,11 +111,13 @@ do
     rm -f $llog
     touch $llog
 
-    echo >> $slog
-    echo "Test ${testname}_tests coverage summary" >> $slog
-    echo >> $slog
-    printf "%s\t\t%s\t%s\t%s\n" "FileName" "Lines" "LinesExecuted" "BranchesExecuted" >> $slog
-    echo "-----------------------------------------------------------------" >> $slog
+    if [ "${COMPREPORT}" == "YES" ]; then
+        echo >> $slog
+        echo "Code coverage summary: ${testname}" >> $slog
+        echo >> $slog
+        printf "%s\t\t%s\t%s\t%s\n" "FileName" "Lines" "LinesExecuted" "BranchesExecuted" >> $slog
+        echo "-----------------------------------------------------------------" >> $slog
+    fi
 
     echo "gcov -a -b -c -u ${coverdir}/${testname}_tests.c" 
     gcov -a -b -c -u ${coverdir}/${testname}_tests.c | tee -a ${tlog}
