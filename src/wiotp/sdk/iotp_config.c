@@ -219,7 +219,7 @@ IOTPRC IoTPConfig_setProperty(IoTPConfig *config, const char * name, const char 
                 rc = IOTPRC_PARAM_INVALID_VALUE;
             } else {
                 int len = strlen(argptr);
-                if ( len != 6 ) {
+                if ( strcmp(argptr, "quickstart") && len != 6 ) {
                     rc = IOTPRC_PARAM_INVALID_VALUE;
                 } else {
                     if ( config->identity->orgId ) 

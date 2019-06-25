@@ -95,15 +95,18 @@ MANAGED_DEV_SAMPLES = $(patsubst %.c, $(blddir)/%, $(MANAGED_DEV_SAMPLE_SRCS))
 MANAGED_GWY_SAMPLE_SRCS = $(wildcard managedGateway*.c)
 MANAGED_GWY_SAMPLES = $(patsubst %.c, $(blddir)/%, $(MANAGED_GWY_SAMPLE_SRCS))
 
+PSUTIL_SRCS = psutil/cpsutil.c
+PSUTIL_SAMPLE = $(blddir)/cpsutil
 
-.PHONY: all clean createCerts $(DEV_SAMPLES) $(GWY_SAMPLES) $(APP_SAMPLES) $(MANAGED_DEV_SAMPLES) $(MANAGED_GWY_SAMPLES)
+
+.PHONY: all clean createCerts $(DEV_SAMPLES) $(GWY_SAMPLES) $(APP_SAMPLES) $(MANAGED_DEV_SAMPLES) $(MANAGED_GWY_SAMPLES) $(PSUTIL_SAMPLE)
 
 all: mkdir build
 
 mkdir:
 	@mkdir -p $(blddir)
 
-build: $(DEV_SAMPLES) $(GWY_SAMPLES) $(APP_SAMPLES) $(MANAGED_DEV_SAMPLES) $(MANAGED_GWY_SAMPLES)
+build: $(DEV_SAMPLES) $(GWY_SAMPLES) $(APP_SAMPLES) $(MANAGED_DEV_SAMPLES) $(MANAGED_GWY_SAMPLES) $(PSUTIL_SAMPLE)
 
 
 $(DEV_SAMPLES): $(blddir)/%: $(DEV_SAMPLE_SRCS)
@@ -120,6 +123,9 @@ $(MANAGED_DEV_SAMPLES): $(blddir)/%: $(MANAGED_DEV_SAMPLE_SRCS)
 
 $(MANAGED_GWY_SAMPLES): $(blddir)/%: $(MANAGED_GWY_SAMPLE_SRCS)
 	$(CC) -g -o $@ $< $(INCDIRS) $(LDFLAGS_MANAGED_GWY) $(FLAGS_EXES)
+
+$(PSUTIL_SAMPLE): $(blddir)/%: $(PSUTIL_SRCS)
+	$(CC) -g -o $@ $< $(INCDIRS) $(LDFLAGS_DEV) $(FLAGS_EXES)
 
 
 createCerts:

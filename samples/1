@@ -840,23 +840,22 @@ IOTPRC iotp_client_connect(void *iotpClient)
 
     /* set connection options */
     conn_opts.keepAliveInterval = config->mqttopts->keepalive;
+    if ( port == 1883 ) {
+        conn_opts.cleansession = 1;
+    } else {
+        conn_opts.cleanstart = config->mqttopts->cleanStart;
+        conn_opts.cleansession = 0;
+    }
     conn_opts.onSuccess5 = onConnect;
     conn_opts.onFailure5 = onConnectFailure;
     conn_opts.MQTTVersion = MQTTVERSION_5;
     conn_opts.context = client;
     conn_opts.automaticReconnect = config->automaticReconnect;
-    if ( port == 1883 ) {
-        conn_opts.cleanstart = 1;
-        conn_opts.cleansession = 0;
-    } else {
-        conn_opts.cleanstart = config->mqttopts->cleanStart;
-        conn_opts.cleansession = 0;
-        if ( config->mqttopts->sessionExpiry > 0 ) {
-            property.identifier = MQTTPROPERTY_CODE_SESSION_EXPIRY_INTERVAL;
-            property.value.integer4 = config->mqttopts->sessionExpiry;
-            MQTTProperties_add(&props, &property);
-            conn_opts.connectProperties = &props;
-        }
+    if ( config->mqttopts->sessionExpiry > 0 ) {
+        property.identifier = MQTTPROPERTY_CODE_SESSION_EXPIRY_INTERVAL;
+        property.value.integer4 = config->mqttopts->sessionExpiry;
+        MQTTProperties_add(&props, &property);
+        conn_opts.connectProperties = &props;
     }
 
     /* set authentication credentials */

@@ -16,7 +16,7 @@
 #*******************************************************************************/
 
 SHELL = /bin/sh
-.PHONY: clean, mkdir, install, uninstall, buildreference, builddocs
+.PHONY: clean, mkdir, install, uninstall, buildreference, builddocs, samples
 
 TOP ?= $(shell pwd)
 
@@ -341,7 +341,7 @@ get-test-summary:
 	make -C test get-summary
 
 samples:
-	make -C sample
+	make -C samples
 
 $(blddir)/iotp_version.h: $(srcdir)/iotp_version.h.in
 	$(SED_COMMAND) $< > $@
