@@ -106,7 +106,11 @@ all: mkdir build
 mkdir:
 	@mkdir -p $(blddir)
 
+ifeq ($(OSTYPE),Darwin)
 build: $(DEV_SAMPLES) $(GWY_SAMPLES) $(APP_SAMPLES) $(MANAGED_DEV_SAMPLES) $(MANAGED_GWY_SAMPLES) $(PSUTIL_SAMPLE)
+else
+build: $(DEV_SAMPLES) $(GWY_SAMPLES) $(APP_SAMPLES) $(MANAGED_DEV_SAMPLES) $(MANAGED_GWY_SAMPLES)
+endif
 
 
 $(DEV_SAMPLES): $(blddir)/%: $(DEV_SAMPLE_SRCS)
