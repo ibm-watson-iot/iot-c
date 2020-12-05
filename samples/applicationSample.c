@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
     while(!interrupt)
     {
         fprintf(stdout, "Send status event\n");
-        rc = IoTPApplication_sendEvent(application,"devType1","dev1","status","json", data , QoS0, NULL);
+        rc = IoTPApplication_sendEvent(application,"devType1","dev1","status",data,"json",QoS0,NULL);
         fprintf(stdout, "RC from publishEvent(): %d\n", rc);
         sleep(10);
     }

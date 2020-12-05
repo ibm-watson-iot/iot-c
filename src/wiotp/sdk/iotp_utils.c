@@ -1208,4 +1208,56 @@ char * iotp_json_getAttr(IoTP_json_parse_t *json, int pos, char *name) {
     return NULL;
 }
 
+/* Match MQTT topic with topic filter. Returns 1 if matched */
+int iotp_match_mqttTopic(const char * topic, const char * filter) {
+    int len = topic ? (int)strlen(topic) : 0;
+    int lenm = filter ? (int)strlen(filter) : 0;
+
+    if (lenm == 1 && *filter == '#') return 1;
+
+    const char *filterp = filter;
+    char *copystr = (char *)alloca(len+1);
+    char *topicp = copystr;
+    strcpy(topicp, topic);
+
+    /*
+     * If we misfilter in the first literal area, fail.
+     * If the filter does not contain # or +, this will complete the filter.
+     */
+    while (*filterp != '#' && *filterp != '+') {
+        if (!*topicp)
+            return *filterp ?  0:1;
+        if (*topicp != *filterp) return  0;
+        topicp++;
+        filterp++;
+	len--;
+	lenm--;
+    }
+
+    /* Loop until we get a filter or fail */
+    for (;;) {
+        if (*filterp == '#') return 1;
+	if (*filterp == '+') {
+	    while (*filterp == '+') {
+		filterp++;
+		lenm--;
+		if (!lenm) break;
+	    }
+            while (*topicp != '/') {
+	        topicp++;
+		len--;
+		if (!len) break;
+	    }
+	}
+	if (!len && *filterp == 0) return 1;
+	if ( *topicp != *filterp) return 0;
+	topicp++;
+	filterp++;
+	len--;
+	lenm--;
+    }
+
+    return 1;
+}
+
 
