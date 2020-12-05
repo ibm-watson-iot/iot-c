@@ -21,7 +21,7 @@ SHELL = /bin/sh
 TOP ?= $(shell pwd)
 
 ifndef release.version
-  release.version = 0.1
+  release.version = 1.0
 endif
 
 # determine current platform
