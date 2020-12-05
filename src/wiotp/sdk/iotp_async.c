@@ -243,7 +243,7 @@ static IoTPHandler * iotp_client_getHandler(IoTPHandlers * handlers, char * topi
         int found = 0;
         for (i = 0; i < handlers->count; i++) {
             handler = handlers->entries[i];
-            if (topic && handler->topic && strcmp(topic, handler->topic) == 0) {
+            if (topic && handler->topic && (iotp_match_mqttTopic(topic, handler->topic) == 1)) {
                 found = 1;
                 break;
             }
@@ -1157,7 +1157,7 @@ IOTPRC iotp_client_setHandler(void *iotpClient, char *topic, int type, IoTPCallb
     int i=0;
     for (i = 0; i < client->handlers->count; i++) {
         IoTPHandler *handler = client->handlers->entries[i];
-        if (topic && handler->topic && strcmp(topic, handler->topic) == 0) {
+        if (topic && handler->topic && iotp_match_mqttTopic(topic, handler->topic) == 1) {
             found = 1;
             break;
         }
@@ -1367,7 +1367,7 @@ static int iotp_client_messageArrived(void *context, char *topicName, int topicL
 
         }
 
-        LOG(DEBUG, "Invoke callabck to process message: cmd/evt: %s | format: %s", commandName, format);
+        LOG(DEBUG, "Invoke callabck to process message: cmd/%s | format: %s", commandName, format);
         (*cb)(type, id, commandName, format, payload, payloadlen);
     } else {
         LOG(DEBUG, "No registered callback function is found to process the arrived message.");

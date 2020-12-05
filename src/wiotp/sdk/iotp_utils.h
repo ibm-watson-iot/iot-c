@@ -366,6 +366,7 @@ DLLExport int iotp_json_getInt(IoTP_json_parse_t * pobj, const char * name, int 
 DLLExport int iotp_json_getInteger(IoTP_json_parse_t * pobj, const char * name, int deflt);
 DLLExport double iotp_json_getNumber(IoTP_json_parse_t * pobj, const char * name, double deflt);
 DLLExport char * iotp_json_getAttr(IoTP_json_parse_t * pobj, int pos, char * name);
+DLLExport int iotp_match_mqttTopic(const char * topic, const char * filter);
 
 #define LOG(sev, fmts...) iotp_utils_log((LOGLEVEL_##sev), __FILE__, __FUNCTION__, __LINE__, fmts);
 

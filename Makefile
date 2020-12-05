@@ -1,5 +1,5 @@
 #*******************************************************************************
-#  Copyright (c) 2018-2019 IBM Corp.
+#  Copyright (c) 2018-2020 IBM Corp.
 #
 #  All rights reserved. This program and the accompanying materials
 #  are made available under the terms of the Eclipse Public License v1.0
@@ -21,7 +21,7 @@ SHELL = /bin/sh
 TOP ?= $(shell pwd)
 
 ifndef release.version
-  release.version = 0.1
+  release.version = 1.0
 endif
 
 # determine current platform
@@ -314,10 +314,10 @@ paho-mqtt-download:
 	then \
 	mkdir -p download; \
 	cd download; \
-	curl -LJO https://github.com/eclipse/paho.mqtt.c/archive/v1.3.0.tar.gz; \
+	curl -LJO https://github.com/eclipse/paho.mqtt.c/archive/v1.3.7.tar.gz; \
 	cd .. ; \
-	tar xzf download/paho.mqtt.c-1.3.0.tar.gz; \
-	mv paho.mqtt.c-1.3.0 paho.mqtt.c; \
+	tar xzf download/paho.mqtt.c-1.3.7.tar.gz; \
+	mv paho.mqtt.c-1.3.7 paho.mqtt.c; \
 	$(SED_I) 's/-DOPENSSL /-DOPENSSL -DOPENSSL_LOAD_CONF /g' paho.mqtt.c/Makefile; \
 	fi
 
